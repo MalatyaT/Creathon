@@ -6,6 +6,7 @@ import {
   assignAsHomeworkAction,
   type TestItem,
 } from "@/app/panel/soru-olustur/actions";
+import { Markdown } from "@/components/ui/markdown";
 
 const COUNTS = [5, 10, 15, 20];
 const LEVELS = ["Kolay", "Orta", "Zor", "Karışık"];
@@ -179,7 +180,9 @@ export function TestBuilder({ topics }: { topics: string[] }) {
                     {q.no}
                   </div>
                   <div className="min-w-0">
-                    <div className="text-[15px] leading-relaxed">{q.text}</div>
+                    <div className="text-[15px] leading-relaxed">
+                      <Markdown>{q.text}</Markdown>
+                    </div>
                     {q.options.length > 0 && (
                       <div className="mt-1.5 grid gap-1 text-sm text-foreground/75 sm:grid-cols-2">
                         {q.options.map((opt, i) => (

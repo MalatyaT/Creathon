@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Markdown } from "@/components/ui/markdown";
 
 export type FlowItem = {
   id: string;
@@ -26,8 +27,8 @@ export function SolveFlow({ items }: { items: FlowItem[] }) {
             )}
           </button>
           {openId === item.id && (
-            <div className="mb-3 whitespace-pre-wrap rounded-lg bg-surface-muted px-3.5 py-3 text-sm leading-relaxed text-foreground/75">
-              {item.note}
+            <div className="mb-3 rounded-lg bg-surface-muted px-3.5 py-3 text-sm leading-relaxed text-foreground/75">
+              <Markdown>{item.note}</Markdown>
             </div>
           )}
         </div>

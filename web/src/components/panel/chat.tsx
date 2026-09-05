@@ -3,6 +3,7 @@
 import { useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import { sendMessageAction } from "@/app/panel/soru-sor/actions";
 import type { ChatTurn } from "@/lib/gemini-tasks/answer-question";
+import { Markdown } from "@/components/ui/markdown";
 
 type Message = {
   id: string;
@@ -140,7 +141,7 @@ export function Chat() {
                   className="mb-2 max-h-40 rounded-lg border border-border"
                 />
               )}
-              {m.text}
+              {m.role === "assistant" ? <Markdown>{m.text}</Markdown> : m.text}
               {(m.topicLabel || m.sourceReference) && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {m.topicLabel && (
