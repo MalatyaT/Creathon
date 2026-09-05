@@ -22,6 +22,14 @@
 
 **Sırada:** Supabase projesini gerçekten oluşturup `.env.local`'daki `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY`/`SERVICE_ROLE_KEY`'i doldurmak (bkz. Faz 1) — bağlanır bağlanmaz demo modu ve önizleme mesajları otomatik olarak gerçek kayıt/girişe döner.
 
+## GitHub / Supabase bağlantısı
+
+- [x] Kod, `https://github.com/MalatyaT/Creathon` (private) reposuna push edildi — tek repo, kök dizinde `web/` (Next.js), `supabase/migrations/` ve bu TODO.
+- [x] Supabase projesi oluşturuldu: `https://nqpgvvzkpbmfeorinhfi.supabase.co`, GitHub'a bağlandı.
+- [ ] **Eksik:** Bu projenin `anon` ve `service_role` key'leri henüz `.env.local`'da yok (Project Settings → API'den alınır) — onlar gelmeden gerçek auth/DB devreye girmiyor, demo modu sürüyor.
+- [ ] Migration'lar (`supabase/migrations/0001-0004`) bu projeye henüz uygulanmadı — Supabase'in GitHub entegrasyonu bunu otomatik yapıyorsa doğrulanmalı, yapmıyorsa `supabase db push` (CLI login gerektirir) ya da Supabase Dashboard → SQL Editor'den elle çalıştırılmalı.
+- [ ] Vercel'e deploy ederken aynı üç env değişkeni + `GEMINI_API_KEY` orada da tanımlanmalı.
+
 ## 0. Mevcut durumun tespiti
 
 İncelenen dosyalar: `Ogrenci Paneli.dc.html`, `Ogrenci Paneli v1.dc.html`, `support.js`, `_ds/broadsheet-.../` (tasarım sistemi).
