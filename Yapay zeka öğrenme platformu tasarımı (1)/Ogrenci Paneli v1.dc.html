@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/broadsheet-7ac7efa0-5114-4cd0-b032-940949d6425a/styles.css">
+<script src="_ds/broadsheet-7ac7efa0-5114-4cd0-b032-940949d6425a/_ds_bundle.js"></script>
+<style>
+html, body { margin: 0; background: var(--color-bg); }
+a { color: var(--color-accent); text-decoration: none; }
+a:hover { color: var(--color-accent-700); }
+</style>
+</helmet>
+
+<div style="display: flex; align-items: stretch; min-height: 100vh; background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); font-size: 15px; line-height: 1.55;">
+
+  <aside style="width: 262px; flex: none; padding: 34px 24px 40px 40px; display: flex; flex-direction: column; gap: 36px;">
+    <div>
+      <div style="font-family: var(--font-heading); font-weight: 600; font-size: 27px; letter-spacing: -0.02em; line-height: 1;">İkiz</div>
+      <div style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-accent); margin-top: 7px;">Çalışma platformu</div>
+    </div>
+
+    <nav style="display: flex; flex-direction: column; gap: 1px; font-family: var(--font-heading); font-weight: 600; font-size: 16px;">
+      <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="8">
+        <div onClick="{{ item.go }}" style="cursor: pointer; padding: 7px 0; color: {{ item.ink }};" style-hover="color: var(--color-accent);">{{ item.label }}</div>
+      </sc-for>
+    </nav>
+
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: auto;">
+      <div style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: color-mix(in srgb, var(--color-text) 50%, transparent);">Program</div>
+      <div class="seg" style="align-self: flex-start;">
+        <label class="seg-opt"><input type="radio" name="exam" checked="{{ isYKS }}" onChange="{{ pickYKS }}" />YKS</label>
+        <label class="seg-opt"><input type="radio" name="exam" checked="{{ isLGS }}" onChange="{{ pickLGS }}" />LGS</label>
+      </div>
+      <div style="font-size: 12px; color: color-mix(in srgb, var(--color-text) 55%, transparent); line-height: 1.4;">{{ examNote }}</div>
+    </div>
+  </aside>
+
+  <main style="flex: 1; min-width: 0; padding: 34px 56px 90px 24px; max-width: 1080px;">
+
+    <header style="display: flex; align-items: baseline; gap: 20px; margin-bottom: 44px;">
+      <div>
+        <h1 style="font-size: 38px; margin: 0 0 4px;">Merhaba Deniz</h1>
+        <div style="font-size: 14px; color: color-mix(in srgb, var(--color-text) 60%, transparent);">{{ dateLine }} · İkizin bu sabah {{ twinCount }} soru çözdü.</div>
+      </div>
+      <div style="margin-left: auto; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-accent-2);">{{ tabLabel }}</div>
+    </header>
+
+    <sc-if value="{{ onPanel }}" hint-placeholder-val="{{ true }}">
+      <section data-screen-label="Panel" style="display: flex; flex-direction: column; gap: 54px;">
+
+        <div style="display: flex; align-items: flex-end; gap: 56px; flex-wrap: wrap;">
+          <div>
+            <div style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: color-mix(in srgb, var(--color-text) 55%, transparent); margin-bottom: 14px;">Bu haftanın net ortalaması</div>
+            <div class="cmyk-num" style="font-family: var(--font-heading); font-weight: 600; font-size: 92px;">
+              <span class="paper">{{ heroNet }}</span>
+              <span class="plate plate-c" aria-hidden="true">{{ heroNet }}</span>
+              <span class="plate plate-m" aria-hidden="true">{{ heroNet }}</span>
+              <span class="plate plate-y" aria-hidden="true">{{ heroNet }}</span>
+            </div>
+            <div style="font-size: 14px; margin-top: 14px; color: var(--color-accent-700);">{{ heroDelta }}</div>
+          </div>
+          <div style="display: flex; gap: 44px; flex-wrap: wrap; padding-bottom: 8px;">
+            <sc-for list="{{ stats }}" as="s" hint-placeholder-count="3">
+              <div style="min-width: 132px;">
+                <div style="font-family: var(--font-heading); font-weight: 600; font-size: 34px; line-height: 1;">{{ s.value }}</div>
+                <div style="font-size: 13px; margin-top: 8px; color: color-mix(in srgb, var(--color-text) 62%, transparent); line-height: 1.35;">{{ s.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.35fr 1fr; gap: 60px; align-items: start;">
+          <div>
+            <h3 style="margin-bottom: 6px;">İkizinin bugün öne çıkardığı sorular</h3>
+            <p style="font-size: 14px; color: color-mix(in srgb, var(--color-text) 62%, transparent); max-width: 46ch;">Senin çözdüğün sorularla eğitilen ikizin bunları da yanlış yaptı. Aynı tuzağa düşme ihtimalin yüksek.</p>
+            <div style="display: flex; flex-direction: column; gap: 22px; margin-top: 22px;">
+              <sc-for list="{{ picks }}" as="p" hint-placeholder-count="3">
+                <div style="display: flex; gap: 16px; align-items: baseline;">
+                  <div style="font-family: var(--font-heading); font-weight: 600; font-size: 13px; color: var(--color-accent); width: 26px; flex: none;">{{ p.no }}</div>
+                  <div>
+                    <div style="font-family: var(--font-heading); font-weight: 600; font-size: 17px;">{{ p.title }}</div>
+                    <div style="font-size: 13px; color: color-mix(in srgb, var(--color-text) 60%, transparent); margin-top: 3px;">{{ p.reason }}</div>
+                    <div style="margin-top: 8px; display: flex; gap: 8px;">
+                      <span class="tag tag-accent-2">{{ p.risk }}</span>
+                      <span class="tag tag-neutral">{{ p.source }}</span>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 30px;">
+              <button class="btn btn-primary" onClick="{{ goAsk }}">Bota soru sor</button>
+              <button class="btn btn-secondary" onClick="{{ goCreate }}">Test oluştur</button>
+            </div>
+          </div>
+
+          <div>
+            <h3 style="margin-bottom: 18px;">Bugünün ödevi</h3>
+            <div style="display: flex; flex-direction: column; gap: 18px;">
+              <sc-for list="{{ todayHomework }}" as="h" hint-placeholder-count="2">
+                <div>
+                  <div style="font-family: var(--font-heading); font-weight: 600; font-size: 15px;">{{ h.book }}</div>
+                  <div style="font-size: 13px; color: color-mix(in srgb, var(--color-text) 60%, transparent); margin-top: 2px;">{{ h.detail }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top: 26px; font-size: 13px;">
+              <a href="#" onClick="{{ goHomework }}">Tüm ödevlendirmeler</a>
+            </div>
+            <div style="margin-top: 44px;">
+              <h3 style="margin-bottom: 14px;">Zayıf üç konu</h3>
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <sc-for list="{{ weakThree }}" as="w" hint-placeholder-count="3">
+                  <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px;">
+                      <span>{{ w.name }}</span>
+                      <span style="color: color-mix(in srgb, var(--color-text) 55%, transparent);">{{ w.pctLabel }}</span>
+                    </div>
+                    <div style="height: 6px; background: var(--color-neutral-200);">
+                      <div style="height: 6px; width: {{ w.pctLabel }}; background: var(--color-accent-2-500);"></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ onTwin }}" hint-placeholder-val="{{ true }}">
+      <section data-screen-label="Dijital İkiz" style="display: flex; flex-direction: column; gap: 52px;">
+        <div style="max-width: 60ch;">
+          <h2>Dijital ikizin</h2>
+          <p style="font-size: 15px;">İkizin, bugüne kadar çözdüğün {{ solvedTotal }} sorudan öğrendi. Her gece havuzdaki yeni soruları senin alışkanlıklarınla çözüyor; nerede yanılıyorsa senin de yanılma ihtimalin orada yüksek.</p>
+        </div>
+
+        <div>
+          <div style="display: flex; align-items: baseline; gap: 16px; margin-bottom: 18px;">
+            <h3 style="margin: 0;">Hata risk haritası</h3>
+            <div style="font-size: 12px; color: color-mix(in srgb, var(--color-text) 55%, transparent);">koyu = yanılma ihtimali yüksek</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 4px;">
+            <sc-for list="{{ heat }}" as="c" hint-placeholder-count="16">
+              <div onClick="{{ c.select }}" style="cursor: pointer; padding: 14px 14px 12px; background: {{ c.bg }}; color: {{ c.ink }}; min-height: 88px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div style="font-family: var(--font-heading); font-weight: 600; font-size: 14px; line-height: 1.2;">{{ c.name }}</div>
+                <div style="font-size: 12px;">%{{ c.risk }} risk</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start;">
+          <div>
+            <h3 style="margin-bottom: 6px;">İkizin çözüm akışı</h3>
+            <p style="font-size: 14px; color: color-mix(in srgb, var(--color-text) 62%, transparent);">Dün gece, 04.20 — 240 soru. Satıra dokun, gerekçeyi göster.</p>
+            <div style="display: flex; flex-direction: column; gap: 2px; margin-top: 20px;">
+              <sc-for list="{{ flow }}" as="f" hint-placeholder-count="6">
+                <div onClick="{{ f.toggle }}" style="cursor: pointer; padding: 13px 14px 13px 0; border-bottom: 1px solid var(--color-divider);">
+                  <div style="display: flex; gap: 14px; align-items: baseline;">
+                    <div style="width: 62px; flex: none; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: {{ f.markInk }};">{{ f.mark }}</div>
+                    <div style="flex: 1;">
+                      <div style="font-family: var(--font-heading); font-weight: 600; font-size: 15px;">{{ f.q }}</div>
+                      <div style="font-size: 12px; color: color-mix(in srgb, var(--color-text) 55%, transparent); margin-top: 2px;">{{ f.topic }}</div>
+                    </div>
+                  </div>
+                  <sc-if value="{{ f.open }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin: 12px 0 2px 76px; font-size: 13px; line-height: 1.5; color: var(--color-accent-800); background: var(--color-accent-100); padding: 12px 14px;">{{ f.note }}</div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div>
+            <h3 style="margin-bottom: 6px;">{{ selectedTopic }}</h3>
+            <p style="font-size: 14px; color: color-mix(in srgb, var(--color-text) 62%, transparent);">Haritadan seçtiğin konu. İkizin bu konuda {{ selectedRisk }} yanılıyor.</p>
+            <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 20px;">
+              <sc-for list="{{ selectedMistakes }}" as="m" hint-placeholder-count="3">
+                <div style="display: flex; gap: 12px; align-items: baseline;">
+                  <div style="width: 44px; flex: none; font-family: var(--font-heading); font-weight: 600; font-size: 20px; color: var(--color-accent-2);">{{ m.share }}</div>
+                  <div style="font-size: 14px; line-height: 1.45;">{{ m.text }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <button class="btn btn-primary" style="margin-top: 26px;" onClick="{{ goCreate }}">Bu konudan test oluştur</button>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ onHomework }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Ödevler" style="display: flex; flex-direction: column; gap: 46px;">
+        <div style="max-width: 62ch;">
+          <h2>Ödevlendirme</h2>
+          <p>Kaynak kitapların semantik olarak işlendi: her soru konusuna, kazanımına ve zorluğuna göre etiketli. Sorduğun soru veya zayıf konun, kitabın tam ilgili bölümüne ödev olarak dönüyor.</p>
+        </div>
+
+        <div>
+          <div style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: color-mix(in srgb, var(--color-text) 50%, transparent); margin-bottom: 12px;">İşlenmiş kaynaklar</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <sc-for list="{{ books }}" as="b" hint-placeholder-count="4">
+              <span class="tag tag-outline">{{ b }}</span>
+            </sc-for>
+          </div>
+        </div>
+
+        <div>
+          <div style="display: flex; align-items: baseline; gap: 18px; margin-bottom: 6px;">
+            <h3 style="margin: 0;">Bu haftanın ödevleri</h3>
+            <div style="font-size: 13px; color: color-mix(in srgb, var(--color-text) 55%, transparent);">{{ hwProgressLabel }}</div>
+          </div>
+          <div style="height: 6px; background: var(--color-neutral-200); max-width: 420px; margin-bottom: 30px;">
+            <div style="height: 6px; width: {{ hwProgressPct }}; background: var(--color-accent);"></div>
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+            <sc-for list="{{ homework }}" as="h" hint-placeholder-count="5">
+              <div style="display: flex; gap: 18px; align-items: flex-start; padding: 20px 0; border-bottom: 1px solid var(--color-divider);">
+                <div onClick="{{ h.toggle }}" style="width: 20px; height: 20px; flex: none; margin-top: 3px; cursor: pointer; border: 1.5px solid {{ h.boxBorder }}; background: {{ h.boxBg }}; color: var(--color-bg); display: flex; align-items: center; justify-content: center;">
+                  <sc-if value="{{ h.done }}" hint-placeholder-val="{{ false }}">
+                    <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.4 6.4 11.8 13 4.6" stroke="currentColor" stroke-width="2.1" fill="none" stroke-linecap="round"></path></svg>
+                  </sc-if>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-family: var(--font-heading); font-weight: 600; font-size: 17px; color: {{ h.titleInk }};">{{ h.book }}</div>
+                  <div style="font-size: 14px; margin-top: 3px;">{{ h.detail }}</div>
+                  <div style="font-size: 13px; color: color-mix(in srgb, var(--color-text) 58%, transparent); margin-top: 7px; max-width: 58ch;">{{ h.reason }}</div>
+                </div>
+                <div style="flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                  <span class="tag tag-accent">{{ h.topic }}</span>
+                  <span style="font-size: 12px; color: color-mix(in srgb, var(--color-text) 50%, transparent);">{{ h.due }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ onAsk }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Soru Sor" style="display: flex; flex-direction: column; gap: 26px; max-width: 760px;">
+        <div style="max-width: 58ch;">
+          <h2>Soru sor</h2>
+          <p style="font-size: 14px; color: color-mix(in srgb, var(--color-text) 62%, transparent);">Fotoğraf çek ya da yaz. Çözüm {{ curriculumName }} müfredatına göre, senin gördüğün yöntemle anlatılır.</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 20px; min-height: 300px;">
+          <sc-for list="{{ chat }}" as="m" hint-placeholder-count="3">
+            <div style="display: flex; justify-content: {{ m.align }};">
+              <div style="max-width: 74%; padding: 14px 16px; background: {{ m.bg }}; color: {{ m.ink }}; font-size: 14px; line-height: 1.55;">
+                <div style="font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.6; margin-bottom: 7px;">{{ m.who }}</div>
+                <div style="white-space: pre-wrap;">{{ m.text }}</div>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size: 13px; color: var(--color-accent-700);">yazıyor…</div>
+          </sc-if>
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <sc-for list="{{ prompts }}" as="p" hint-placeholder-count="3">
+            <span onClick="{{ p.use }}" class="tag tag-neutral" style="cursor: pointer;">{{ p.label }}</span>
+          </sc-for>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: flex-end;">
+          <div class="field" style="flex: 1;">
+            <label>Sorun</label>
+            <textarea class="input" style="min-height: 74px;" placeholder="Soruyu yaz ya da fotoğrafını yükle…" value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onDraftKey }}"></textarea>
+          </div>
+          <button class="btn btn-primary" style="height: 40px;" onClick="{{ send }}">Gönder</button>
+        </div>
+        <div style="font-size: 12px; color: color-mix(in srgb, var(--color-text) 50%, transparent);">Gemini API üzerinden yanıtlanır · her yanıt kazanım etiketiyle ikizine işlenir</div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ onCreate }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Soru Oluştur" style="display: flex; flex-direction: column; gap: 40px;">
+        <div style="max-width: 60ch;">
+          <h2>Soru oluştur</h2>
+          <p>Havuzdaki sorulara ve ikizinin hata desenine bakarak yeni bir test yazılır. Sonuç PDF olarak iner; cevap anahtarı arkada.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 300px 1fr; gap: 60px; align-items: start;">
+          <div style="display: flex; flex-direction: column; gap: 22px;">
+            <div class="field">
+              <label>Konu</label>
+              <select class="input" value="{{ genTopic }}" onChange="{{ onGenTopic }}">
+                <sc-for list="{{ topicNames }}" as="t" hint-placeholder-count="8">
+                  <option value="{{ t }}">{{ t }}</option>
+                </sc-for>
+              </select>
+            </div>
+            <div class="field">
+              <label>Soru sayısı</label>
+              <div class="seg">
+                <sc-for list="{{ counts }}" as="c" hint-placeholder-count="3">
+                  <label class="seg-opt"><input type="radio" name="count" checked="{{ c.on }}" onChange="{{ c.pick }}" />{{ c.n }}</label>
+                </sc-for>
+              </div>
+            </div>
+            <div class="field">
+              <label>Zorluk</label>
+              <div class="seg">
+                <sc-for list="{{ levels }}" as="l" hint-placeholder-count="3">
+                  <label class="seg-opt"><input type="radio" name="level" checked="{{ l.on }}" onChange="{{ l.pick }}" />{{ l.label }}</label>
+                </sc-for>
+              </div>
+            </div>
+            <label class="radio" onClick="{{ toggleTwinBias }}">
+              <span class="dot" style="border-color: {{ biasBorder }}; background: {{ biasBg }}; box-shadow: {{ biasShadow }};"></span>
+              İkizimin hata desenini ağırlıklandır
+            </label>
+            <button class="btn btn-primary btn-block" onClick="{{ generate }}">Testi oluştur</button>
+          </div>
+
+          <div>
+            <sc-if value="{{ hasTest }}" hint-placeholder-val="{{ true }}">
+              <div>
+                <div style="display: flex; align-items: baseline; gap: 16px; margin-bottom: 4px;">
+                  <h3 style="margin: 0;">{{ testTitle }}</h3>
+                  <span class="tag tag-accent-2">{{ testMeta }}</span>
+                </div>
+                <div style="font-size: 13px; color: color-mix(in srgb, var(--color-text) 55%, transparent); margin-bottom: 26px;">{{ testStamp }}</div>
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                  <sc-for list="{{ testItems }}" as="q" hint-placeholder-count="4">
+                    <div style="display: flex; gap: 16px; align-items: baseline;">
+                      <div style="width: 26px; flex: none; font-family: var(--font-heading); font-weight: 600; font-size: 15px; color: var(--color-accent);">{{ q.no }}</div>
+                      <div style="min-width: 0;">
+                        <div style="font-size: 15px; line-height: 1.5;">{{ q.text }}</div>
+                        <div style="display: flex; gap: 8px; margin-top: 9px; flex-wrap: wrap;">
+                          <span class="tag tag-neutral">{{ q.gain }}</span>
+                          <span class="tag tag-neutral">{{ q.level }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 34px;">
+                  <button class="btn btn-primary" onClick="{{ download }}">PDF olarak indir</button>
+                  <button class="btn btn-secondary" onClick="{{ generate }}">Yeniden üret</button>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ noTest }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size: 14px; color: color-mix(in srgb, var(--color-text) 55%, transparent); max-width: 40ch;">Soldan konu ve zorluk seç, testi oluştur. Önizleme burada çıkacak.</div>
+            </sc-if>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ onVideo }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Videolar" style="display: flex; flex-direction: column; gap: 34px;">
+        <div style="max-width: 58ch;">
+          <h2>Video önerileri</h2>
+          <p style="font-size: 14px; color: color-mix(in srgb, var(--color-text) 62%, transparent);">Zayıf konularına ve son sorduğun soruya göre sıralandı.</p>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <sc-for list="{{ videoFilters }}" as="f" hint-placeholder-count="4">
+            <span onClick="{{ f.pick }}" class="{{ f.cls }}" style="cursor: pointer;">{{ f.label }}</span>
+          </sc-for>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(258px, 1fr)); gap: 30px 26px;">
+          <sc-for list="{{ videos }}" as="v" hint-placeholder-count="6">
+            <div>
+              <div class="halftone" style="aspect-ratio: 16 / 9; background: var(--color-neutral-300); display: flex; align-items: flex-end; padding: 10px;">
+                <span style="font-family: var(--font-heading); font-weight: 600; font-size: 11px; background: var(--color-bg); padding: 2px 6px;">{{ v.dur }}</span>
+              </div>
+              <div style="font-family: var(--font-heading); font-weight: 600; font-size: 16px; margin-top: 12px; line-height: 1.25;">{{ v.title }}</div>
+              <div style="font-size: 13px; color: color-mix(in srgb, var(--color-text) 58%, transparent); margin-top: 4px;">{{ v.channel }}</div>
+              <div style="font-size: 13px; color: var(--color-accent-700); margin-top: 8px;">{{ v.why }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ onStats }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Analiz" style="display: flex; flex-direction: column; gap: 56px;">
+        <div style="max-width: 58ch;">
+          <h2>Analiz</h2>
+          <p style="font-size: 14px; color: color-mix(in srgb, var(--color-text) 62%, transparent);">Girdiğin {{ examCount }} denemenin kümülatif dökümü.</p>
+        </div>
+
+        <div>
+          <div style="display: flex; align-items: baseline; gap: 18px; margin-bottom: 22px;">
+            <h3 style="margin: 0;">Ay ay net ortalaması</h3>
+            <div class="seg">
+              <sc-for list="{{ ranges }}" as="r" hint-placeholder-count="2">
+                <label class="seg-opt"><input type="radio" name="range" checked="{{ r.on }}" onChange="{{ r.pick }}" />{{ r.label }}</label>
+              </sc-for>
+            </div>
+          </div>
+          <div style="position: relative; width: 100%; max-width: 680px; padding-bottom: 26px;">
+            <svg viewBox="0 0 680 195" style="width: 100%; display: block; overflow: visible;">
+              <sc-for list="{{ gridLines }}" as="g" hint-placeholder-count="4">
+                <line x1="0" y1="{{ g.y }}" x2="680" y2="{{ g.y }}" stroke="var(--color-divider)" stroke-width="1"></line>
+              </sc-for>
+              <polyline points="{{ linePoints }}" fill="none" stroke="var(--color-accent)" stroke-width="2.5"></polyline>
+              <sc-for list="{{ lineDots }}" as="d" hint-placeholder-count="10">
+                <circle cx="{{ d.x }}" cy="{{ d.y }}" r="4" fill="var(--color-accent-2)"></circle>
+              </sc-for>
+            </svg>
+            <sc-for list="{{ lineDots }}" as="d" hint-placeholder-count="10">
+              <div style="position: absolute; left: {{ d.leftPct }}; top: {{ d.topPct }}; transform: translate(-50%, -180%); font-family: var(--font-heading); font-weight: 600; font-size: 12px; white-space: nowrap;">{{ d.net }}</div>
+            </sc-for>
+            <sc-for list="{{ lineDots }}" as="d" hint-placeholder-count="10">
+              <div style="position: absolute; left: {{ d.leftPct }}; bottom: 0; transform: translateX(-50%); font-size: 11px; white-space: nowrap; color: color-mix(in srgb, var(--color-text) 55%, transparent);">{{ d.label }}</div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start;">
+          <div>
+            <h3 style="margin-bottom: 20px;">Hafta hafta çözülen soru</h3>
+            <div style="display: flex; align-items: flex-end; gap: 12px; height: 150px;">
+              <sc-for list="{{ weeks }}" as="w" hint-placeholder-count="8">
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                  <div style="font-size: 11px; color: color-mix(in srgb, var(--color-text) 55%, transparent);">{{ w.n }}</div>
+                  <div style="width: 100%; height: {{ w.h }}; background: {{ w.fill }};"></div>
+                  <div style="font-size: 11px; color: color-mix(in srgb, var(--color-text) 55%, transparent);">{{ w.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div>
+            <h3 style="margin-bottom: 20px;">Güçlü ve zayıf konular</h3>
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <sc-for list="{{ strengths }}" as="s" hint-placeholder-count="6">
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px;">
+                    <span>{{ s.name }}</span>
+                    <span style="color: color-mix(in srgb, var(--color-text) 55%, transparent);">{{ s.pct }}</span>
+                  </div>
+                  <div style="height: 7px; background: var(--color-neutral-200);">
+                    <div style="height: 7px; width: {{ s.pct }}; background: {{ s.fill }};"></div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="margin-bottom: 18px;">Sınıf, ilçe, il</h3>
+          <table class="table" style="max-width: 720px;">
+            <thead>
+              <tr><th>Deneme</th><th>Net</th><th>Sınıf</th><th>İlçe</th><th>İl</th></tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ ranks }}" as="r" hint-placeholder-count="4">
+                <tr>
+                  <td>{{ r.name }}</td>
+                  <td>{{ r.net }}</td>
+                  <td>{{ r.cls }}</td>
+                  <td>{{ r.district }}</td>
+                  <td>{{ r.city }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ onGuardian }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Öğretmen ve veli" style="display: flex; flex-direction: column; gap: 46px;">
+        <div style="max-width: 60ch;">
+          <h2>Öğretmen ve veli görünümü</h2>
+          <p style="font-size: 14px; color: color-mix(in srgb, var(--color-text) 62%, transparent);">Paylaşılan özet. Sohbet kayıtları ve ham soru çözümleri paylaşılmaz.</p>
+        </div>
+
+        <div style="display: flex; gap: 56px; flex-wrap: wrap;">
+          <sc-for list="{{ guardianStats }}" as="g" hint-placeholder-count="4">
+            <div style="min-width: 138px;">
+              <div style="font-family: var(--font-heading); font-weight: 600; font-size: 32px; line-height: 1;">{{ g.value }}</div>
+              <div style="font-size: 13px; margin-top: 8px; color: color-mix(in srgb, var(--color-text) 60%, transparent);">{{ g.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div>
+          <h3 style="margin-bottom: 16px;">Haftanın notları</h3>
+          <div style="display: flex; flex-direction: column;">
+            <sc-for list="{{ guardianNotes }}" as="n" hint-placeholder-count="4">
+              <div style="display: flex; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--color-divider);">
+                <div style="width: 86px; flex: none; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: {{ n.ink }};">{{ n.kind }}</div>
+                <div style="font-size: 14px; line-height: 1.5;">{{ n.text }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-primary" onClick="{{ download }}">Haftalık raporu indir</button>
+          <button class="btn btn-secondary" onClick="{{ goStats }}">Analize git</button>
+        </div>
+      </section>
+    </sc-if>
+
+  </main>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 1024}}">
+const DATA = {
+  YKS: {
+    curriculum: 'TYT/AYT',
+    note: 'TYT + AYT Sayısal · 2026',
+    solved: 4820,
+    heroNet: '86,4',
+    delta: 'Geçen haftaya göre +4,1 net',
+    examCount: 21,
+    topics: [
+      ['Limit ve Süreklilik', 84], ['Türev Uygulamaları', 78], ['Permütasyon', 71],
+      ['Olasılık', 66], ['Logaritma', 61], ['Trigonometri', 57], ['Çember', 52],
+      ['Polinomlar', 44], ['Fonksiyonlar', 38], ['Diziler', 33], ['Katı Cisimler', 29],
+      ['Analitik Geometri', 24], ['Sayı Basamakları', 19], ['Mutlak Değer', 15],
+      ['Oran Orantı', 11], ['Rasyonel Sayılar', 8]
+    ],
+    picks: [
+      { title: 'Parametreli limitte tek taraflı inceleme', reason: 'İkizin soldan limiti almayı atladı; senin son 6 hatanın 4\'ü aynı yerde.', risk: '%84 risk', source: '3D TYT Matematik · s.212' },
+      { title: 'Türevle maksimum-minimum kurma sorusu', reason: 'Kısıt denklemini kurarken değişkeni yanlış eleme deseni.', risk: '%78 risk', source: 'Bilfen AYT Soru Bankası' },
+      { title: 'Tekrarlı permütasyonda özdeş nesneler', reason: 'Faktöriyele bölmeyi unutma; iki denemede üst üste.', risk: '%71 risk', source: 'Karekök Denemesi 12' }
+    ],
+    books: ['3D TYT Matematik Soru Bankası', 'Bilfen AYT Matematik', 'Karekök TYT Deneme Seti', 'Endemik Fizik Föy', 'Palme AYT Geometri'],
+    homework: [
+      { book: '3D TYT Matematik Soru Bankası', detail: 'Bölüm 14 · s. 210–214 · 1–24. sorular', reason: 'Dün sorduğun parametreli limit sorusunun kazanımı bu bölümde; ikizin de burada yanılıyor.', topic: 'Limit', due: 'Bugün' },
+      { book: 'Bilfen AYT Matematik', detail: 'Türev · Test 6 · 1–20', reason: 'Maksimum-minimum kurulumunda tekrar eden hata deseni.', topic: 'Türev', due: 'Yarın' },
+      { book: 'Karekök TYT Deneme Seti', detail: 'Deneme 12 · Matematik bölümü', reason: 'İki haftadır deneme çözmedin; hız kaybı görünüyor.', topic: 'Genel', due: 'Cumartesi' },
+      { book: 'Palme AYT Geometri', detail: 'Çemberde açı · s. 88–91 · 1–18', reason: 'Çember risk haritasında orta bantta; tekrar aralığı doldu.', topic: 'Çember', due: 'Pazar' },
+      { book: 'Endemik Fizik Föy', detail: 'Föy 9 · Hareket · 1–15', reason: 'Vektörel hız sorularında birim hatası.', topic: 'Fizik', due: 'Pazartesi' }
+    ],
+    prompts: ['Bu limitte neden soldan limit alıyoruz?', 'Türevle maksimum nasıl kurulur?', 'Tekrarlı permütasyon örneği ver'],
+    videos: [
+      { title: 'Parametreli limit soruları: tek taraflı inceleme', channel: 'Tonguç Akademi', dur: '14:02', why: 'Bugünün ödeviyle aynı kazanım', topic: 'Limit' },
+      { title: 'Türev ile maksimum-minimum kurulumu', channel: 'Hocalara Geldik', dur: '21:37', why: 'İkizinin en çok yanıldığı kurulum', topic: 'Türev' },
+      { title: 'Tekrarlı permütasyon 12 soruda', channel: 'Rehber Matematik', dur: '18:20', why: 'İki denemede üst üste hata', topic: 'Permütasyon' },
+      { title: 'Süreklilik: grafikten okuma', channel: 'Kunduz', dur: '09:48', why: 'Limit konusunun ön koşulu', topic: 'Limit' },
+      { title: 'Çemberde açı: teğet-kiriş', channel: 'Selin Hoca', dur: '16:11', why: 'Tekrar aralığı doldu', topic: 'Çember' },
+      { title: 'Logaritma taban değiştirme kısayolları', channel: 'Tonguç Akademi', dur: '11:26', why: 'Orta risk bandı', topic: 'Logaritma' }
+    ],
+    months: [['Eki', 62], ['Kas', 66], ['Ara', 64], ['Oca', 71], ['Şub', 74], ['Mar', 72], ['Nis', 79], ['May', 82], ['Haz', 81], ['Tem', 86]],
+    weeks: [['1', 180], ['2', 240], ['3', 210], ['4', 305], ['5', 260], ['6', 340], ['7', 290], ['8', 385]],
+    strengths: [
+      ['Rasyonel Sayılar', 92], ['Oran Orantı', 88], ['Mutlak Değer', 84],
+      ['Fonksiyonlar', 62], ['Olasılık', 41], ['Türev Uygulamaları', 28]
+    ],
+    ranks: [
+      { name: 'Karekök Deneme 12', net: '88,25', cls: '2 / 34', district: '41 / 1.208', city: '612 / 18.940' },
+      { name: 'Bilfen TYT 7', net: '84,50', cls: '3 / 34', district: '58 / 1.190', city: '804 / 18.612' },
+      { name: 'Okul Denemesi 4', net: '86,75', cls: '1 / 34', district: '36 / 1.204', city: '540 / 18.880' },
+      { name: 'Karekök Deneme 11', net: '80,00', cls: '5 / 33', district: '77 / 1.176', city: '1.102 / 18.410' }
+    ]
+  },
+  LGS: {
+    curriculum: '8. sınıf MEB',
+    note: '8. sınıf · LGS 2026',
+    solved: 3160,
+    heroNet: '78,2',
+    delta: 'Geçen haftaya göre +2,6 net',
+    examCount: 16,
+    topics: [
+      ['Çarpanlar ve Katlar', 79], ['Üslü İfadeler', 74], ['Kareköklü İfadeler', 68],
+      ['Olasılık', 63], ['Cebirsel İfadeler', 58], ['Eşitsizlikler', 54], ['Doğrusal Denklemler', 47],
+      ['Dönüşüm Geometrisi', 42], ['Eşlik ve Benzerlik', 36], ['Geometrik Cisimler', 31],
+      ['Veri Analizi', 26], ['Basit Olaylar', 21], ['Üçgenler', 17], ['Oran Orantı', 13],
+      ['Yüzdeler', 10], ['Tam Sayılar', 7]
+    ],
+    picks: [
+      { title: 'EBOB-EKOK sözel kurgu sorusu', reason: 'İkizin "en az kaç" ifadesini EKOK yerine EBOB okudu; senin de son iki hatan bu.', risk: '%79 risk', source: 'Tudem LGS Matematik · s.64' },
+      { title: 'Negatif üslü ifadelerde işlem sırası', reason: 'Parantez dışı eksiyi tabana dahil etme hatası.', risk: '%74 risk', source: 'Bilfen LGS Soru Bankası' },
+      { title: 'Kareköklü ifadelerde ondalık sadeleştirme', reason: 'Kök içini çarpanlara ayırmayı atlama deseni.', risk: '%68 risk', source: 'Tonguç Deneme 9' }
+    ],
+    books: ['Tudem LGS Matematik', 'Bilfen LGS Soru Bankası', 'Tonguç LGS Deneme Seti', 'Nartest 8. Sınıf Fen', 'Hız Yayınları Türkçe'],
+    homework: [
+      { book: 'Tudem LGS Matematik', detail: 'Bölüm 3 · s. 62–66 · 1–20. sorular', reason: 'EBOB-EKOK sözel kurgularında tekrar eden okuma hatası.', topic: 'Çarpanlar', due: 'Bugün' },
+      { book: 'Bilfen LGS Soru Bankası', detail: 'Üslü İfadeler · Test 4 · 1–18', reason: 'Negatif üs ve parantez ilişkisi; ikizin burada yanılıyor.', topic: 'Üslü İfadeler', due: 'Yarın' },
+      { book: 'Tonguç LGS Deneme Seti', detail: 'Deneme 9 · Matematik bölümü', reason: 'Süre yönetimi son iki denemede düştü.', topic: 'Genel', due: 'Cumartesi' },
+      { book: 'Nartest 8. Sınıf Fen', detail: 'DNA ve Genetik Kod · 1–16', reason: 'Fen netleri matematiğin gerisinde kaldı.', topic: 'Fen', due: 'Pazar' },
+      { book: 'Hız Yayınları Türkçe', detail: 'Sözcükte Anlam · Test 7', reason: 'Paragrafta anlam kaymalarında zaman kaybı.', topic: 'Türkçe', due: 'Pazartesi' }
+    ],
+    prompts: ['EBOB mu EKOK mu nasıl anlarım?', 'Negatif üslü ifade nasıl çözülür?', 'Kök içi nasıl sadeleşir?'],
+    videos: [
+      { title: 'EBOB-EKOK sözel sorular: hangi kelime neyi söyler', channel: 'Tonguç Akademi', dur: '12:40', why: 'Bugünün ödeviyle aynı kazanım', topic: 'Çarpanlar' },
+      { title: 'Negatif üslü ifadeler ve parantez', channel: 'Bilinmeyen Matematik', dur: '15:05', why: 'İkizinin en çok yanıldığı kurulum', topic: 'Üslü İfadeler' },
+      { title: 'Kareköklü ifadelerde sadeleştirme', channel: 'Rehber Matematik', dur: '10:18', why: 'Üç denemede tekrar eden hata', topic: 'Kareköklü İfadeler' },
+      { title: 'Olasılıkta bağımsız olaylar', channel: 'Kunduz', dur: '08:52', why: 'Orta risk bandı', topic: 'Olasılık' },
+      { title: 'Cebirsel ifadelerde çarpanlara ayırma', channel: 'Selin Hoca', dur: '17:33', why: 'Ön koşul konusu', topic: 'Cebirsel İfadeler' },
+      { title: 'Dönüşüm geometrisi: öteleme ve yansıma', channel: 'Tonguç Akademi', dur: '13:47', why: 'Tekrar aralığı doldu', topic: 'Dönüşüm Geometrisi' }
+    ],
+    months: [['Eki', 54], ['Kas', 58], ['Ara', 61], ['Oca', 60], ['Şub', 66], ['Mar', 69], ['Nis', 72], ['May', 74], ['Haz', 76], ['Tem', 78]],
+    weeks: [['1', 140], ['2', 190], ['3', 175], ['4', 245], ['5', 220], ['6', 280], ['7', 250], ['8', 310]],
+    strengths: [
+      ['Tam Sayılar', 94], ['Yüzdeler', 89], ['Oran Orantı', 85],
+      ['Doğrusal Denklemler', 64], ['Olasılık', 43], ['Çarpanlar ve Katlar', 26]
+    ],
+    ranks: [
+      { name: 'Tonguç Deneme 9', net: '82,00', cls: '4 / 30', district: '96 / 2.140', city: '1.320 / 24.600' },
+      { name: 'Bilfen LGS 6', net: '77,50', cls: '6 / 30', district: '128 / 2.128', city: '1.845 / 24.410' },
+      { name: 'Okul Denemesi 3', net: '79,25', cls: '3 / 30', district: '104 / 2.136', city: '1.502 / 24.580' },
+      { name: 'Tonguç Deneme 8', net: '74,00', cls: '8 / 29', district: '181 / 2.104', city: '2.410 / 24.180' }
+    ]
+  }
+};
+
+const MISTAKES = {
+  default: [
+    { share: '%41', text: 'Koşulu okurken kritik kelimeyi atlıyor — soru kökündeki sınırlama gözden kaçıyor.' },
+    { share: '%33', text: 'İşlem doğru kurulup son adımda işaret hatasıyla bozuluyor.' },
+    { share: '%26', text: 'Süre baskısında ilk akla gelen şıkka yöneliyor, kontrol adımı atlanıyor.' }
+  ]
+};
+
+const NOTES = [
+  { kind: 'Güçlü', text: 'Ödev tamamlama oranı üç haftadır %90 üzerinde. Sabah çalışmasında verim belirgin şekilde yüksek.', ink: 'var(--color-accent-700)' },
+  { kind: 'Dikkat', text: 'Aynı kazanımda üç kez tekrar eden hata var: soru kökündeki sınırlamayı okumadan işleme geçiyor.', ink: 'var(--color-accent-2)' },
+  { kind: 'Öneri', text: 'Deneme sonrası hata analizini 24 saat içinde yapması netlerde ortalama 3 puan fark yaratıyor.', ink: 'var(--color-accent-700)' },
+  { kind: 'Bilgi', text: 'Bu hafta bota 18 soru sordu; 14\'ü türev ve limit başlıklarında.', ink: 'color-mix(in srgb, var(--color-text) 55%, transparent)' }
+];
+
+const TABS = [
+  ['panel', 'Panel', 'Ana panel'],
+  ['twin', 'Dijital İkiz', 'Dijital ikiz'],
+  ['homework', 'Ödevler', 'Ödevlendirme'],
+  ['ask', 'Soru Sor', 'Soru sor'],
+  ['create', 'Soru Oluştur', 'Soru oluştur'],
+  ['video', 'Videolar', 'Video önerileri'],
+  ['stats', 'Analiz', 'Analiz'],
+  ['guardian', 'Öğretmen–Veli', 'Öğretmen ve veli']
+];
+
+class Component extends DCLogic {
+  state = {
+    exam: 'YKS', tab: 'panel', openFlow: -1, selected: 0,
+    done: { 0: true }, draft: '', chat: null, typing: false,
+    genTopic: null, genCount: 20, genLevel: 'Karışık', bias: true, test: null,
+    range: 'Ay', videoFilter: 'Tümü'
+  };
+
+  d() { return DATA[this.state.exam] || DATA.YKS; }
+
+  set(patch) { this.setState(patch); }
+
+  flowRows() {
+    const d = this.d();
+    const t = d.topics;
+    return [
+      { q: 'Soru 118 · parametreli limit', topic: t[0][0], ok: false, note: 'İkizin soldan limiti hesaplamadan eşitliği kurdu. Senin 14 Mart ve 2 Nisan hatalarınla aynı desen.' },
+      { q: 'Soru 121 · kurulum sorusu', topic: t[1][0], ok: false, note: 'Kısıt denklemi kurulurken yanlış değişken elendi; sonuç doğru göründüğü için kontrol adımı atlandı.' },
+      { q: 'Soru 126 · sayma', topic: t[2][0], ok: false, note: 'Özdeş nesneler için faktöriyele bölme yapılmadı.' },
+      { q: 'Soru 130 · olasılık', topic: t[3][0], ok: true, note: 'Doğru. Bu kazanımda üç haftadır hata yok; tekrar aralığı uzatıldı.' },
+      { q: 'Soru 134 · taban değiştirme', topic: t[4][0], ok: false, note: 'Taban değiştirme formülü doğru, ancak tanım kümesi kontrol edilmedi.' },
+      { q: 'Soru 139 · grafik okuma', topic: t[5][0], ok: true, note: 'Doğru ve hızlı. Grafikten okuma güçlü yanın.' }
+    ];
+  }
+
+  chatMsgs() {
+    if (this.state.chat) return this.state.chat;
+    const y = this.state.exam === 'YKS';
+    return [
+      { role: 'bot', text: y
+        ? 'Merhaba Deniz. Bugün limit konusunda ödevin var. Takıldığın soruyu yazabilir ya da fotoğrafını yükleyebilirsin — çözümü TYT/AYT müfredatındaki yöntemle anlatırım.'
+        : 'Merhaba Deniz. Bugün çarpanlar ve katlar ödevin var. Takıldığın soruyu yazabilir ya da fotoğrafını yükleyebilirsin — çözümü 8. sınıf müfredatındaki yöntemle anlatırım.' },
+      { role: 'user', text: y ? 'Bu limitte neden soldan limit alıyoruz?' : 'EBOB mu EKOK mu nasıl anlarım?' },
+      { role: 'bot', text: y
+        ? 'Fonksiyon tanım aralığının uç noktasında olduğun için. Noktanın sağında fonksiyon tanımsızsa iki taraflı limit aranmaz, tek taraflı limit incelenir.\n\nAdımlar:\n1. Tanım kümesini yaz, uç noktayı işaretle.\n2. Yaklaşımın hangi taraftan geldiğine karar ver.\n3. Sadece o taraftan yerine koyma veya sadeleştirme yap.\n\nİkizin tam bu adımı atlıyor. 3D Soru Bankası s.212, 7. soru aynı kurguda — onu da çözmeni öneririm.'
+        : 'Soru kökündeki kelimeye bakacaksın. "En az kaç", "aynı anda tekrar", "birlikte" geçiyorsa EKOK; "en fazla kaç eşit parça", "paylaştırma" geçiyorsa EBOB.\n\nAdımlar:\n1. Sayıları çarpanlara ayır.\n2. Soru kökündeki kelimeyi işaretle.\n3. EKOK ise büyük kuvvetleri, EBOB ise ortak küçük kuvvetleri al.\n\nİkizin tam bu okumada yanılıyor. Tudem s.64, 12. soru aynı kurguda.' }
+    ];
+  }
+
+  send = () => {
+    const text = (this.state.draft || '').trim();
+    if (!text) return;
+    const msgs = this.chatMsgs().concat([{ role: 'user', text }]);
+    this.setState({ chat: msgs, draft: '', typing: true });
+    setTimeout(() => {
+      const d = this.d();
+      const reply = 'Bu soru ' + d.topics[0][0] + ' kazanımına giriyor.\n\n1. Verilenleri ve istenen ifadeyi ayrı yaz.\n2. Kazanımın standart adımını uygula; kısayola sonra geç.\n3. Sonucu soru kökündeki koşulla karşılaştır.\n\nAynı kurguyu ' + d.books[0] + ' içinde bulup ödevine ekledim. Bu soruyu ikizine de işledim.';
+      this.setState({ chat: this.chatMsgs().concat([{ role: 'bot', text: reply }]), typing: false });
+    }, 900);
+  };
+
+  generate = () => {
+    const d = this.d();
+    const topic = this.state.genTopic || d.topics[0][0];
+    const n = this.state.genCount;
+    const level = this.state.genLevel;
+    const bank = [
+      topic + ' konusunda verilen koşulu sağlayan ifadenin en küçük değeri kaçtır?',
+      'Aşağıdaki grafikte ' + topic.toLowerCase() + ' ile ilgili verilenlere göre istenen değeri bulunuz.',
+      topic + ' kazanımında, soru kökündeki sınırlama dikkate alındığında hangi seçenek doğrudur?',
+      'İki farklı durumun karşılaştırıldığı bu kurguda ' + topic.toLowerCase() + ' kuralı nasıl uygulanır?',
+      topic + ' ile ilgili verilen eşitlikte bilinmeyenin alabileceği kaç farklı değer vardır?'
+    ];
+    const gains = ['Kazanım 1', 'Kazanım 2', 'Kazanım 3', 'Kazanım 4', 'Kazanım 5'];
+    const levels = level === 'Karışık' ? ['Kolay', 'Orta', 'Zor'] : [level];
+    const items = [];
+    const show = Math.min(5, n);
+    for (let i = 0; i < show; i++) {
+      items.push({
+        no: String(i + 1) + '.',
+        text: bank[i % bank.length],
+        gain: topic + ' · ' + gains[i % gains.length],
+        level: levels[i % levels.length]
+      });
+    }
+    this.setState({ test: { topic, n, level, items } });
+  };
+
+  download = () => { window.print(); };
+
+  renderVals() {
+    const s = this.state, d = this.d();
+    const tab = s.tab;
+    const nav = TABS.map(([id, label]) => ({
+      label,
+      ink: tab === id ? 'var(--color-accent)' : 'var(--color-text)',
+      go: () => this.set({ tab: id })
+    }));
+    const tabLabel = (TABS.find(t => t[0] === tab) || TABS[0])[2];
+
+    const band = risk => {
+      if (risk >= 70) return ['var(--color-accent-2-800)', 'var(--color-bg)'];
+      if (risk >= 55) return ['var(--color-accent-2-700)', 'var(--color-bg)'];
+      if (risk >= 40) return ['var(--color-accent-2-300)', 'var(--color-accent-2-900)'];
+      if (risk >= 25) return ['var(--color-accent-2-200)', 'var(--color-accent-2-900)'];
+      return ['var(--color-accent-2-100)', 'var(--color-text)'];
+    };
+    const heat = d.topics.map(([name, risk], i) => {
+      const [bg, ink] = band(risk);
+      return { name, risk, bg, ink, select: () => this.set({ selected: i }) };
+    });
+
+    const flow = this.flowRows().map((f, i) => ({
+      q: f.q, topic: f.topic, note: f.note,
+      mark: f.ok ? 'Doğru' : 'Yanıldı',
+      markInk: f.ok ? 'var(--color-accent-700)' : 'var(--color-accent-2)',
+      open: s.openFlow === i,
+      toggle: () => this.set({ openFlow: s.openFlow === i ? -1 : i })
+    }));
+
+    const sel = d.topics[s.selected] || d.topics[0];
+
+    const homework = d.homework.map((h, i) => ({
+      ...h,
+      done: !!s.done[i],
+      titleInk: s.done[i] ? 'color-mix(in srgb, var(--color-text) 45%, transparent)' : 'var(--color-text)',
+      boxBorder: s.done[i] ? 'var(--color-accent)' : 'var(--color-divider)',
+      boxBg: s.done[i] ? 'var(--color-accent)' : 'transparent',
+      toggle: () => this.setState(st => ({ done: { ...st.done, [i]: !st.done[i] } }))
+    }));
+    const doneCount = homework.filter(h => h.done).length;
+
+    const chat = this.chatMsgs().map(m => ({
+      text: m.text,
+      who: m.role === 'bot' ? 'İkiz Bot' : 'Sen',
+      align: m.role === 'bot' ? 'flex-start' : 'flex-end',
+      bg: m.role === 'bot' ? 'var(--color-surface)' : 'var(--color-accent-100)',
+      ink: m.role === 'bot' ? 'var(--color-text)' : 'var(--color-accent-900)'
+    }));
+
+    const months = s.range === 'Ay' ? d.months : d.months.slice(-5);
+    const vals = months.map(m => m[1]);
+    const lo = Math.min(...vals) - 6, hi = Math.max(...vals) + 6;
+    const H = 150, W = 656;
+    const px = i => 12 + (i * W) / Math.max(1, months.length - 1);
+    const py = v => 20 + H - ((v - lo) / (hi - lo)) * H;
+    const lineDots = months.map(([label, net], i) => {
+      const x = Math.round(px(i)), y = Math.round(py(net));
+      return { x, y, label, net, leftPct: (x / 680 * 100).toFixed(2) + '%', topPct: (y / 221 * 100).toFixed(2) + '%' };
+    });
+
+    const maxWeek = Math.max(...d.weeks.map(w => Number(w[1])));
+    const weeks = d.weeks.map(([n, v], i) => ({
+      n: v, label: n + '. hf',
+      h: Math.round((Number(v) / maxWeek) * 118) + 'px',
+      fill: i === d.weeks.length - 1 ? 'var(--color-accent)' : 'var(--color-neutral-400)'
+    }));
+
+    const strengths = d.strengths.map(([name, pct]) => ({
+      name, pct: pct + '%',
+      fill: pct >= 70 ? 'var(--color-accent)' : (pct >= 50 ? 'var(--color-neutral-500)' : 'var(--color-accent-2-500)')
+    }));
+
+    const filters = ['Tümü'].concat(d.videos.map(v => v.topic).filter((t, i, a) => a.indexOf(t) === i));
+    const videoFilters = filters.map(label => ({
+      label,
+      cls: s.videoFilter === label ? 'tag tag-outline' : 'tag tag-neutral',
+      pick: () => this.set({ videoFilter: label })
+    }));
+    const videos = d.videos.filter(v => s.videoFilter === 'Tümü' || v.topic === s.videoFilter);
+
+    const test = s.test;
+
+    return {
+      navItems: nav, tabLabel,
+      onPanel: tab === 'panel', onTwin: tab === 'twin', onHomework: tab === 'homework',
+      onAsk: tab === 'ask', onCreate: tab === 'create', onVideo: tab === 'video',
+      onStats: tab === 'stats', onGuardian: tab === 'guardian',
+      goAsk: () => this.set({ tab: 'ask' }), goCreate: () => this.set({ tab: 'create' }),
+      goHomework: () => this.set({ tab: 'homework' }), goStats: () => this.set({ tab: 'stats' }),
+
+      isYKS: s.exam === 'YKS', isLGS: s.exam === 'LGS',
+      pickYKS: () => this.set({ exam: 'YKS', selected: 0, test: null, chat: null, genTopic: null }),
+      pickLGS: () => this.set({ exam: 'LGS', selected: 0, test: null, chat: null, genTopic: null }),
+      examNote: d.note, curriculumName: d.curriculum,
+
+      dateLine: '26 Ağustos, Çarşamba', twinCount: 240,
+      heroNet: d.heroNet, heroDelta: d.delta, solvedTotal: d.solved.toLocaleString('tr-TR'),
+      examCount: d.examCount,
+      stats: [
+        { value: '312', label: 'Bu hafta çözdüğün soru' },
+        { value: '17', label: 'İkizin yakaladığı riskli kazanım' },
+        { value: doneCount + '/' + homework.length, label: 'Tamamlanan ödev' }
+      ],
+      picks: d.picks.map((p, i) => ({ ...p, no: String(i + 1).padStart(2, '0') })),
+      todayHomework: d.homework.slice(0, 2),
+      weakThree: d.strengths.slice(-3).map(([name, pct]) => ({ name, pctLabel: pct + '%' })),
+
+      heat, flow,
+      selectedTopic: sel[0], selectedRisk: '%' + sel[1] + ' oranında',
+      selectedMistakes: MISTAKES.default,
+
+      books: d.books, homework,
+      hwProgressLabel: doneCount + ' / ' + homework.length + ' tamamlandı',
+      hwProgressPct: Math.round((doneCount / homework.length) * 100) + '%',
+
+      chat, typing: s.typing, draft: s.draft, send: this.send,
+      onDraft: e => this.set({ draft: e.target.value }),
+      onDraftKey: e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.send(); } },
+      prompts: d.prompts.map(label => ({ label, use: () => this.set({ draft: label }) })),
+
+      topicNames: d.topics.map(t => t[0]),
+      genTopic: s.genTopic || d.topics[0][0],
+      onGenTopic: e => this.set({ genTopic: e.target.value }),
+      counts: [10, 20, 30, 40].map(n => ({ n, on: s.genCount === n, pick: () => this.set({ genCount: n }) })),
+      levels: ['Kolay', 'Orta', 'Zor', 'Karışık'].map(label => ({
+        label, on: s.genLevel === label, pick: () => this.set({ genLevel: label })
+      })),
+      toggleTwinBias: () => this.set({ bias: !s.bias }),
+      biasBorder: 'var(--color-accent)',
+      biasBg: s.bias ? 'var(--color-accent)' : 'transparent',
+      biasShadow: s.bias ? 'inset 0 0 0 4px var(--color-bg)' : 'none',
+      generate: this.generate, download: this.download,
+      hasTest: !!test, noTest: !test,
+      testTitle: test ? test.topic + ' testi' : '',
+      testMeta: test ? test.n + ' soru · ' + test.level : '',
+      testStamp: test ? 'İkizinin hata deseniyle ağırlıklandırıldı · ' + Math.min(5, test.n) + ' soru önizlemede, tamamı PDF\'te' : '',
+      testItems: test ? test.items : [],
+
+      videoFilters, videos,
+
+      ranges: ['Ay', 'Son 5 ay'].map(label => ({ label, on: s.range === label, pick: () => this.set({ range: label }) })),
+      gridLines: [0, 1, 2, 3].map(i => ({ y: 20 + (i * H) / 3 })),
+      linePoints: lineDots.map(p => p.x + ',' + p.y).join(' '),
+      lineDots, weeks, strengths, ranks: d.ranks,
+
+      guardianStats: [
+        { value: '%92', label: 'Ödev tamamlama' },
+        { value: '312', label: 'Haftalık soru' },
+        { value: d.examCount, label: 'Girilen deneme' },
+        { value: '+4,1', label: 'Haftalık net değişimi' }
+      ],
+      guardianNotes: NOTES
+    };
+  }
+}
+
+</script>
+</body>
+</html>

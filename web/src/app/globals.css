@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+:root {
+  --background: #faf9f7;
+  --foreground: #18171c;
+  --surface: #ffffff;
+  --surface-muted: #f1eef9;
+  --border: #e6e2f2;
+
+  /* İkiz marka çifti: ikizin iki yüzü */
+  --brand-violet: #5b3df5;
+  --brand-violet-600: #4a2ee0;
+  --brand-teal: #0fb8a6;
+  --brand-teal-600: #0a9c8d;
+
+  /* Risk ısı skalası — koyu = yanılma ihtimali yüksek */
+  --risk-1: #d8f5ee;
+  --risk-2: #ffe8a3;
+  --risk-3: #ffb648;
+  --risk-4: #ff7a45;
+  --risk-5: #e0392b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-brand-violet: var(--brand-violet);
+  --color-brand-violet-600: var(--brand-violet-600);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-teal-600: var(--brand-teal-600);
+  --color-risk-1: var(--risk-1);
+  --color-risk-2: var(--risk-2);
+  --color-risk-3: var(--risk-3);
+  --color-risk-4: var(--risk-4);
+  --color-risk-5: var(--risk-5);
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-heading);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading), system-ui, sans-serif;
+}
