@@ -138,6 +138,12 @@ export function ScanUpload() {
         {error && <p className="mt-3 text-sm text-risk-5">{error}</p>}
       </div>
 
+      {saveResult && (
+        <p className="rounded-lg bg-surface-muted px-4 py-3 text-sm text-foreground/70">
+          {saveResult}
+        </p>
+      )}
+
       {questions && questions.length > 0 && (
         <div className="flex flex-col gap-4">
           <div className="rounded-2xl border border-border bg-surface-muted p-5">
@@ -167,8 +173,6 @@ export function ScanUpload() {
               {saving ? "Kaydediliyor…" : "Tümünü havuza ekle"}
             </button>
           </div>
-
-          {saveResult && <p className="text-sm text-foreground/70">{saveResult}</p>}
 
           <div className="flex flex-col gap-4">
             {questions.map((q, index) => (

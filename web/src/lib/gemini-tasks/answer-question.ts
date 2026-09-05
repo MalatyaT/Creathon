@@ -24,10 +24,12 @@ function buildSystemInstruction(sources: RelatedSource[]) {
 Taranmış kaynaklardan şu özet dizini elinde:
 ${sourceLines}
 
-Öğrencinin sorusu bu kaynaklardan biriyle GERÇEKTEN ilgiliyse (aynı konu ya da çok benzer bir soru),
-source_reference alanına "Kitap adı, s. X" biçiminde kısa bir not düş ve cevabın içinde de
-("bu, ... kaynağının X. sayfasındaki konuya/soruya benzer" gibi) doğal bir cümleyle belirt.
-Hiçbir kaynak gerçekten ilgili değilse source_reference'ı boş bırak — asla uydurma referans verme.`;
+Karar kuralı: öğrencinin sorusu, yukarıdaki kaynaklardan birinin konusuyla (aynı kazanım/konu alanı —
+ör. ikisi de "yazım kuralları" ya da ikisi de "çokgenler" gibi) örtüşüyorsa, tam olarak aynı soru
+olması ŞART DEĞİL — bu kaynağı ilgili say. source_reference alanına "Kitap adı, s. X" biçiminde kısa
+bir not düş ve cevabın içinde de ("bu, ... kaynağının X. sayfasındaki konuya/soruya benzer" gibi)
+doğal bir cümleyle belirt. Hiçbir kaynağın konusu öğrencinin sorusuyla örtüşmüyorsa source_reference'ı
+boş bırak — asla uydurma referans verme.`;
 }
 
 export type ChatTurn = { role: "user" | "model"; text: string };
