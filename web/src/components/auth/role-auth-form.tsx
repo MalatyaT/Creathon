@@ -94,7 +94,7 @@ export function RoleAuthForm({
             required={!DEMO_MODE}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm outline-none focus:border-brand-violet"
+            className="rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm outline-none focus:border-brand-green"
           />
         </label>
       )}
@@ -106,7 +106,7 @@ export function RoleAuthForm({
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm outline-none focus:border-brand-violet"
+          className="rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm outline-none focus:border-brand-green"
         />
       </label>
 
@@ -118,7 +118,7 @@ export function RoleAuthForm({
           minLength={6}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm outline-none focus:border-brand-violet"
+          className="rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm outline-none focus:border-brand-green"
         />
       </label>
 
@@ -153,7 +153,7 @@ export function RoleAuthForm({
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 rounded-full bg-brand-violet px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-violet-600 disabled:opacity-60"
+        className="mt-2 rounded-full bg-brand-green px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-green-600 disabled:opacity-60"
       >
         {pending ? "…" : mode === "signup" ? "Kayıt ol" : "Giriş yap"}
       </button>

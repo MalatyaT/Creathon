@@ -2,13 +2,7 @@ import Link from "next/link";
 import { requireRole, supabaseConfigured } from "@/lib/auth-guard";
 import { createClient } from "@/lib/supabase/server";
 import { SolveFlow, type FlowItem } from "@/components/panel/solve-flow";
-
-const RISK_COLOR = ["var(--risk-1)", "var(--risk-1)", "var(--risk-2)", "var(--risk-3)", "var(--risk-4)", "var(--risk-5)"];
-
-function riskColor(score: number) {
-  const bucket = Math.min(5, Math.max(0, Math.floor(score / 20)));
-  return RISK_COLOR[bucket];
-}
+import { riskColor } from "@/lib/risk";
 
 type TwinRow = { topic_label: string | null; risk_score: number; sample_count: number };
 type MessageRow = {
@@ -65,15 +59,8 @@ export default async function DijitalIkizPage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-10 px-6 py-16">
-      <div className="flex items-center justify-between">
-        <div>
-          <Link href="/panel" className="text-sm text-foreground/60 hover:text-foreground">
-            ← Panel
-          </Link>
-          <h1 className="mt-2 font-heading text-2xl font-semibold">Dijital İkiz</h1>
-        </div>
-      </div>
+    <div className="mx-auto flex max-w-3xl flex-col gap-10 px-8 py-16">
+      <h1 className="font-heading text-2xl font-semibold">Dijital İkiz</h1>
 
       <p className="max-w-xl text-sm text-foreground/70">
         İkizin, bugüne kadar sorduğun {solvedTotal} sorudan öğrendi. Hangi konuda ne kadar
@@ -124,7 +111,7 @@ export default async function DijitalIkizPage() {
 
       <Link
         href="/panel/soru-sor"
-        className="w-fit rounded-full bg-brand-violet px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-violet-600"
+        className="w-fit rounded-full bg-brand-green px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-green-600"
       >
         Bota soru sor
       </Link>

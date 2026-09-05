@@ -92,7 +92,7 @@ export function ScanUpload() {
               value={bookTitle}
               onChange={(e) => setBookTitle(e.target.value)}
               placeholder="ör. Limit Yayınları YKS Matematik Soru Bankası"
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand-violet"
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand-green"
             />
           </label>
           <label className="flex flex-col gap-1.5 text-sm font-medium">
@@ -103,7 +103,7 @@ export function ScanUpload() {
               value={pageNumber}
               onChange={(e) => setPageNumber(e.target.value)}
               placeholder="ör. 12"
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand-violet"
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand-green"
             />
           </label>
         </div>
@@ -130,7 +130,7 @@ export function ScanUpload() {
         <button
           onClick={handleExtract}
           disabled={!file || extracting}
-          className="mt-4 rounded-full bg-brand-violet px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-violet-600 disabled:opacity-60"
+          className="mt-4 rounded-full bg-brand-green px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-green-600 disabled:opacity-60"
         >
           {extracting ? "Taranıyor…" : "Sayfayı tara"}
         </button>
@@ -156,7 +156,7 @@ export function ScanUpload() {
                 value={pageSummary}
                 onChange={(e) => setPageSummary(e.target.value)}
                 rows={2}
-                className="resize-none rounded-lg border border-border bg-background p-2.5 text-sm outline-none focus:border-brand-violet"
+                className="resize-none rounded-lg border border-border bg-background p-2.5 text-sm outline-none focus:border-brand-green"
               />
             </label>
           </div>
@@ -168,7 +168,7 @@ export function ScanUpload() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="shrink-0 rounded-full bg-brand-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-teal-600 disabled:opacity-60"
+              className="shrink-0 rounded-full bg-brand-coffee px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-coffee-600 disabled:opacity-60"
             >
               {saving ? "Kaydediliyor…" : "Tümünü havuza ekle"}
             </button>
@@ -181,7 +181,7 @@ export function ScanUpload() {
                   <textarea
                     value={q.question_text}
                     onChange={(e) => updateQuestion(index, { question_text: e.target.value })}
-                    className="w-full resize-none rounded-lg border border-border bg-background p-2.5 text-sm outline-none focus:border-brand-violet"
+                    className="w-full resize-none rounded-lg border border-border bg-background p-2.5 text-sm outline-none focus:border-brand-green"
                     rows={2}
                   />
                   <button
@@ -202,7 +202,7 @@ export function ScanUpload() {
                         next[optIndex] = e.target.value;
                         updateQuestion(index, { options: next });
                       }}
-                      className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm outline-none focus:border-brand-violet"
+                      className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm outline-none focus:border-brand-green"
                     />
                   ))}
                 </div>
@@ -213,7 +213,7 @@ export function ScanUpload() {
                     <input
                       value={q.correct_answer}
                       onChange={(e) => updateQuestion(index, { correct_answer: e.target.value })}
-                      className="w-14 rounded-lg border border-border bg-background px-2 py-1 text-center outline-none focus:border-brand-violet"
+                      className="w-14 rounded-lg border border-border bg-background px-2 py-1 text-center outline-none focus:border-brand-green"
                     />
                   </label>
                   <label className="flex items-center gap-1.5">
@@ -226,20 +226,20 @@ export function ScanUpload() {
                       onChange={(e) =>
                         updateQuestion(index, { difficulty: Number(e.target.value) })
                       }
-                      className="w-14 rounded-lg border border-border bg-background px-2 py-1 text-center outline-none focus:border-brand-violet"
+                      className="w-14 rounded-lg border border-border bg-background px-2 py-1 text-center outline-none focus:border-brand-green"
                     />
                   </label>
                   <input
                     value={q.topic_label}
                     onChange={(e) => updateQuestion(index, { topic_label: e.target.value })}
-                    className="rounded-full border border-border bg-surface-muted px-3 py-1 text-xs font-medium outline-none focus:border-brand-violet"
+                    className="rounded-full border border-border bg-surface-muted px-3 py-1 text-xs font-medium outline-none focus:border-brand-green"
                   />
                 </div>
 
                 <textarea
                   value={q.explanation}
                   onChange={(e) => updateQuestion(index, { explanation: e.target.value })}
-                  className="mt-3 w-full resize-none rounded-lg border border-border bg-background p-2.5 text-sm text-foreground/70 outline-none focus:border-brand-violet"
+                  className="mt-3 w-full resize-none rounded-lg border border-border bg-background p-2.5 text-sm text-foreground/70 outline-none focus:border-brand-green"
                   rows={2}
                 />
               </div>

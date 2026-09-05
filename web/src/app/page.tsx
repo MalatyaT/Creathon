@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PORTALS } from "@/lib/roles";
+import { TwinMark } from "@/components/brand/twin-mark";
 
 const RISK_PREVIEW: { topic: string; risk: 1 | 2 | 3 | 4 | 5 }[] = [
   { topic: "Türev", risk: 4 },
@@ -68,7 +69,7 @@ export default function LandingPage() {
           </Link>
           <Link
             href="/giris/ogrenci"
-            className="rounded-full bg-brand-violet px-4 py-2 text-white hover:bg-brand-violet-600"
+            className="rounded-full bg-brand-green px-4 py-2 text-white hover:bg-brand-green-600"
           >
             Öğrenci girişi
           </Link>
@@ -79,7 +80,7 @@ export default function LandingPage() {
         <div className="max-w-xl">
           <h1 className="font-heading text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl">
             Her öğrencinin, hatasını unutmayan bir{" "}
-            <span className="text-brand-violet">ikizi</span> var.
+            <span className="text-brand-green">ikizi</span> var.
           </h1>
           <p className="mt-5 text-lg text-foreground/70">
             LGS ve YKS için: sorduğun her soru, çözdüğün her test ikizinin
@@ -89,7 +90,7 @@ export default function LandingPage() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/giris/ogrenci"
-              className="rounded-full bg-brand-violet px-6 py-3 text-sm font-semibold text-white hover:bg-brand-violet-600"
+              className="rounded-full bg-brand-green px-6 py-3 text-sm font-semibold text-white hover:bg-brand-green-600"
             >
               Öğrenci olarak başla
             </Link>
@@ -141,7 +142,7 @@ export default function LandingPage() {
         <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {HOW_IT_WORKS.map((item) => (
             <div key={item.step}>
-              <span className="font-heading text-sm font-semibold text-brand-teal">
+              <span className="font-heading text-sm font-semibold text-brand-coffee">
                 {item.step}
               </span>
               <h3 className="mt-2 font-heading text-lg font-semibold">
@@ -177,7 +178,7 @@ export default function LandingPage() {
                 <div className="mt-6 flex gap-3 text-sm font-semibold">
                   <Link
                     href={`/giris/${slug}`}
-                    className="rounded-full bg-brand-violet px-4 py-2 text-white hover:bg-brand-violet-600"
+                    className="rounded-full bg-brand-green px-4 py-2 text-white hover:bg-brand-green-600"
                   >
                     Giriş yap
                   </Link>
@@ -198,20 +199,5 @@ export default function LandingPage() {
         İkiz — LGS/YKS çalışma platformu.
       </footer>
     </div>
-  );
-}
-
-function TwinMark() {
-  return (
-    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="10" cy="12" r="8" fill="var(--brand-violet)" />
-      <circle
-        cx="15"
-        cy="12"
-        r="8"
-        fill="var(--brand-teal)"
-        style={{ mixBlendMode: "multiply" }}
-      />
-    </svg>
   );
 }

@@ -125,8 +125,8 @@ export function Chat() {
             <div
               className={`max-w-[80%] rounded-2xl border-l-[3px] px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
                 m.role === "user"
-                  ? "border-brand-violet bg-surface-muted"
-                  : "border-brand-teal bg-background"
+                  ? "border-brand-green bg-surface-muted"
+                  : "border-brand-coffee bg-background"
               }`}
             >
               <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground/50">
@@ -144,12 +144,12 @@ export function Chat() {
               {(m.topicLabel || m.sourceReference) && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {m.topicLabel && (
-                    <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-brand-teal-600">
+                    <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-brand-coffee-600">
                       {m.topicLabel}
                     </span>
                   )}
                   {m.sourceReference && (
-                    <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-brand-violet">
+                    <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-brand-green">
                       📖 {m.sourceReference}
                     </span>
                   )}
@@ -159,7 +159,7 @@ export function Chat() {
           </div>
         ))}
 
-        {pending && <div className="text-xs text-brand-violet">yazıyor…</div>}
+        {pending && <div className="text-xs text-brand-green">yazıyor…</div>}
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -212,12 +212,12 @@ export function Chat() {
           onKeyDown={handleKeyDown}
           placeholder="Soruyu yaz ya da fotoğrafını yükle…"
           rows={2}
-          className="flex-1 resize-none rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm outline-none focus:border-brand-violet"
+          className="flex-1 resize-none rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm outline-none focus:border-brand-green"
         />
         <button
           onClick={handleSend}
           disabled={pending || (!draft.trim() && !image)}
-          className="h-[42px] rounded-full bg-brand-violet px-5 text-sm font-semibold text-white hover:bg-brand-violet-600 disabled:opacity-60"
+          className="h-[42px] rounded-full bg-brand-green px-5 text-sm font-semibold text-white hover:bg-brand-green-600 disabled:opacity-60"
         >
           Gönder
         </button>

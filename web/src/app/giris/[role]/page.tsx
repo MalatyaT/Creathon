@@ -23,7 +23,7 @@ export default async function GirisPage(props: PageProps<"/giris/[role]">) {
       </div>
       <p className="mt-6 text-sm text-foreground/60">
         Hesabın yok mu?{" "}
-        <Link href={`/kayit/${role}`} className="font-medium text-brand-violet">
+        <Link href={`/kayit/${role}`} className="font-medium text-brand-green">
           Kayıt ol
         </Link>
       </p>

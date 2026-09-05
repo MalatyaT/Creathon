@@ -23,7 +23,7 @@ export default async function KayitPage(props: PageProps<"/kayit/[role]">) {
       </div>
       <p className="mt-6 text-sm text-foreground/60">
         Zaten hesabın var mı?{" "}
-        <Link href={`/giris/${role}`} className="font-medium text-brand-violet">
+        <Link href={`/giris/${role}`} className="font-medium text-brand-green">
           Giriş yap
         </Link>
       </p>

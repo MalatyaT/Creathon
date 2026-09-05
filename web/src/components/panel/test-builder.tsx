@@ -53,7 +53,7 @@ export function TestBuilder({ topics }: { topics: string[] }) {
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             placeholder="ör. Yazım Kuralları"
-            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand-violet"
+            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand-green"
           />
           <datalist id="topic-suggestions">
             {topics.map((t) => (
@@ -71,7 +71,7 @@ export function TestBuilder({ topics }: { topics: string[] }) {
                 onClick={() => setCount(c)}
                 className={`rounded-full border px-3 py-1 text-sm ${
                   count === c
-                    ? "border-brand-violet bg-brand-violet text-white"
+                    ? "border-brand-green bg-brand-green text-white"
                     : "border-border hover:bg-surface-muted"
                 }`}
               >
@@ -90,7 +90,7 @@ export function TestBuilder({ topics }: { topics: string[] }) {
                 onClick={() => setLevel(l)}
                 className={`rounded-full border px-3 py-1 text-sm ${
                   level === l
-                    ? "border-brand-violet bg-brand-violet text-white"
+                    ? "border-brand-green bg-brand-green text-white"
                     : "border-border hover:bg-surface-muted"
                 }`}
               >
@@ -112,7 +112,7 @@ export function TestBuilder({ topics }: { topics: string[] }) {
         <button
           onClick={handleGenerate}
           disabled={pending}
-          className="rounded-full bg-brand-violet px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-violet-600 disabled:opacity-60"
+          className="rounded-full bg-brand-green px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-green-600 disabled:opacity-60"
         >
           {pending ? "Oluşturuluyor…" : "Testi oluştur"}
         </button>
@@ -142,7 +142,7 @@ export function TestBuilder({ topics }: { topics: string[] }) {
           <div id="test-print-area">
             <div className="flex flex-wrap items-baseline gap-3">
               <h2 className="font-heading text-lg font-semibold">{testTitle}</h2>
-              <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-brand-teal-600">
+              <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-brand-coffee-600">
                 {items.length} soru · {level}
               </span>
             </div>
@@ -151,7 +151,7 @@ export function TestBuilder({ topics }: { topics: string[] }) {
             <div className="mt-7 flex flex-col gap-6">
               {items.map((q) => (
                 <div key={q.no} className="flex gap-4">
-                  <div className="w-7 shrink-0 font-heading text-sm font-semibold text-brand-violet">
+                  <div className="w-7 shrink-0 font-heading text-sm font-semibold text-brand-green">
                     {q.no}
                   </div>
                   <div className="min-w-0">
@@ -173,11 +173,11 @@ export function TestBuilder({ topics }: { topics: string[] }) {
                         Zorluk {q.difficulty}
                       </span>
                       {q.sourceLabel ? (
-                        <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs text-brand-violet">
+                        <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs text-brand-green">
                           📖 {q.sourceLabel}
                         </span>
                       ) : (
-                        <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs text-brand-teal-600">
+                        <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs text-brand-coffee-600">
                           ✨ yapay zeka
                         </span>
                       )}
@@ -201,7 +201,7 @@ export function TestBuilder({ topics }: { topics: string[] }) {
             <div className="mt-8 flex gap-3 print:hidden">
               <button
                 onClick={() => window.print()}
-                className="rounded-full bg-brand-violet px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-violet-600"
+                className="rounded-full bg-brand-green px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-green-600"
               >
                 PDF olarak indir
               </button>
