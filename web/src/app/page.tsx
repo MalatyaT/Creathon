@@ -11,7 +11,8 @@ export default function LandingPage() {
   const portals = [
     { slug: "ogretmen", label: "Öğretmen", desc: "Öğrencilerin gelişimini ve ödevlerini yapay zeka ile takip et." },
     { slug: "ogrenci", label: "Öğrenci", desc: "Dijital ikizinle zayıf noktalarını keşfet ve netlerini artır." },
-    { slug: "kaynak-uretici", label: "İçerik Üreticisi", desc: "Akıllı soru havuzuna sorularını ekle ve analiz et." }
+    { slug: "kaynak-uretici", label: "İçerik Üreticisi", desc: "Akıllı soru havuzuna sorularını ekle ve analiz et." },
+    { slug: "yonetici", label: "Yönetici", desc: "Öğretmen atamalarını, sınıfları ve müfredatı okul genelinde yönet." }
   ];
 
   return (
@@ -63,7 +64,7 @@ export default function LandingPage() {
           <h2 className="text-2xl font-heading font-semibold text-center mb-10">
             <span className="uppercase text-brand-green font-bold">{selectedTier}</span> Platformuna Giriş Yap
           </h2>
-          <div className="grid gap-8 md:grid-cols-3">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {portals.map((portal) => {
               const isActive = activePortal === portal.slug;
               return (
