@@ -1,5 +1,15 @@
 # İkiz — Yapay Zeka Destekli Sınav Koçu Platformu — Yapılacaklar Listesi
 
+## CANLI: sunum pivotu + deploy
+
+- [x] **Sunum odaklı yeniden tasarım** (eşzamanlı bir oturumda yapıldı, ben doğrulayıp push ettim): landing page ve öğrenci paneli, tek dosyalık sekmeli, mock/örnek veriye dayalı bileşenlere dönüştürüldü (`/panel/ogrenci`) — yeşil/sarı marka paleti (`renkpaleti.png`: #FAFAFA/#15803D/#EAB308). Giriş sayfaları artık gerçek kimlik doğrulamayı atlayıp doğrudan `/panel/[rol]`'e yönlendiriyor. Eşzamanlı oturum, öğrenci panelindeki "Soru Sor" sekmesini gerçek Gemini + session kaydına bağlamak üzerinde çalışıyor (`lib/twin.ts`, `lib/supabase/admin.ts`, `panel/ogrenci/actions.ts`) — ben o dosyalara dokunmuyorum.
+- [x] **Öğretmen demo paneli** (`/panel/ogretmen`, benim işim): aynı görsel dilde, 8 istenen bölüm — Soru Oluşturma, Sınav Oluşturma, Analiz, Ödevlendirme, Kağıt Puanlama (cevap kağıdı yükle → yapay zeka puanlar, mock), Kaynak Yönetme, Sınıf Yönetme, Kazanım/Müfredat Yönetme — artı genel Panel özeti.
+- [x] **Vercel'e deploy edildi**: proje `3-d9/web` olarak bağlı, prod/preview/development ortamlarına `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY` eklendi. Canlı URL: **https://web-liard-seven-80.vercel.app** — landing + `/panel/ogrenci` + `/panel/ogretmen` doğrulandı, konsol hatası yok.
+- [ ] `/giris/kaynak-uretici` ve `/giris/veli` artık `/panel/kaynak-uretici` ve `/panel/veli`'ye yönlendiriyor ama bu sayfalar henüz yok (404) — landing page'in "Kaynak Üreticisi" kartı şu an kırık. Aynı mock-panel deseninde bu ikisi de yapılmalı.
+- [ ] Bu pivotla birlikte benim daha önce inşa ettiğim gerçek-veriye-bağlı sayfalar (`/panel/ikiz`, `/panel/analiz`, `/panel/odevler`, `/panel/soru-olustur`, `/panel/videolar`, `/ogretmen`, `/veli`, `/kaynak-uretici`) navigasyondan koptu ama silinmedi — hâlâ doğrudan URL ile erişilebilir ve çalışır durumda.
+
+---
+
 > Bu liste, `Yapay zeka öğrenme platformu tasarımı (1)/` klasöründeki mevcut tasarım taslağı incelenerek çıkarılmıştır. Aşağıda önce mevcut durum, sonra eklenmesi istenen (OCR + soru havuzu + Gemini API chatbot/soru üretimi) özellikler için detaylı bir yol haritası yer alıyor.
 
 ## Bu oturumda tamamlananlar (kod: `web/`, şema: `supabase/migrations/`)
