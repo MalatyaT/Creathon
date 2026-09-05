@@ -68,7 +68,10 @@ export async function saveQuestionsAction(payload: {
     topic_label: q.topic_label,
     source: "scan" as const,
     source_scan_id: scan.id,
-    status: "pending_review" as const,
+    // Kaynak üreticisi zaten bu ekranda her soruyu düzenleyip onayladı (moderasyon adımı
+    // burada gerçekleşti) — ayrı bir öğretmen onay ekranı olmadığı için doğrudan
+    // 'approved' işaretleniyor ki Soru Oluştur havuzdan hemen çekebilsin.
+    status: "approved" as const,
     created_by: user!.id,
   }));
 

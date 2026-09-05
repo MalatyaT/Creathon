@@ -14,7 +14,7 @@ export default async function PanelPage() {
         <SignOutButton />
       </div>
       <p className="text-foreground/65">
-        Öğrenci paneli burada büyüyecek: Ödevler, Soru Oluştur, Videolar, Analiz.
+        Öğrenci paneli burada büyüyecek: Ödevler, Videolar, Analiz.
       </p>
       <div className="mt-2 flex flex-wrap gap-3">
         <Link
@@ -28,6 +28,12 @@ export default async function PanelPage() {
           className="inline-block w-fit rounded-full border border-border px-5 py-2.5 text-sm font-semibold hover:bg-surface-muted"
         >
           Dijital İkiz
+        </Link>
+        <Link
+          href="/panel/soru-olustur"
+          className="inline-block w-fit rounded-full border border-border px-5 py-2.5 text-sm font-semibold hover:bg-surface-muted"
+        >
+          Soru Oluştur
         </Link>
       </div>
     </div>
