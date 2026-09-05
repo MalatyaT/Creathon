@@ -42,11 +42,24 @@
 Tasarım dosyasındaki tam bölümler: `Ogrenci Paneli.dc.html` satır 84 (Panel/ana sayfa), 164 (Dijital İkiz ✅), 297 (Ödevler), 380 (Soru Oluştur ✅), 453 (Videolar), 472 (Analiz), 589 (Öğretmen-Veli — artık ayrı portallar).
 
 - [x] **Soru Oluştur** (`/panel/soru-olustur`): konu+zorluk+adet seçilince önce havuzdan çekiyor (kaynak kitap/sayfasını 📖 rozetiyle gösteriyor), yetersizse Gemini ile ("İkizimin hata desenini ağırlıklandır" işaretliyse `twin_state` risk skorunu prompta katarak) yeni soru üretip ✨ rozetiyle işaretliyor, cevap anahtarı + `window.print()` ile PDF indirme. Canlı projeye karşı doğrulandı; bu arada kaynak üreticisinin kaydettiği sorular artık doğrudan `approved` (ayrı bir öğretmen onay ekranı olmadığından, tarama-inceleme ekranının kendisi moderasyon adımı sayıldı).
-- [ ] **Analiz** (satır 472): `exams` (deneme net ortalaması) + `twin_state` (güçlü/zayıf konular) + `chat_messages` sayımından basit grafikler/kartlar.
-- [ ] **Ödevler** (satır 297): `homework` tablosuna öğretmenin (ya da öğrencinin kendi kendine) test/soru ataması, tamamlanma takibi. Öğretmen tarafı `/ogretmen` panelinde de görünmeli (sınıfın ödev durumu).
-- [ ] **Panel (ana sayfa)** (satır 84): şu an sadece "Merhaba + linkler" placeholder — gerçek hero istatistik, "İkizin bugün öne çıkardığı sorular" (risk haritasından türetilir), bugünün ödevi özetini içerecek şekilde zenginleştirilmeli.
-- [ ] **Videolar** (satır 453, en düşük öncelik): gerçek YouTube API entegrasyonu ayrı bir kredi/kota gerektirir — ilk sürümde zayıf konulara göre YouTube arama linkleri (API key gerektirmez) yeterli olabilir.
-- [ ] Öğretmen paneli (`/ogretmen`): sınıfın risk haritası özeti, soru havuzu onay ekranı (`questions.status = pending_review` listesi), ödev atama.
+- [x] **Ödevler** (`/panel/odevler`, satır 297): Soru Oluştur'daki "Ödev olarak ata" AI-üretimli soruları önce havuza yazıp `homework.question_ids`'e bağlıyor; öğrenci listesini tıkla-tamamla (reload gerektirmeden, `homework` UPDATE RLS policy'si hiç yoktu, eklendi) ve "İşlenmiş kaynaklar" etiketleriyle görüyor.
+- [x] **Panel (ana sayfa)** (satır 84): gerçek hero risk ortalaması, toplam soru/ödev istatistikleri, `twin_state`'ten türetilen "İkizin bugün öne çıkardığı konular", bekleyen ödev özeti, zayıf-üç-konu bar grafiği.
+- [x] **Analiz** (`/panel/analiz`, satır 472): risk ortalaması + toplam soru/konu, haftalık soru-çözme bar grafiği (`chat_messages` zaman damgalarından uygulama içinde gruplanıyor), güçlü/zayıf konular. Deneme (net ortalaması) ve sınıf/ilçe/il karşılaştırması **kasıtlı olarak boş** — deneme girişi ekranı yok, çok öğrencili gerçek karşılaştırma verisi de yok; uydurulmadı.
+- [x] **Videolar** (`/panel/videolar`, satır 453): YouTube Data API bağlı değil — sahte video başlığı/kanal/süre uydurmak yerine her zayıf konu için gerçek bir YouTube arama linki veriyor (tıklayınca gerçek sonuçlar çıkıyor); gerçek, bilinen kanal isimleri (Tonguç Akademi vb.) sadece öneri metni olarak geçiyor.
+- [x] **Öğretmen paneli** (`/ogretmen`): e-posta ile öğrenci ekleme (admin API + `student_links` — INSERT policy'si hiç yoktu, eklendi), sınıf risk özeti, öğrenci bazlı risk/ödev, gerçek veriden türeyen "Haftanın notları". **Önemli:** `chat_messages`'a kasıtlı olarak dokunmuyor — "sohbet kayıtları paylaşılmaz" ilkesi gereği o tablonun RLS'i öğretmene zaten kapalı; aktivite ölçütü olarak `twin_state.sample_count` kullanılıyor.
+- [x] **Görsel reskin + ortak sidebar**: marka renkleri mor/turkuazdan yeşil/kahveye çevrildi (`brand-green`/`brand-coffee`, sıcak kahve tonlu arka plan); `/panel/*` altındaki tüm sayfalar artık ortak bir sol sidebar layout'unda (`app/panel/layout.tsx`) — her sayfanın kendi geri-linki/başlığı/çıkış butonu yerine tek yerden.
+- [x] Bu oturumda **canlı projeye karşı bulunup düzeltilen RLS/kod hataları** (hepsi Playwright ile uçtan uca test edilerek yakalandı): `scans` sadece yükleyene açıktı (kaynak referansı hiç çalışmıyordu), `twin_state`/`homework`'te insert/update policy'si yoktu, `profiles`'ta linked-teacher okuma policy'si yoktu, `student_links`'te insert policy'si yoktu, Soru Oluştur'da havuz+AI soruları birleşirken soru numaraları atlıyordu, Kaynak Üreticisi'nin başarı mesajı render'da kayboluyordu, haftalık bar grafiğinin barları CSS yüzde-yükseklik sorunundan hiç görünmüyordu, bozuk bir lockfile `tslib` eksikliğiyle build'i kırıyordu.
+
+**Not (eşzamanlı oturum):** `Kaynaklar/` klasöründe gerçek TYT/AYT soru bankası PDF'leri ve `supabase/migrations/0008_book_category.sql` (kitap kategorisi/ders adı sütunları) başka bir oturumun devam eden toplu OCR ingestion işi — bunlara dokunulmadı, bu oturumun commit'lerine dahil edilmedi.
+
+### Kalan açık işler
+- [ ] Vercel'e deploy + prod env değişkenleri.
+- [ ] Gerçek `topics` taksonomisi + `topic_label`'ları gerçek `topic_id`'ye eşleme (şu an serbest metin).
+- [ ] Kaynak eşleştirmesi (chatbot RAG) gerçek pgvector benzerlik aramasına geçmeli — havuz büyüdükçe "son N tarama" yaklaşımı yetersiz kalacak.
+- [ ] Chat/Soru Oluştur yanıtlarında markdown/LaTeX render edilmiyor (düz metin olarak basılıyor) — `react-markdown` + KaTeX eklenebilir.
+- [ ] Deneme (exam) sonucu girme ekranı yok — Analiz'deki "net ortalaması" ve sınıf/ilçe/il karşılaştırması bu yüzden boş.
+- [ ] Veli portalı hiç başlanmadı (şema `parent` rolünü destekliyor, UI yok).
+- [ ] Öğretmenin soru havuzunu onaylaması için ayrı bir ekran yok (şu an kaynak üreticisinin kendi incelemesi tek kalite kapısı).
 
 ## 0. Mevcut durumun tespiti
 
