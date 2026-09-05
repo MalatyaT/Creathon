@@ -4,6 +4,7 @@ import { requireRoleAction, supabaseConfigured } from "@/lib/auth-guard";
 import { createClient } from "@/lib/supabase/server";
 import { answerStudentQuestion, type ChatTurn } from "@/lib/gemini-tasks/answer-question";
 import { findRelatedSources } from "@/lib/gemini-tasks/find-related-sources";
+import { bumpTwinRisk } from "@/lib/twin";
 import type { ChatAnswer } from "@/lib/schemas/chat";
 
 export async function sendMessageAction(params: {
@@ -29,6 +30,7 @@ export async function sendMessageAction(params: {
         source_reference: answer.source_reference || null,
       },
     ]);
+    await bumpTwinRisk(user!.id, answer.topic_label);
   }
 
   return answer;

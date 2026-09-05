@@ -14,15 +14,22 @@ export default async function PanelPage() {
         <SignOutButton />
       </div>
       <p className="text-foreground/65">
-        Öğrenci paneli burada büyüyecek: Dijital İkiz, Ödevler, Soru Oluştur,
-        Videolar, Analiz.
+        Öğrenci paneli burada büyüyecek: Ödevler, Soru Oluştur, Videolar, Analiz.
       </p>
-      <Link
-        href="/panel/soru-sor"
-        className="mt-2 inline-block w-fit rounded-full bg-brand-violet px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-violet-600"
-      >
-        Bota soru sor
-      </Link>
+      <div className="mt-2 flex flex-wrap gap-3">
+        <Link
+          href="/panel/soru-sor"
+          className="inline-block w-fit rounded-full bg-brand-violet px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-violet-600"
+        >
+          Bota soru sor
+        </Link>
+        <Link
+          href="/panel/ikiz"
+          className="inline-block w-fit rounded-full border border-border px-5 py-2.5 text-sm font-semibold hover:bg-surface-muted"
+        >
+          Dijital İkiz
+        </Link>
+      </div>
     </div>
   );
 }
