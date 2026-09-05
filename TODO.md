@@ -39,9 +39,9 @@
 
 ### Faz 5 — kalan sekmeler (orijinal tasarımdan, öncelik sırasıyla)
 
-Tasarım dosyasındaki tam bölümler: `Ogrenci Paneli.dc.html` satır 84 (Panel/ana sayfa), 164 (Dijital İkiz ✅), 297 (Ödevler), 453 (Videolar), 472 (Analiz), 589 (Öğretmen-Veli — artık ayrı portallar).
+Tasarım dosyasındaki tam bölümler: `Ogrenci Paneli.dc.html` satır 84 (Panel/ana sayfa), 164 (Dijital İkiz ✅), 297 (Ödevler), 380 (Soru Oluştur ✅), 453 (Videolar), 472 (Analiz), 589 (Öğretmen-Veli — artık ayrı portallar).
 
-- [ ] **Soru Oluştur** (tasarımda zaten UI var, satır 380): konu+zorluk+adet seçilince havuzdan çek (varsa `twin_state` riskine göre ağırlıklandır), yetersizse Gemini ile yeni soru üret, PDF + cevap anahtarı indir. Havuzdaki her sorunun kaynağını (`scans.book_title/page_number`) da göstermeli — kullanıcı notu, şema hazır.
+- [x] **Soru Oluştur** (`/panel/soru-olustur`): konu+zorluk+adet seçilince önce havuzdan çekiyor (kaynak kitap/sayfasını 📖 rozetiyle gösteriyor), yetersizse Gemini ile ("İkizimin hata desenini ağırlıklandır" işaretliyse `twin_state` risk skorunu prompta katarak) yeni soru üretip ✨ rozetiyle işaretliyor, cevap anahtarı + `window.print()` ile PDF indirme. Canlı projeye karşı doğrulandı; bu arada kaynak üreticisinin kaydettiği sorular artık doğrudan `approved` (ayrı bir öğretmen onay ekranı olmadığından, tarama-inceleme ekranının kendisi moderasyon adımı sayıldı).
 - [ ] **Analiz** (satır 472): `exams` (deneme net ortalaması) + `twin_state` (güçlü/zayıf konular) + `chat_messages` sayımından basit grafikler/kartlar.
 - [ ] **Ödevler** (satır 297): `homework` tablosuna öğretmenin (ya da öğrencinin kendi kendine) test/soru ataması, tamamlanma takibi. Öğretmen tarafı `/ogretmen` panelinde de görünmeli (sınıfın ödev durumu).
 - [ ] **Panel (ana sayfa)** (satır 84): şu an sadece "Merhaba + linkler" placeholder — gerçek hero istatistik, "İkizin bugün öne çıkardığı sorular" (risk haritasından türetilir), bugünün ödevi özetini içerecek şekilde zenginleştirilmeli.
