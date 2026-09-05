@@ -6,7 +6,7 @@ export function TwinMark({ size = 26 }: { size?: number }) {
         cx="15"
         cy="12"
         r="8"
-        fill="var(--brand-coffee)"
+        fill="var(--brand-yellow)"
         style={{ mixBlendMode: "multiply" }}
       />
     </svg>

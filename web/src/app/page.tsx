@@ -1,202 +1,112 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { PORTALS } from "@/lib/roles";
 import { TwinMark } from "@/components/brand/twin-mark";
 
-const RISK_PREVIEW: { topic: string; risk: 1 | 2 | 3 | 4 | 5 }[] = [
-  { topic: "Türev", risk: 4 },
-  { topic: "Limit", risk: 2 },
-  { topic: "Optik", risk: 5 },
-  { topic: "Paragraf", risk: 1 },
-  { topic: "Elektrik", risk: 3 },
-  { topic: "Fonksiyon", risk: 2 },
-  { topic: "Genetik", risk: 4 },
-  { topic: "Osmanlı Kur.", risk: 1 },
-];
-
-const RISK_COLOR: Record<number, string> = {
-  1: "var(--risk-1)",
-  2: "var(--risk-2)",
-  3: "var(--risk-3)",
-  4: "var(--risk-4)",
-  5: "var(--risk-5)",
-};
-
-const HOW_IT_WORKS = [
-  {
-    step: "01",
-    title: "Kitap taranır",
-    body: "Kaynak üreticisi kitap sayfasını yükler, Gemini sayfadaki soruları ayırıp havuza ekler.",
-  },
-  {
-    step: "02",
-    title: "İkiz soruyu çözer",
-    body: "Öğrenci sorar ya da test çözer; her yanıt bir kazanıma etiketlenir.",
-  },
-  {
-    step: "03",
-    title: "Risk haritası güncellenir",
-    body: "İkizin hangi kazanımda ne kadar yanıldığı, konu ağında koyulaşan noktalarla görünür.",
-  },
-  {
-    step: "04",
-    title: "Sana özel test çıkar",
-    body: "Riskli konulara ağırlık veren yeni bir test, havuzdan ve ihtiyaç halinde yapay zekadan üretilir.",
-  },
-];
-
 export default function LandingPage() {
+  const [selectedTier, setSelectedTier] = useState<"lgs" | "yks">("lgs");
+  const [activePortal, setActivePortal] = useState<string | null>(null);
+
+  const portals = [
+    { slug: "ogretmen", label: "Öğretmen", desc: "Öğrencilerin gelişimini ve ödevlerini yapay zeka ile takip et." },
+    { slug: "ogrenci", label: "Öğrenci", desc: "Dijital ikizinle zayıf noktalarını keşfet ve netlerini artır." },
+    { slug: "kaynak-uretici", label: "İçerik Üreticisi", desc: "Akıllı soru havuzuna sorularını ekle ve analiz et." }
+  ];
+
   return (
-    <div className="flex flex-col">
-      <header className="flex items-center justify-between px-6 py-5 sm:px-10">
+    <div className="flex flex-col min-h-screen bg-background">
+      <header className="flex flex-wrap items-center justify-between px-6 py-5 sm:px-10 bg-surface border-b border-border shadow-sm gap-4">
         <div className="flex items-center gap-2.5">
           <TwinMark />
-          <span className="font-heading text-xl font-semibold tracking-tight">
-            İkiz
+          <span className="font-heading text-xl font-semibold tracking-tight text-brand-green">
+            İkiz Eğitim
           </span>
         </div>
-        <nav className="flex items-center gap-5 text-sm font-medium">
-          <Link
-            href="/giris/ogretmen"
-            className="hidden text-foreground/70 hover:text-foreground sm:inline"
+        <nav className="flex items-center gap-1 bg-surface-muted p-1.5 rounded-full text-sm font-medium overflow-x-auto">
+          <button 
+            className="px-4 py-2 rounded-full hover:bg-surface text-foreground/50 hover:text-foreground transition-colors whitespace-nowrap"
+            onClick={() => alert("Anaokulu-İlkokul sistemi geliştirme aşamasındadır.")}
           >
-            Öğretmen girişi
-          </Link>
-          <Link
-            href="/giris/kaynak-uretici"
-            className="hidden text-foreground/70 hover:text-foreground sm:inline"
+            Anaokulu-İlkokul
+          </button>
+          <button 
+            className={`px-4 py-2 rounded-full transition-all whitespace-nowrap ${selectedTier === 'lgs' ? 'bg-brand-yellow text-foreground shadow-sm' : 'hover:bg-surface text-foreground/70'}`}
+            onClick={() => setSelectedTier('lgs')}
           >
-            Kaynak üreticisi girişi
-          </Link>
-          <Link
-            href="/giris/ogrenci"
-            className="rounded-full bg-brand-green px-4 py-2 text-white hover:bg-brand-green-600"
+            LGS Hazırlık
+          </button>
+          <button 
+            className={`px-4 py-2 rounded-full transition-all whitespace-nowrap ${selectedTier === 'yks' ? 'bg-brand-yellow text-foreground shadow-sm' : 'hover:bg-surface text-foreground/70'}`}
+            onClick={() => setSelectedTier('yks')}
           >
-            Öğrenci girişi
-          </Link>
+            YKS Hazırlık
+          </button>
         </nav>
       </header>
 
-      <section className="grid gap-12 px-6 pt-10 pb-20 sm:px-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:pt-16">
-        <div className="max-w-xl">
-          <h1 className="font-heading text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl">
-            Her öğrencinin, hatasını unutmayan bir{" "}
-            <span className="text-brand-green">ikizi</span> var.
+      <main className="flex-1 flex flex-col items-center justify-center p-6 sm:p-10 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] rounded-full bg-brand-yellow/20 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] rounded-full bg-brand-green/10 blur-3xl pointer-events-none" />
+
+        <div className="max-w-4xl w-full text-center mb-12 relative z-10 mt-6">
+          <h1 className="font-heading text-4xl sm:text-6xl font-semibold tracking-tight text-foreground mb-6 leading-tight">
+            Her öğrencinin, hatasını unutmayan bir <span className="text-brand-yellow-600">ikizi</span> var.
           </h1>
-          <p className="mt-5 text-lg text-foreground/70">
-            LGS ve YKS için: sorduğun her soru, çözdüğün her test ikizinin
-            risk haritasını günceller. Zayıf kazanımların netleşince, tam
-            oraya göre bir test çıkar.
+          <p className="text-lg text-foreground/70 max-w-2xl mx-auto">
+            <span className="uppercase font-semibold">{selectedTier}</span> maratonunda çözdüğün sorularla eğitilen ikizin sayesinde, tam zayıf olduğun noktalara özel testler ve ödevlerle başarıya ulaş.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/giris/ogrenci"
-              className="rounded-full bg-brand-green px-6 py-3 text-sm font-semibold text-white hover:bg-brand-green-600"
-            >
-              Öğrenci olarak başla
-            </Link>
-            <Link
-              href="#portallar"
-              className="rounded-full border border-border px-6 py-3 text-sm font-semibold hover:bg-surface-muted"
-            >
-              Diğer girişler
-            </Link>
-          </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <span className="font-heading text-sm font-semibold">
-              Konu risk haritası
-            </span>
-            <span className="text-xs text-foreground/50">örnek görünüm</span>
-          </div>
-          <div className="grid grid-cols-4 gap-2.5">
-            {RISK_PREVIEW.map((node) => (
-              <div
-                key={node.topic}
-                className="flex aspect-square flex-col items-center justify-center rounded-lg p-2 text-center"
-                style={{ background: RISK_COLOR[node.risk] }}
-              >
-                <span className="text-[11px] font-medium leading-tight text-foreground/80">
-                  {node.topic}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 flex items-center gap-1.5 text-xs text-foreground/50">
-            <span>düşük risk</span>
-            <span
-              className="h-2 flex-1 rounded-full"
-              style={{
-                background:
-                  "linear-gradient(90deg, var(--risk-1), var(--risk-3), var(--risk-5))",
-              }}
-            />
-            <span>yüksek risk</span>
-          </div>
-        </div>
-      </section>
+        <div className="w-full max-w-6xl bg-surface/80 backdrop-blur-xl p-8 sm:p-12 rounded-3xl border border-border shadow-xl relative z-10 border-t-4 border-t-brand-yellow">
+          <h2 className="text-2xl font-heading font-semibold text-center mb-10">
+            <span className="uppercase text-brand-green font-bold">{selectedTier}</span> Platformuna Giriş Yap
+          </h2>
+          <div className="grid gap-8 md:grid-cols-3">
+            {portals.map((portal) => {
+              const isActive = activePortal === portal.slug;
+              return (
+                <div 
+                  key={portal.slug} 
+                  className={`group flex flex-col p-8 rounded-2xl border transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer ${isActive ? 'border-brand-yellow bg-surface ring-2 ring-brand-yellow/20' : 'border-border bg-background/50 hover:bg-surface hover:border-brand-yellow/50'}`}
+                  onClick={() => setActivePortal(portal.slug)}
+                >
+                  <div className="flex flex-col items-center flex-1">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-6 transition-colors ${isActive ? 'bg-brand-yellow/20' : 'bg-surface-muted group-hover:bg-brand-yellow/10'}`}>
+                      <div className={`w-6 h-6 rounded-full transition-colors ${isActive ? 'bg-brand-yellow' : 'bg-brand-green opacity-80'}`} />
+                    </div>
+                    <h3 className="text-xl font-semibold font-heading mb-3">{portal.label}</h3>
+                    <p className="text-center text-sm text-foreground/60 mb-6 flex-1 leading-relaxed">{portal.desc}</p>
+                  </div>
+                  
+                  {/* Giriş Formu (Aktif ise göster) */}
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out flex flex-col gap-3 ${isActive ? 'max-h-64 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                    <input type="email" placeholder="E-posta adresi" className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow" defaultValue="demo@ikiz.edu.tr" />
+                    <input type="password" placeholder="Şifre" className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow" defaultValue="123456" />
+                    
+                    <Link 
+                      href={portal.slug === 'ogrenci' ? `/panel/ogrenci` : `/panel/${portal.slug}`}
+                      className="w-full mt-2 text-center rounded-xl bg-brand-yellow px-6 py-3 text-sm font-semibold text-foreground hover:bg-brand-yellow-600 transition-all hover:scale-[1.02] shadow-sm"
+                    >
+                      Sisteme Gir
+                    </Link>
+                  </div>
 
-      <section className="border-t border-border bg-surface px-6 py-16 sm:px-10">
-        <h2 className="font-heading text-2xl font-semibold">Nasıl çalışır</h2>
-        <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {HOW_IT_WORKS.map((item) => (
-            <div key={item.step}>
-              <span className="font-heading text-sm font-semibold text-brand-coffee">
-                {item.step}
-              </span>
-              <h3 className="mt-2 font-heading text-lg font-semibold">
-                {item.title}
-              </h3>
-              <p className="mt-1.5 text-sm text-foreground/65">{item.body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section id="portallar" className="px-6 py-20 sm:px-10">
-        <h2 className="font-heading text-2xl font-semibold">Girişini seç</h2>
-        <p className="mt-2 text-foreground/65">
-          Öğrenci, öğretmen ve kaynak üreticisi ayrı panellerde çalışır.
-        </p>
-        <div className="mt-8 grid gap-5 sm:grid-cols-3">
-          {(Object.keys(PORTALS) as (keyof typeof PORTALS)[]).map((slug) => {
-            const portal = PORTALS[slug];
-            return (
-              <div
-                key={slug}
-                className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-6"
-              >
-                <div>
-                  <h3 className="font-heading text-lg font-semibold">
-                    {portal.label}
-                  </h3>
-                  <p className="mt-2 text-sm text-foreground/65">
-                    {portal.tagline}
-                  </p>
+                  {!isActive && (
+                    <div className="w-full text-center rounded-xl bg-surface-muted px-6 py-3 text-sm font-medium text-foreground/70 group-hover:bg-brand-yellow/20 group-hover:text-foreground transition-colors">
+                      Giriş Seç
+                    </div>
+                  )}
                 </div>
-                <div className="mt-6 flex gap-3 text-sm font-semibold">
-                  <Link
-                    href={`/giris/${slug}`}
-                    className="rounded-full bg-brand-green px-4 py-2 text-white hover:bg-brand-green-600"
-                  >
-                    Giriş yap
-                  </Link>
-                  <Link
-                    href={`/kayit/${slug}`}
-                    className="rounded-full border border-border px-4 py-2 hover:bg-surface-muted"
-                  >
-                    Kayıt ol
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
+              )
+            })}
+          </div>
         </div>
-      </section>
+      </main>
 
-      <footer className="border-t border-border px-6 py-8 text-sm text-foreground/50 sm:px-10">
-        İkiz — LGS/YKS çalışma platformu.
+      <footer className="px-6 py-8 text-center text-sm text-foreground/50 relative z-10">
+        İkiz Eğitim Platformu © {new Date().getFullYear()} — Tüm Hakları Saklıdır.
       </footer>
     </div>
   );

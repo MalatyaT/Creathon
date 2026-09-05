@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { isPortalSlug, PORTALS } from "@/lib/roles";
 import { RoleAuthForm } from "@/components/auth/role-auth-form";
 
@@ -7,7 +7,11 @@ export default async function GirisPage(props: PageProps<"/giris/[role]">) {
   const { role } = await props.params;
   if (!isPortalSlug(role)) notFound();
 
-  const portal = PORTALS[role];
+  // Demo sunumu için girişi bypass edip doğrudan panele yönlendir:
+  redirect(`/panel/${role}`);
+
+  const validRole = role as keyof typeof PORTALS;
+  const portal = PORTALS[validRole];
 
   return (
     <div className="mx-auto flex min-h-full max-w-sm flex-col justify-center px-6 py-16">
@@ -19,7 +23,7 @@ export default async function GirisPage(props: PageProps<"/giris/[role]">) {
       </h1>
       <p className="mt-1.5 text-sm text-foreground/65">{portal.tagline}</p>
       <div className="mt-8">
-        <RoleAuthForm slug={role} mode="login" />
+        <RoleAuthForm slug={validRole} mode="login" />
       </div>
       <p className="mt-6 text-sm text-foreground/60">
         Hesabın yok mu?{" "}
