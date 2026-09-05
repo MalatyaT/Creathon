@@ -1,4 +1,4 @@
-export type PortalSlug = "ogrenci" | "ogretmen" | "kaynak-uretici";
+export type PortalSlug = "ogrenci" | "ogretmen" | "kaynak-uretici" | "veli";
 export type UserRole = "student" | "teacher" | "parent" | "content_creator";
 
 export const PORTALS: Record<
@@ -27,6 +27,12 @@ export const PORTALS: Record<
     label: "Kaynak Üreticisi",
     tagline: "Kitapları tara, soru havuzunu büyüt.",
     dashboardPath: "/kaynak-uretici",
+  },
+  veli: {
+    role: "parent",
+    label: "Veli",
+    tagline: "Çocuğunun haftalık özetini gör, raporu indir.",
+    dashboardPath: "/veli",
   },
 };
 

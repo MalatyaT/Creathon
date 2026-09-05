@@ -2,9 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { linkStudentAction } from "@/app/ogretmen/actions";
 
-export function LinkStudentForm() {
+export function LinkStudentForm({
+  action,
+  buttonLabel = "Ekle",
+}: {
+  action: (email: string) => Promise<{ ok: boolean; message: string }>;
+  buttonLabel?: string;
+}) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [pending, setPending] = useState(false);
@@ -16,7 +21,7 @@ export function LinkStudentForm() {
     setPending(true);
     setMessage(null);
     try {
-      const result = await linkStudentAction(email.trim());
+      const result = await action(email.trim());
       setMessage(result.message);
       if (result.ok) {
         setEmail("");
@@ -42,7 +47,7 @@ export function LinkStudentForm() {
           disabled={pending}
           className="shrink-0 rounded-full bg-brand-green px-4 py-2 text-sm font-semibold text-white hover:bg-brand-green-600 disabled:opacity-60"
         >
-          {pending ? "Ekleniyor…" : "Sınıfıma ekle"}
+          {pending ? "Ekleniyor…" : buttonLabel}
         </button>
       </div>
       {message && <p className="text-sm text-foreground/65">{message}</p>}

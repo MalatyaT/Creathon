@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { LinkStudentForm } from "@/components/shared/link-student-form";
 import { PrintButton } from "@/components/shared/print-button";
-import { linkStudentAction } from "./actions";
+import { linkChildAction } from "./actions";
 import { riskColor } from "@/lib/risk";
 import {
   getLinkedStudentSummaries,
@@ -12,25 +12,25 @@ import {
   type StudentSummary,
 } from "@/lib/student-summaries";
 
-export default async function OgretmenPage() {
-  const { user, profile, previewMode } = await requireRole("teacher", "/giris/ogretmen");
+export default async function VeliPage() {
+  const { user, profile, previewMode } = await requireRole("parent", "/giris/veli");
 
-  let students: StudentSummary[] = [];
+  let children: StudentSummary[] = [];
 
   if (!previewMode && supabaseConfigured() && user) {
     const supabase = await createClient();
-    students = await getLinkedStudentSummaries(supabase, user.id);
+    children = await getLinkedStudentSummaries(supabase, user.id);
   }
 
-  const notes = computeStudentNotes(students);
-  const avgClassRisk = averageRisk(students);
-  const totalPracticeCount = students.reduce((sum, s) => sum + s.practiceCount, 0);
+  const notes = computeStudentNotes(children);
+  const avgRisk = averageRisk(children);
+  const totalPracticeCount = children.reduce((sum, c) => sum + c.practiceCount, 0);
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-10 px-8 py-16">
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-2xl font-semibold">
-          Merhaba {profile.full_name || "öğretmen"}
+          Merhaba {profile.full_name || "veli"}
         </h1>
         <SignOutButton />
       </div>
@@ -40,29 +40,24 @@ export default async function OgretmenPage() {
 
       <div className="print:hidden">
         <div className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-foreground/50">
-          Sınıfına öğrenci ekle
+          Çocuğunu ekle
         </div>
-        <LinkStudentForm action={linkStudentAction} buttonLabel="Sınıfıma ekle" />
+        <LinkStudentForm action={linkChildAction} buttonLabel="Ekle" />
       </div>
 
-      {students.length === 0 ? (
+      {children.length === 0 ? (
         <p className="text-sm text-foreground/50">
-          Henüz sınıfında öğrenci yok — yukarıdan bir öğrencinin e-postasını ekleyerek başla.
+          Henüz eklenmiş bir çocuk yok — yukarıdan öğrencinin e-postasını ekleyerek başla.
         </p>
       ) : (
         <>
           <div className="flex flex-wrap gap-11">
             <div className="min-w-[128px]">
-              <div className="font-heading text-[30px] leading-none">{students.length}</div>
-              <div className="my-2.5 h-[3px] w-[34px] bg-brand-green" />
-              <div className="text-[13px] text-foreground/62">Öğrenci</div>
-            </div>
-            <div className="min-w-[128px]">
               <div className="font-heading text-[30px] leading-none">
-                {avgClassRisk === null ? "—" : `%${avgClassRisk}`}
+                {avgRisk === null ? "—" : `%${avgRisk}`}
               </div>
               <div className="my-2.5 h-[3px] w-[34px] bg-risk-4" />
-              <div className="text-[13px] text-foreground/62">Sınıf risk ortalaması</div>
+              <div className="text-[13px] text-foreground/62">Risk ortalaması</div>
             </div>
             <div className="min-w-[128px]">
               <div className="font-heading text-[30px] leading-none">{totalPracticeCount}</div>
@@ -72,26 +67,26 @@ export default async function OgretmenPage() {
           </div>
 
           <div>
-            <h2 className="mb-4 font-heading text-lg font-semibold">Sınıfın</h2>
+            <h2 className="mb-4 font-heading text-lg font-semibold">Çocuğun</h2>
             <div className="flex flex-col">
-              {students.map((s) => (
+              {children.map((c) => (
                 <div
-                  key={s.id}
+                  key={c.id}
                   className="flex items-center gap-4 border-b border-border py-4 last:border-b-0"
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="font-heading text-[15px] font-semibold">{s.name}</div>
+                    <div className="font-heading text-[15px] font-semibold">{c.name}</div>
                     <div className="mt-0.5 text-[13px] text-foreground/60">
-                      {s.homeworkDone}/{s.homeworkTotal} ödev tamamlandı
-                      {s.topTopic && ` · en riskli: ${s.topTopic}`}
+                      {c.homeworkDone}/{c.homeworkTotal} ödev tamamlandı
+                      {c.topTopic && ` · en riskli: ${c.topTopic}`}
                     </div>
                   </div>
-                  {s.avgRisk !== null && (
+                  {c.avgRisk !== null && (
                     <span
                       className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium"
-                      style={{ background: riskColor(s.avgRisk) }}
+                      style={{ background: riskColor(c.avgRisk) }}
                     >
-                      %{s.avgRisk} risk
+                      %{c.avgRisk} risk
                     </span>
                   )}
                 </div>
