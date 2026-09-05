@@ -13,6 +13,8 @@ const DIFFICULTY_RANGES: Record<string, [number, number]> = {
 
 export type TestItem = {
   no: number;
+  /** questions.id — havuzdan geldiyse dolu, yapay zeka ile üretildiyse null (henüz kaydedilmedi). */
+  id: string | null;
   text: string;
   options: string[];
   correctAnswer: string;
@@ -56,7 +58,7 @@ export async function generateTestAction(params: {
   const { data: poolRows } = await supabase
     .from("questions")
     .select(
-      "question_text, options, correct_answer, explanation, difficulty, topic_label, scans(book_title, page_number)",
+      "id, question_text, options, correct_answer, explanation, difficulty, topic_label, scans(book_title, page_number)",
     )
     .eq("status", "approved")
     .ilike("topic_label", `%${params.topic}%`)
@@ -68,6 +70,7 @@ export async function generateTestAction(params: {
     const scan = Array.isArray(q.scans) ? q.scans[0] : q.scans;
     return {
       no: i + 1,
+      id: q.id,
       text: q.question_text,
       options: (q.options as string[]) ?? [],
       correctAnswer: q.correct_answer ?? "",
@@ -106,6 +109,7 @@ export async function generateTestAction(params: {
     generated.forEach((q, i) => {
       items.push({
         no: baseNo + i + 1,
+        id: null,
         text: q.question_text,
         options: q.options,
         correctAnswer: q.correct_answer,
@@ -118,4 +122,60 @@ export async function generateTestAction(params: {
   }
 
   return { items, previewMode: false };
+}
+
+export async function assignAsHomeworkAction(payload: {
+  title: string;
+  items: TestItem[];
+}): Promise<{ assigned: boolean; previewMode: boolean }> {
+  const { user, previewMode } = await requireRoleAction("student");
+  if (previewMode || !supabaseConfigured() || !user) {
+    return { assigned: false, previewMode: true };
+  }
+
+  const supabase = await createClient();
+
+  // Yapay zekayla üretilip henüz kaydedilmemiş sorular (id yok) — ödev olarak
+  // atanabilmesi için önce havuza (approved, source: ai_generated) yazılıyor.
+  const unsaved = payload.items.filter((q) => !q.id);
+  let savedIds: string[] = [];
+  if (unsaved.length > 0) {
+    const { data: inserted, error } = await supabase
+      .from("questions")
+      .insert(
+        unsaved.map((q) => ({
+          question_text: q.text,
+          options: q.options,
+          correct_answer: q.correctAnswer,
+          explanation: q.explanation,
+          difficulty: q.difficulty,
+          topic_label: q.topicLabel,
+          source: "ai_generated" as const,
+          status: "approved" as const,
+          created_by: user.id,
+        })),
+      )
+      .select("id");
+    if (error) throw new Error(error.message);
+    savedIds = (inserted ?? []).map((r) => r.id);
+  }
+
+  const questionIds = [
+    ...payload.items.filter((q): q is TestItem & { id: string } => Boolean(q.id)).map((q) => q.id),
+    ...savedIds,
+  ];
+
+  const dueDate = new Date();
+  dueDate.setDate(dueDate.getDate() + 7);
+
+  const { error: hwError } = await supabase.from("homework").insert({
+    assigned_by: user.id,
+    student_id: user.id,
+    title: payload.title,
+    question_ids: questionIds,
+    due_date: dueDate.toISOString().slice(0, 10),
+  });
+  if (hwError) throw new Error(hwError.message);
+
+  return { assigned: true, previewMode: false };
 }

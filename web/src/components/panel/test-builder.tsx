@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { generateTestAction, type TestItem } from "@/app/panel/soru-olustur/actions";
+import {
+  generateTestAction,
+  assignAsHomeworkAction,
+  type TestItem,
+} from "@/app/panel/soru-olustur/actions";
 
 const COUNTS = [5, 10, 15, 20];
 const LEVELS = ["Kolay", "Orta", "Zor", "Karışık"];
@@ -15,6 +19,8 @@ export function TestBuilder({ topics }: { topics: string[] }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
+  const [assigning, setAssigning] = useState(false);
+  const [assignResult, setAssignResult] = useState<string | null>(null);
 
   async function handleGenerate() {
     if (!topic.trim()) {
@@ -36,6 +42,24 @@ export function TestBuilder({ topics }: { topics: string[] }) {
       setError(err instanceof Error ? err.message : "Test oluşturulamadı");
     } finally {
       setPending(false);
+    }
+  }
+
+  async function handleAssign() {
+    if (!items || items.length === 0) return;
+    setAssigning(true);
+    setAssignResult(null);
+    try {
+      const result = await assignAsHomeworkAction({ title: testTitle, items });
+      setAssignResult(
+        result.previewMode
+          ? "Supabase henüz bağlı değil — bu bir önizleme."
+          : "Ödev olarak eklendi — Ödevler sekmesinden takip edebilirsin.",
+      );
+    } catch (err) {
+      setAssignResult(err instanceof Error ? err.message : "Ödev olarak atanamadı");
+    } finally {
+      setAssigning(false);
     }
   }
 
@@ -212,7 +236,17 @@ export function TestBuilder({ topics }: { topics: string[] }) {
               >
                 Yeniden üret
               </button>
+              <button
+                onClick={handleAssign}
+                disabled={assigning}
+                className="rounded-full border border-border px-5 py-2.5 text-sm font-semibold hover:bg-surface-muted disabled:opacity-60"
+              >
+                {assigning ? "Atanıyor…" : "Ödev olarak ata"}
+              </button>
             </div>
+            {assignResult && (
+              <p className="mt-3 text-sm text-foreground/65 print:hidden">{assignResult}</p>
+            )}
           </div>
         )}
       </div>
