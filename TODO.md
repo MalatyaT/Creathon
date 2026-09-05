@@ -25,10 +25,28 @@
 ## GitHub / Supabase bağlantısı
 
 - [x] Kod, `https://github.com/MalatyaT/Creathon` (private) reposuna push edildi — tek repo, kök dizinde `web/` (Next.js), `supabase/migrations/` ve bu TODO.
-- [x] Supabase projesi oluşturuldu: `https://nqpgvvzkpbmfeorinhfi.supabase.co`, GitHub'a bağlandı.
-- [ ] **Eksik:** Bu projenin `anon` ve `service_role` key'leri henüz `.env.local`'da yok (Project Settings → API'den alınır) — onlar gelmeden gerçek auth/DB devreye girmiyor, demo modu sürüyor.
-- [ ] Migration'lar (`supabase/migrations/0001-0004`) bu projeye henüz uygulanmadı — Supabase'in GitHub entegrasyonu bunu otomatik yapıyorsa doğrulanmalı, yapmıyorsa `supabase db push` (CLI login gerektirir) ya da Supabase Dashboard → SQL Editor'den elle çalıştırılmalı.
-- [ ] Vercel'e deploy ederken aynı üç env değişkeni + `GEMINI_API_KEY` orada da tanımlanmalı.
+- [x] Supabase projesi canlı ve tamamen bağlı: `https://nqpgvvzkpbmfeorinhfi.supabase.co`. `anon`/`service_role` key'leri ve DB şifresi `.env.local`'da (repoya girmiyor). `supabase/migrations/0001-0006` doğrudan Postgres bağlantısıyla (CLI yok, `pg` ile script) uygulandı ve doğrulandı.
+- [x] Gerçek kayıt/giriş, OCR→havuz kaydı ve chatbot→kaynak referansı canlı projeye karşı uçtan uca test edildi (bkz. aşağıdaki "Bu oturumda tamamlananlar — devam" bölümü).
+- [ ] Vercel'e deploy ederken aynı üç Supabase env değişkeni + `GEMINI_API_KEY` orada da tanımlanmalı.
+- [ ] **Öneri:** Supabase Dashboard → Authentication → Providers → Email → "Confirm email" kapatılsın. Şu an açık; gerçek `signUp` (demo modu değil, Supabase bağlandıktan sonraki gerçek kayıt) e-posta onayı bekliyor ve **Supabase'in ücretsiz plandaki e-posta gönderme limiti çok düşük** ("email rate limit exceeded" — birkaç denemede doldu). Kapatılırsa kayıt anında oturum açılıyor, sunum için çok daha hızlı ve limit sorunu da ortadan kalkıyor.
+
+## Bu oturumda tamamlananlar — devam (Supabase canlıya alındıktan sonra)
+
+- [x] **Kritik RLS düzeltmesi**: `scans` tablosu sadece yükleyene (`uploaded_by = auth.uid()`) açıktı — bu yüzden chatbot'un kaynak önerisi başka bir kullanıcının taradığı sayfaları hiç göremiyordu, referans hep boş dönüyordu. `supabase/migrations/0005`: işlenmiş (`status='done'`) taramalar artık herkese okunabilir, yazma hâlâ sadece yükleyene ait. Bu düzeltmeden sonra chatbot gerçekten "📖 Test Soru Bankası, s. 12" gibi referanslar veriyor — canlı projeye karşı doğrulandı.
+- [x] Kaynak Üreticisi ekranındaki "X soru havuza eklendi" başarı mesajı, `questions` state'i sıfırlanınca aynı render'da kayboluyordu (mesaj hiç görünmeden siliniyordu) — düzeltildi.
+- [x] **Dijital İkiz** (`/panel/ikiz`): gerçek `twin_state` verisiyle konu risk haritası (ısı skalası) + `chat_messages`'tan gerçek "İkizin çözüm akışı" (tıkla-genişlet, kaynak referansı dahil). Her chat yanıtından sonra `lib/twin.ts` ilgili konunun risk skorunu artırıyor (basit frekans sinyali — chat doğru/yanlış bilgisi vermiyor, bu yüzden "soruldukça risk artar" yaklaşımı kullanıldı; gerçek taksonomi geldiğinde iyileştirilebilir). `twin_state` şemasına da `topic_label` serbest metin + eksik olan insert/update RLS politikaları eklendi (migration 0006).
+- [x] Rakip inceleme: `okulistik.com` (WebFetch ile) — MEB uyumlu soru bankası, video dersler, ödev, optik okuma, öğretmen/veli/yönetici panelleri, yapay zekâ ile sınav analizi sunuyor. Bizim tasarım taslağımızdaki kapsamla (soru havuzu, video öneri, ödev, öğretmen/veli, AI analiz) örtüşüyor — yeni bir özellik kategorisi çıkmadı, mevcut Faz 5 planı geçerli.
+
+### Faz 5 — kalan sekmeler (orijinal tasarımdan, öncelik sırasıyla)
+
+Tasarım dosyasındaki tam bölümler: `Ogrenci Paneli.dc.html` satır 84 (Panel/ana sayfa), 164 (Dijital İkiz ✅), 297 (Ödevler), 453 (Videolar), 472 (Analiz), 589 (Öğretmen-Veli — artık ayrı portallar).
+
+- [ ] **Soru Oluştur** (tasarımda zaten UI var, satır 380): konu+zorluk+adet seçilince havuzdan çek (varsa `twin_state` riskine göre ağırlıklandır), yetersizse Gemini ile yeni soru üret, PDF + cevap anahtarı indir. Havuzdaki her sorunun kaynağını (`scans.book_title/page_number`) da göstermeli — kullanıcı notu, şema hazır.
+- [ ] **Analiz** (satır 472): `exams` (deneme net ortalaması) + `twin_state` (güçlü/zayıf konular) + `chat_messages` sayımından basit grafikler/kartlar.
+- [ ] **Ödevler** (satır 297): `homework` tablosuna öğretmenin (ya da öğrencinin kendi kendine) test/soru ataması, tamamlanma takibi. Öğretmen tarafı `/ogretmen` panelinde de görünmeli (sınıfın ödev durumu).
+- [ ] **Panel (ana sayfa)** (satır 84): şu an sadece "Merhaba + linkler" placeholder — gerçek hero istatistik, "İkizin bugün öne çıkardığı sorular" (risk haritasından türetilir), bugünün ödevi özetini içerecek şekilde zenginleştirilmeli.
+- [ ] **Videolar** (satır 453, en düşük öncelik): gerçek YouTube API entegrasyonu ayrı bir kredi/kota gerektirir — ilk sürümde zayıf konulara göre YouTube arama linkleri (API key gerektirmez) yeterli olabilir.
+- [ ] Öğretmen paneli (`/ogretmen`): sınıfın risk haritası özeti, soru havuzu onay ekranı (`questions.status = pending_review` listesi), ödev atama.
 
 ## 0. Mevcut durumun tespiti
 
