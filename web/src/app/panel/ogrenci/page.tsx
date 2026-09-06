@@ -1,8 +1,58 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { TwinMark } from "@/components/brand/twin-mark";
+import { Markdown } from "@/components/ui/markdown";
+import {
+  createChatSession,
+  generateSingleQuestionAction,
+  getChatMessages,
+  listChatSessions,
+  listKazanimOptions,
+  listSubjectOptions,
+  sendChatMessage,
+  type ChatMessageRecord,
+  type ChatSessionSummary,
+  type KazanimOption,
+  type ReferenceQuestion,
+  type SubjectOption,
+} from "@/app/panel/ogrenci/actions";
+import type { GeneratedQuestion } from "@/lib/schemas/generation";
+
+type ChatUIMessage = {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+  imagePreview?: string;
+  topicLabel?: string | null;
+  sourceReference?: string | null;
+};
+
+function fileToBase64(file: File): Promise<{ base64: string; mimeType: string }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => {
+      const result = String(reader.result);
+      const base64 = result.slice(result.indexOf(",") + 1);
+      resolve({ base64, mimeType: file.type || "image/png" });
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function sessionDayLabel(iso: string) {
+  const date = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  const sameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  if (sameDay(date, today)) return "Bugün";
+  if (sameDay(date, yesterday)) return "Dün";
+  return "Daha önce";
+}
 
 const icons = {
   panel: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>,
@@ -132,7 +182,8 @@ const twinData: Record<string, TwinData> = {
     desc: 'En riskli konu. İkizin bu konuda %84 oranda yanılıyor.',
     stats: [{ label: 'İşlem Hatası', val: '%45' }, { label: 'Belirsizlik', val: '%39' }],
     questions: [
-      { id: 1, title: 'Limit ve Süreklilik - Soru 7', desc: 'İkizin eşlenik çarpımında hata yaptı.', risk: 'Kritik' }
+      { id: 1, title: 'Limit ve Süreklilik - Soru 7', desc: 'İkizin eşlenik çarpımında hata yaptı.', risk: 'Kritik' },
+      { id: 2, title: 'Limit Belirsizlik - Soru 12', desc: 'İkizin paydayı sıfır yapan değeri sadeleştirmeyi unuttu.', risk: 'Yüksek Risk' },
     ]
   },
   turev: {
@@ -148,7 +199,73 @@ const twinData: Record<string, TwinData> = {
     desc: 'Mercekler ve kırılma yasalarında kavram yanılgısı mevcut.',
     stats: [{ label: 'Kavram', val: '%65' }, { label: 'İşlem', val: '%15' }],
     questions: [
-      { id: 1, title: 'İnce Kenarlı Mercek - Soru 1', desc: 'Odak noktasını yanlış hesapladı.', risk: 'Orta Risk' }
+      { id: 1, title: 'İnce Kenarlı Mercek - Soru 1', desc: 'Odak noktasını yanlış hesapladı.', risk: 'Orta Risk' },
+      { id: 2, title: 'Kırılma - Soru 5', desc: 'Sınır açısını hesaplamadan tam yansıma yaptı.', risk: 'Kritik' },
+      { id: 3, title: 'Aynalar - Soru 8', desc: 'Tümsek aynada görüntüyü gerçek kabul etti.', risk: 'Yüksek Risk' },
+    ]
+  },
+  polinom: {
+    title: 'Polinomlar (Matematik)',
+    desc: 'Bölme kurallarında işlem hızınız yavaş.',
+    stats: [{ label: 'İşlem Hızı', val: '%40' }, { label: 'Dikkat', val: '%10' }],
+    questions: [
+      { id: 1, title: 'Kalan Bulma - Soru 4', desc: 'Değer verirken işareti yanlış aldı.', risk: 'Orta Risk' }
+    ]
+  },
+  geo: {
+    title: 'Geometri (Matematik)',
+    desc: 'Üçgenlerde benzerlik kaçırılıyor.',
+    stats: [{ label: 'Görme', val: '%70' }, { label: 'Formül', val: '%5' }],
+    questions: [
+      { id: 1, title: 'Benzerlik - Soru 2', desc: 'Kelebek kuralını göremedi.', risk: 'Yüksek Risk' }
+    ]
+  },
+  dinamik: {
+    title: 'Dinamik (Fizik)',
+    desc: 'Sürtünme kuvveti yönünü yanlış belirliyor.',
+    stats: [{ label: 'Kavram', val: '%40' }, { label: 'İşlem', val: '%20' }],
+    questions: [
+      { id: 1, title: 'Eğik Düzlem - Soru 3', desc: 'Sürtünmeyi harekete zıt almayı unuttu.', risk: 'Yüksek Risk' }
+    ]
+  },
+  elektrik: {
+    title: 'Elektrik (Fizik)',
+    desc: 'Eşdeğer direnç sorularında köprüleri kaçırıyor.',
+    stats: [{ label: 'Görme', val: '%50' }, { label: 'İşlem', val: '%15' }],
+    questions: [
+      { id: 1, title: 'Dirençler - Soru 9', desc: 'Kısa devreyi fark etmedi.', risk: 'Orta Risk' }
+    ]
+  },
+  denge: {
+    title: 'Denge (Kimya)',
+    desc: 'Denge sabitini hesaplarken katsayıları unuttu.',
+    stats: [{ label: 'Dikkat', val: '%45' }, { label: 'İşlem', val: '%20' }],
+    questions: [
+      { id: 1, title: 'Kc Hesaplama - Soru 4', desc: 'Katsayıyı üs olarak yazmadı.', risk: 'Kritik' }
+    ]
+  },
+  organik: {
+    title: 'Organik Kimya (Kimya)',
+    desc: 'IUPAC adlandırmada numaralandırma hatası.',
+    stats: [{ label: 'Kural Hatası', val: '%60' }, { label: 'Dikkat', val: '%10' }],
+    questions: [
+      { id: 1, title: 'Adlandırma - Soru 2', desc: 'Dallanmaya en küçük sayıyı vermedi.', risk: 'Yüksek Risk' }
+    ]
+  },
+  sinir: {
+    title: 'Sinir Sistemi (Biyoloji)',
+    desc: 'Polarizasyon evreleri karıştırılıyor.',
+    stats: [{ label: 'Bilgi Eksikliği', val: '%40' }, { label: 'Yorum', val: '%10' }],
+    questions: [
+      { id: 1, title: 'Aksiyon Potansiyeli - Soru 5', desc: 'Sodyum kanallarının durumunu yanlış işaretledi.', risk: 'Orta Risk' }
+    ]
+  },
+  hucre: {
+    title: 'Hücre (Biyoloji)',
+    desc: 'Organel görevleri genel olarak iyi, zar geçişlerinde ufak sorunlar.',
+    stats: [{ label: 'Dikkat', val: '%15' }, { label: 'Bilgi', val: '%5' }],
+    questions: [
+      { id: 1, title: 'Osmoz - Soru 2', desc: 'Hipertonik ortamda su kaybedeceğini unuttu.', risk: 'Düşük Risk' }
     ]
   }
 };
@@ -156,18 +273,208 @@ const twinData: Record<string, TwinData> = {
 export default function StudentPanel() {
   const [activeTab, setActiveTab] = useState('panel');
 
-  // Twin Graph States
-  const [twinViewMode, setTwinViewMode] = useState<'root' | 'subject'>('root');
+  // Twin Graph States: Drill-down history
+  // e.g. ['root'] -> ['root', 'mat'] -> ['root', 'mat', 'optik']
+  const [twinHistory, setTwinHistory] = useState<string[]>(['root']);
+  const currentTwinView = twinHistory[twinHistory.length - 1]; 
   const [selectedTwinNode, setSelectedTwinNode] = useState('mat');
   
-  // Soru Oluşturma (createQ) States
-  const [qCount, setQCount] = useState('10');
+  // Soru Oluşturma (createQ) States — pgvector retrieval + Gemini (bkz. lib/gemini-tasks/generate-rag-question.ts)
+  const [qSubjects, setQSubjects] = useState<SubjectOption[]>([]);
+  const [qSubjectId, setQSubjectId] = useState("");
+  const [qKazanimlar, setQKazanimlar] = useState<KazanimOption[]>([]);
+  const [qKazanimId, setQKazanimId] = useState("");
   const [qLevel, setQLevel] = useState('Orta');
   const [useTwinWeight, setUseTwinWeight] = useState(true);
+  const [qType, setQType] = useState('Çoktan Seçmeli');
+
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStep, setGenerationStep] = useState(0);
+  const [referenceQ, setReferenceQ] = useState<ReferenceQuestion | null>(null);
+  const [generatedQ, setGeneratedQ] = useState<GeneratedQuestion | null>(null);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+
+  useEffect(() => {
+    listSubjectOptions().then((list) => {
+      setQSubjects(list);
+      setQSubjectId(list[0]?.id ?? "");
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!qSubjectId) return;
+    listKazanimOptions(qSubjectId).then((list) => {
+      setQKazanimlar(list);
+      setQKazanimId(list[0]?.id ?? "");
+    });
+  }, [qSubjectId]);
+
+  const handleGenerate = async () => {
+    if (!qSubjectId || !qKazanimId) return;
+    setIsGenerating(true);
+    setGenerateError(null);
+    setGeneratedQ(null);
+    setReferenceQ(null);
+    setShowAnswer(false);
+    setGenerationStep(1);
+
+    const stepTimers = [
+      setTimeout(() => setGenerationStep(2), 900),
+      setTimeout(() => setGenerationStep(3), 1800),
+      setTimeout(() => setGenerationStep(4), 2700),
+    ];
+
+    try {
+      const subjectName = qSubjects.find(s => s.id === qSubjectId)?.name || "Bilinmeyen Ders";
+      const result = await generateSingleQuestionAction({
+        subjectId: qSubjectId,
+        kazanimId: qKazanimId,
+        questionType: qType === 'Çoktan Seçmeli' ? "multiple_choice" : "open_ended",
+        difficultyLabel: qLevel,
+        weightByRisk: useTwinWeight,
+      });
+      setReferenceQ(result.reference);
+      setGeneratedQ(result.generated);
+    } catch (err) {
+      setGenerateError(err instanceof Error ? err.message : "Soru üretilemedi");
+    } finally {
+      stepTimers.forEach(clearTimeout);
+      setIsGenerating(false);
+    }
+  };
 
   // Sınav-Deneme (exam) States
   const [examStep, setExamStep] = useState(1);
   const [examSubject, setExamSubject] = useState("");
+
+  // Soru Sor (chat) States — gerçek Gemini bağlantısı + oturum (session) geçmişi
+  const [chatSessions, setChatSessions] = useState<ChatSessionSummary[]>([]);
+  const [activeChatSessionId, setActiveChatSessionId] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatUIMessage[]>([]);
+  const [chatDraft, setChatDraft] = useState("");
+  const [chatImage, setChatImage] = useState<{ file: File; previewUrl: string } | null>(null);
+  const [chatPending, setChatPending] = useState(false);
+  const [chatSessionsLoading, setChatSessionsLoading] = useState(true);
+  const [chatError, setChatError] = useState<string | null>(null);
+  const chatFileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    listChatSessions()
+      .then(setChatSessions)
+      .finally(() => setChatSessionsLoading(false));
+  }, []);
+
+  function recordToUIMessage(m: ChatMessageRecord): ChatUIMessage {
+    return {
+      id: m.id,
+      role: m.role,
+      text: m.content,
+      topicLabel: m.topicLabel,
+      sourceReference: m.sourceReference,
+    };
+  }
+
+  async function handleSelectChatSession(sessionId: string) {
+    setActiveChatSessionId(sessionId);
+    setChatError(null);
+    const records = await getChatMessages(sessionId);
+    setChatMessages(records.map(recordToUIMessage));
+  }
+
+  function handleNewChatSession() {
+    setActiveChatSessionId(null);
+    setChatMessages([]);
+    setChatError(null);
+    setChatDraft("");
+    setChatImage(null);
+  }
+
+  function handleChatImagePick(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setChatImage({ file, previewUrl: URL.createObjectURL(file) });
+  }
+
+  async function handleChatSend() {
+    const question = chatDraft.trim();
+    if (!question && !chatImage) return;
+
+    setChatError(null);
+    const pendingImage = chatImage;
+    setChatDraft("");
+    setChatImage(null);
+    if (chatFileInputRef.current) chatFileInputRef.current.value = "";
+
+    const userMessage: ChatUIMessage = {
+      id: crypto.randomUUID(),
+      role: "user",
+      text: question || "(görsel)",
+      imagePreview: pendingImage?.previewUrl,
+    };
+    const historyBeforeSend = chatMessages;
+    setChatMessages((prev) => [...prev, userMessage]);
+    setChatPending(true);
+
+    try {
+      let sessionId = activeChatSessionId;
+      if (!sessionId) {
+        const session = await createChatSession();
+        sessionId = session.id;
+        setActiveChatSessionId(sessionId);
+        setChatSessions((prev) => [
+          { id: sessionId!, title: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+          ...prev,
+        ]);
+      }
+
+      let imagePayload: { imageBase64?: string; imageMimeType?: string } = {};
+      if (pendingImage) {
+        const { base64, mimeType } = await fileToBase64(pendingImage.file);
+        imagePayload = { imageBase64: base64, imageMimeType: mimeType };
+      }
+
+      const answer = await sendChatMessage({
+        sessionId,
+        history: historyBeforeSend.map((m) => ({
+          role: m.role === "assistant" ? "model" : "user",
+          text: m.text,
+        })),
+        question: question || "Bu görseldeki soruyu çöz.",
+        ...imagePayload,
+      });
+
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          text: answer.answer,
+          topicLabel: answer.topic_label,
+          sourceReference: answer.source_reference || undefined,
+        },
+      ]);
+
+      setChatSessions((prev) => {
+        const now = new Date().toISOString();
+        const existing = prev.find((s) => s.id === sessionId);
+        const title = existing?.title || answer.topic_label || question.slice(0, 48) || "Yeni sohbet";
+        const updated = { id: sessionId!, title, createdAt: existing?.createdAt ?? now, updatedAt: now };
+        return [updated, ...prev.filter((s) => s.id !== sessionId)];
+      });
+    } catch (err) {
+      setChatError(err instanceof Error ? err.message : "Bir şeyler ters gitti");
+    } finally {
+      setChatPending(false);
+    }
+  }
+
+  function handleChatKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleChatSend();
+    }
+  }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -281,26 +588,103 @@ export default function StudentPanel() {
         );
       
       case 'twin':
-        const isRoot = twinViewMode === 'root';
-        const currentNodes = isRoot ? rootNodes : (subjectNodes[selectedTwinNode as keyof typeof subjectNodes] || subjectNodes['mat']);
-        const currentEdges = isRoot ? rootEdges : (subjectEdges[selectedTwinNode as keyof typeof subjectEdges] || subjectEdges['mat']);
-        const centerLabel = isRoot ? "İKİZİN" : (rootNodes.find(n => n.id === selectedTwinNode)?.label || "İKİZİN");
-        const activeData = twinData[selectedTwinNode] || twinData['mat'];
+        const getCenterLabel = (viewId: string) => {
+          if (viewId === 'root') return "İKİZİN";
+          const rootMatch = rootNodes.find(n => n.id === viewId);
+          if (rootMatch) return rootMatch.label;
+          
+          for (const subj in subjectNodes) {
+            const topicMatch = subjectNodes[subj as keyof typeof subjectNodes].find(n => n.id === viewId);
+            if (topicMatch) return topicMatch.label;
+          }
+          return viewId.toUpperCase();
+        };
+
+        const getCurrentGraphData = (viewId: string) => {
+          if (viewId === 'root') {
+            return { nodes: rootNodes, edges: rootEdges };
+          }
+          
+          if (subjectNodes[viewId as keyof typeof subjectNodes]) {
+            return { 
+              nodes: subjectNodes[viewId as keyof typeof subjectNodes], 
+              edges: subjectEdges[viewId as keyof typeof subjectEdges] 
+            };
+          }
+          
+          // Drill-down Level 3 (Topic -> Questions)
+          const tData = twinData[viewId];
+          if (tData && tData.questions) {
+            const positions = [
+               {x: 25, y: 30}, {x: 75, y: 25}, {x: 50, y: 75}, {x: 20, y: 65}, {x: 80, y: 65}
+            ];
+            const nodes = tData.questions.map((q, i) => {
+              const pos = positions[i % positions.length];
+              return {
+                 id: `q-${viewId}-${q.id}`,
+                 label: `Soru ${q.id}`,
+                 x: pos.x,
+                 y: pos.y,
+                 risk: q.risk === 'Kritik' ? 90 : q.risk === 'Yüksek Risk' ? 70 : 50,
+                 isTopic: false,
+                 isQuestion: true
+              };
+            });
+            
+            const edges = nodes.map(n => ({
+              source: n.id,
+              target: 'center',
+              isRelated: false
+            }));
+            
+            return { nodes, edges };
+          }
+          
+          return { nodes: [], edges: [] };
+        };
+
+        const isRoot = currentTwinView === 'root';
+        const centerLabel = getCenterLabel(currentTwinView);
+        const { nodes: currentNodes, edges: currentEdges } = getCurrentGraphData(currentTwinView);
+        
+        const isSelectedQuestion = selectedTwinNode.startsWith('q-');
+        
+        let activeData = twinData[selectedTwinNode];
+        // Handle if a question node is selected to generate data panel on the fly
+        if (!activeData && selectedTwinNode.startsWith('q-')) {
+          const [, topicId, qIdStr] = selectedTwinNode.split('-');
+          const qId = parseInt(qIdStr, 10);
+          const qData = twinData[topicId]?.questions.find(q => q.id === qId);
+          if (qData) {
+            activeData = {
+              title: qData.title,
+              desc: qData.desc,
+              stats: [{label: 'Risk Seviyesi', val: qData.risk || 'Orta'}],
+              questions: [qData]
+            };
+          }
+        }
+        if (!activeData) activeData = twinData['mat']; // default fallback
 
         return (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <h1 className="text-3xl font-heading font-semibold mb-2 tracking-tight">Dijital İkizin Ağ Haritası</h1>
             <p className="text-foreground/60 mb-8 max-w-2xl">
-              Düğümlerin büyüklüğü o derste veya konuda yapılan hata sayısını (risk oranını) belirtir. İlgili dersin içerisine girmek (drill-down) için ders düğümüne tıklayın.
+              Düğümlerin büyüklüğü hata sayısını (risk oranını) belirtir. İlgili dersin veya konunun içerisine girmek (drill-down) için düğüme tıklayın. Soruları yuvarlaklar halinde görmek için konulara tıklayabilirsiniz.
             </p>
             
             <div className="bg-surface p-8 rounded-3xl border border-border shadow-sm mb-8 relative overflow-hidden min-h-[450px] flex items-center justify-center">
-              {!isRoot && (
+              {twinHistory.length > 1 && (
                 <button 
-                  onClick={() => { setTwinViewMode('root'); setSelectedTwinNode('mat'); }} 
+                  onClick={() => { 
+                    const newHistory = [...twinHistory];
+                    newHistory.pop();
+                    setTwinHistory(newHistory);
+                    setSelectedTwinNode(newHistory[newHistory.length - 1]);
+                  }} 
                   className="absolute top-6 left-6 z-20 bg-background hover:bg-surface-muted px-4 py-2 rounded-xl border border-border shadow-sm font-bold text-sm text-brand-green transition-colors active:scale-95 flex items-center gap-2">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                  Genel Görünüme Dön
+                  Geri Dön
                 </button>
               )}
 
@@ -318,7 +702,7 @@ export default function StudentPanel() {
                     if (!src || !tgt) return null;
                     return (
                       <line 
-                        key={`${twinViewMode}-${i}`} 
+                        key={`${currentTwinView}-${i}`} 
                         x1={`${src.x}%`} y1={`${src.y}%`} 
                         x2={`${tgt.x}%`} y2={`${tgt.y}%`} 
                         stroke={edge.isRelated ? 'var(--color-brand-yellow)' : 'var(--color-border)'} 
@@ -335,26 +719,31 @@ export default function StudentPanel() {
                   const isSelected = selectedTwinNode === node.id;
                   
                   // Dynamic size based on risk
+                  // @ts-expect-error - isQuestion is dynamically injected
+                  const isQ = node.isQuestion;
                   const sizeClass = node.isTopic 
                     ? (node.risk > 70 ? 'w-24 h-24' : node.risk > 50 ? 'w-20 h-20' : 'w-16 h-16')
-                    : (node.risk > 70 ? 'w-28 h-28' : node.risk > 50 ? 'w-24 h-24' : 'w-20 h-20');
+                    : isQ 
+                      ? (node.risk > 70 ? 'w-20 h-20' : 'w-16 h-16') 
+                      : (node.risk > 70 ? 'w-28 h-28' : node.risk > 50 ? 'w-24 h-24' : 'w-20 h-20');
                     
                   return (
                     <div 
-                      key={`${twinViewMode}-${node.id}`}
+                      key={`${currentTwinView}-${node.id}`}
                       onClick={() => {
                         setSelectedTwinNode(node.id);
-                        if (!node.isTopic && isRoot) {
-                          setTwinViewMode('subject'); // Drill down
+                        if (!isQ) {
+                          // Drill down into subject or topic
+                          setTwinHistory(prev => [...prev, node.id]);
                         }
                       }}
                       className={`absolute -translate-x-1/2 -translate-y-1/2 ${sizeClass} rounded-full flex flex-col items-center justify-center shadow-lg z-10 transition-all cursor-pointer animate-in zoom-in duration-500 ${
                         isSelected && !isRoot ? 'scale-110 ring-4 ring-brand-yellow ring-offset-4 ring-offset-background' : 'hover:scale-110 hover:ring-2 hover:ring-brand-green/50 hover:ring-offset-2'
-                      } ${node.isTopic ? (node.risk > 70 ? 'bg-red-50 border-4 border-brand-yellow' : 'bg-surface border-4 border-brand-yellow') : 'bg-brand-green/5 border-4 border-brand-green'}`}
+                      } ${node.isTopic ? (node.risk > 70 ? 'bg-red-50 border-4 border-brand-yellow' : 'bg-surface border-4 border-brand-yellow') : isQ ? (node.risk > 70 ? 'bg-red-50 border-2 border-red-500' : 'bg-surface border-2 border-brand-yellow') : 'bg-brand-green/5 border-4 border-brand-green'}`}
                       style={{ left: `${node.x}%`, top: `${node.y}%` }}
                     >
-                      <span className={`font-bold ${node.isTopic ? 'text-sm text-red-700' : 'text-sm text-brand-green'}`}>{node.label}</span>
-                      {node.isTopic && <span className="text-[10px] text-red-500 mt-1">%{node.risk} Risk</span>}
+                      <span className={`font-bold ${node.isTopic ? 'text-sm text-red-700' : isQ ? 'text-xs text-foreground/80' : 'text-sm text-brand-green'}`}>{node.label}</span>
+                      {(node.isTopic || isQ) && <span className={`text-[10px] mt-1 ${isQ ? 'text-foreground/50' : 'text-red-500'}`}>%{node.risk} Risk</span>}
                       {isSelected && !isRoot && <div className="absolute inset-0 bg-brand-yellow/20 rounded-full animate-ping -z-10" />}
                     </div>
                   );
@@ -363,34 +752,66 @@ export default function StudentPanel() {
                 {/* Center Node */}
                 <div className={`absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full ${isRoot ? 'bg-brand-green text-white' : 'bg-surface border-4 border-brand-green text-brand-green'} flex flex-col items-center justify-center shadow-2xl z-10 font-heading font-bold text-xl border-4 ${isRoot ? 'border-white/20' : ''} animate-in zoom-in duration-300`}>
                   {isRoot && <TwinMark size={24} />}
-                  <span className={isRoot ? "mt-2" : ""}>{centerLabel}</span>
+                  <span className={isRoot ? "mt-2" : "text-center px-2"}>{centerLabel}</span>
                 </div>
               </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="bg-surface p-8 rounded-2xl border border-border shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                  <h3 className="font-heading font-semibold text-xl">Seçili Analiz:</h3>
-                  <span className="bg-brand-yellow/20 text-brand-yellow-700 px-3 py-1 rounded-full text-sm font-bold shadow-sm">{activeData?.title || 'Bilinmeyen'}</span>
-                </div>
-                <p className="text-sm text-foreground/70 mb-6">{activeData?.desc || 'Veri bulunamadı.'}</p>
-                
-                {activeData?.stats && (
-                  <div className="flex gap-4 items-center mb-8">
-                    {activeData.stats.map((stat, i) => (
-                      <div key={i} className="flex gap-4 items-center">
-                        <div className="text-4xl font-heading font-bold text-brand-yellow">{stat.val}</div>
-                        <div className="text-sm font-medium leading-tight text-foreground/70">{stat.label} <br/>Hatası</div>
-                        {i < activeData.stats.length - 1 && <div className="w-[1px] h-12 bg-border mx-1"></div>}
+                {isSelectedQuestion ? (
+                  <>
+                    <div className="flex items-center justify-between mb-4">
+                       <h3 className="font-heading font-semibold text-xl text-brand-green">Hatalı Soru İncelemesi</h3>
+                       <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-[10px] font-bold uppercase">{activeData?.stats?.[0]?.val || 'Orta'}</span>
+                    </div>
+                    <div className="p-5 border border-border rounded-xl bg-background mb-6 shadow-inner relative">
+                       <div className="absolute top-2 right-3 text-[10px] font-bold text-foreground/30 uppercase">Soru 14</div>
+                       <p className="text-sm font-medium leading-relaxed mt-2 mb-4">
+                         {activeData?.title?.includes('Optik') || activeData?.title?.includes('Mercek') || activeData?.title?.includes('Ayna') || activeData?.title?.includes('Kırılma') ? 'Hava ortamından cam ortamına geçen tek renkli I ışınının izlediği yol şekildeki gibidir. Buna göre sınır açısı kaç derecedir?' : 
+                          activeData?.title?.includes('Limit') ? 'Gerçel sayılar kümesi üzerinde tanımlı f fonksiyonu için lim (x->2) (x² - 4) / (x - 2) ifadesinin değeri kaçtır?' : 
+                          activeData?.title?.includes('Türev') ? 'f(x) = x³ - 3x² + 2 fonksiyonunun azalan olduğu aralığı bulunuz.' :
+                          activeData?.title?.includes('Denge') ? 'Sabit hacimli kapalı bir kapta gerçekleşen tepkimenin denge sabiti Kc kaçtır?' :
+                          'Yukarıda verilen bilgilere göre, ifadelerinden hangileri kesinlikle doğrudur?'}
+                       </p>
+                       <div className="space-y-2 text-sm font-medium">
+                         <div className="p-2 border border-border rounded flex gap-2"><span className="text-foreground/50">A)</span> 1 ve 2</div>
+                         <div className="p-2 border border-brand-green bg-brand-green/10 text-brand-green rounded flex gap-2 font-bold"><span className="text-brand-green/50">B)</span> Doğru Cevap (İkizin Seçmedi)</div>
+                         <div className="p-2 border border-red-500 bg-red-50 text-red-700 rounded flex gap-2 font-bold relative"><span className="text-red-700/50">C)</span> İkizinin Yanlış Cevabı <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
+                         <div className="p-2 border border-border rounded flex gap-2"><span className="text-foreground/50">D)</span> Yalnız 3</div>
+                         <div className="p-2 border border-border rounded flex gap-2"><span className="text-foreground/50">E)</span> Hiçbiri</div>
+                       </div>
+                    </div>
+                    <p className="text-sm text-foreground/70 mb-4 font-semibold text-red-600">İkizinin Hatası: <span className="font-normal text-foreground/70">{activeData?.desc}</span></p>
+                    <button onClick={() => setActiveTab('chat')} className="w-full bg-brand-green hover:bg-brand-green-600 text-white font-bold py-3.5 rounded-full transition-colors text-sm shadow-sm active:scale-95">
+                      Bu Soruyu Asistana Sor
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3 mb-4">
+                      <h3 className="font-heading font-semibold text-xl">Seçili Analiz:</h3>
+                      <span className="bg-brand-yellow/20 text-brand-yellow-700 px-3 py-1 rounded-full text-sm font-bold shadow-sm">{activeData?.title || 'Bilinmeyen'}</span>
+                    </div>
+                    <p className="text-sm text-foreground/70 mb-6">{activeData?.desc || 'Veri bulunamadı.'}</p>
+                    
+                    {activeData?.stats && (
+                      <div className="flex gap-4 items-center mb-8">
+                        {activeData.stats.map((stat, i) => (
+                          <div key={i} className="flex gap-4 items-center">
+                            <div className="text-4xl font-heading font-bold text-brand-yellow">{stat.val}</div>
+                            <div className="text-sm font-medium leading-tight text-foreground/70">{stat.label}</div>
+                            {i < activeData.stats.length - 1 && <div className="w-[1px] h-12 bg-border mx-1"></div>}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    )}
 
-                <button onClick={() => setActiveTab('createQ')} className="w-full bg-brand-green hover:bg-brand-green-600 text-white font-bold py-3.5 rounded-full transition-colors text-sm shadow-sm active:scale-95">
-                  Bu Analizden Test Oluştur
-                </button>
+                    <button onClick={() => setActiveTab('createQ')} className="w-full bg-brand-green hover:bg-brand-green-600 text-white font-bold py-3.5 rounded-full transition-colors text-sm shadow-sm active:scale-95">
+                      Bu Analizden Test Oluştur
+                    </button>
+                  </>
+                )}
               </div>
 
               <div className="bg-surface p-8 rounded-2xl border border-border shadow-sm">
@@ -417,27 +838,41 @@ export default function StudentPanel() {
       case 'createQ':
         return (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <h1 className="text-3xl font-heading font-semibold mb-2 tracking-tight">Özel Soru & Test Oluştur</h1>
-            <p className="text-foreground/60 mb-8 max-w-2xl">Zayıf noktalarına tam odaklanan, havuzdan seçilen ve AI tarafından sentezlenen özel sorular oluştur.</p>
-            
+            <h1 className="text-3xl font-heading font-semibold mb-2 tracking-tight">Özel Soru Oluştur</h1>
+            <p className="text-foreground/60 mb-8 max-w-2xl">Seçtiğin kazanıma göre Gemini, havuzdaki en benzer referans sorulara (retrieval) bakarak tamamen yeni, özgün bir soru sentezler — referans ve üretilen soru aşağıda karşılaştırmalı görünür.</p>
+
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-8">
               <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm space-y-6 h-fit">
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Ders & Konu Seçimi</label>
-                  <select className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:border-brand-green cursor-pointer">
-                    <option>YKS Matematik - Limit</option>
-                    <option>YKS Matematik - Türev</option>
-                    <option>YKS Fizik - Optik</option>
+                  <label className="block text-sm font-semibold mb-2">Ders</label>
+                  <select
+                    value={qSubjectId}
+                    onChange={(e) => setQSubjectId(e.target.value)}
+                    className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:border-brand-green cursor-pointer">
+                    {qSubjects.map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Soru Sayısı</label>
+                  <label className="block text-sm font-semibold mb-2">Kazanım</label>
+                  <select
+                    value={qKazanimId}
+                    onChange={(e) => setQKazanimId(e.target.value)}
+                    className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:border-brand-green cursor-pointer">
+                    {qKazanimlar.map((k) => (
+                      <option key={k.id} value={k.id}>{k.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2">Soru Tipi</label>
                   <div className="flex gap-2">
-                    {['5', '10', '15', '20'].map((num) => (
-                      <button 
-                        key={num} 
-                        onClick={() => setQCount(num)}
-                        className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${qCount === num ? 'border-brand-green bg-brand-green/10 text-brand-green shadow-sm' : 'border-border text-foreground/70 hover:bg-surface-muted'}`}>{num}</button>
+                    {['Çoktan Seçmeli', 'Açık Uçlu'].map((typ) => (
+                      <button
+                        key={typ}
+                        onClick={() => setQType(typ)}
+                        className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${qType === typ ? 'border-brand-green bg-brand-green/10 text-brand-green shadow-sm' : 'border-border text-foreground/70 hover:bg-surface-muted'}`}>{typ}</button>
                     ))}
                   </div>
                 </div>
@@ -445,15 +880,15 @@ export default function StudentPanel() {
                   <label className="block text-sm font-semibold mb-2">Zorluk Seviyesi</label>
                   <div className="flex gap-2">
                     {['Kolay', 'Orta', 'Zor'].map((lvl) => (
-                      <button 
-                        key={lvl} 
+                      <button
+                        key={lvl}
                         onClick={() => setQLevel(lvl)}
                         className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${qLevel === lvl ? 'border-brand-yellow bg-brand-yellow/10 text-brand-yellow-700 shadow-sm' : 'border-border text-foreground/70 hover:bg-surface-muted'}`}>{lvl}</button>
                     ))}
                   </div>
                 </div>
                 <div className="pt-2">
-                  <label 
+                  <label
                     onClick={() => setUseTwinWeight(!useTwinWeight)}
                     className={`flex items-center gap-4 cursor-pointer p-4 rounded-xl border-2 transition-all shadow-sm ${useTwinWeight ? 'border-brand-green bg-brand-green/5 hover:bg-brand-green/10' : 'border-border bg-background hover:bg-surface-muted'}`}>
                     <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${useTwinWeight ? 'border-brand-green bg-brand-green text-white' : 'border-border bg-transparent text-transparent'}`}>
@@ -462,21 +897,144 @@ export default function StudentPanel() {
                     <span className={`text-sm font-bold ${useTwinWeight ? 'text-brand-green' : 'text-foreground/60'}`}>İkizimin hata desenini (nöral ağırlıkları) kullan</span>
                   </label>
                 </div>
-                <button className="w-full bg-brand-green text-white font-bold py-3 rounded-xl hover:bg-brand-green-600 transition-transform active:scale-95 shadow-sm mt-2">Testi Üret</button>
+                <button
+                  onClick={handleGenerate}
+                  disabled={isGenerating || !qKazanimId}
+                  className={`w-full text-white font-bold py-3 rounded-xl transition-all shadow-sm mt-2 ${isGenerating ? 'bg-foreground/20 cursor-not-allowed' : 'bg-brand-green hover:bg-brand-green-600 active:scale-95'}`}>
+                  {isGenerating ? 'Sistem Çalışıyor...' : 'Yeni Soru Sentezle'}
+                </button>
+                {generateError && <p className="text-sm text-red-600">{generateError}</p>}
               </div>
 
-              <div className="bg-surface p-8 rounded-2xl border border-border shadow-sm flex flex-col items-center justify-center min-h-[500px]">
-                <div className="w-20 h-20 bg-brand-green/10 rounded-full flex items-center justify-center text-brand-green mb-4">
-                  {icons.createQ}
-                </div>
-                <h3 className="font-heading font-semibold text-lg text-brand-green mb-2">Yapay Zeka Testi Üretiyor...</h3>
-                <p className="text-sm text-foreground/50 text-center max-w-md mb-8">
-                  {useTwinWeight ? 'İkizinizin nöral ağırlıkları devrede. Limit ve türev odaklı sentezleme yapılıyor.' : 'Havuzdaki sorular standart müfredat ağırlığına göre çekiliyor.'}
-                </p>
-                <div className="w-full max-w-md h-2 bg-surface-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-brand-yellow w-2/3 rounded-full animate-pulse" />
-                </div>
-                <div className="mt-4 text-xs font-semibold text-foreground/40 uppercase tracking-widest">%66 Tamamlandı</div>
+              <div className="bg-surface p-8 rounded-2xl border border-border shadow-sm flex flex-col min-h-[500px]">
+                {!isGenerating && !generatedQ && (
+                  <div className="flex-1 flex flex-col items-center justify-center">
+                    <div className="w-20 h-20 bg-brand-green/10 rounded-full flex items-center justify-center text-brand-green mb-4">
+                      {icons.createQ}
+                    </div>
+                    <h3 className="font-heading font-semibold text-lg text-foreground mb-2">AI Destekli Soru Motoru Bekliyor</h3>
+                    <p className="text-sm text-foreground/50 text-center max-w-md">Sol taraftaki ayarları seçip butona bastığınızda yapay zeka seçtiğin kazanıma özgü yeni bir soru üretecektir.</p>
+                  </div>
+                )}
+
+                {isGenerating && (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center max-w-lg mx-auto w-full animate-in fade-in duration-500">
+                    <div className="relative w-24 h-24 mb-8">
+                       <div className="absolute inset-0 rounded-full border-4 border-surface-muted"></div>
+                       <div className="absolute inset-0 rounded-full border-4 border-brand-green border-t-transparent animate-spin"></div>
+                       <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="font-bold text-lg text-brand-green">{generationStep}/4</span>
+                       </div>
+                    </div>
+
+                    <h3 className="font-heading font-bold text-xl text-brand-green mb-6">Sistem Çalışıyor...</h3>
+
+                    <div className="w-full text-left bg-background p-5 rounded-xl border border-border shadow-inner font-mono text-xs space-y-3 h-48 overflow-hidden">
+                       <div className={`transition-opacity duration-300 ${generationStep >= 1 ? 'opacity-100 text-foreground' : 'opacity-0'}`}>
+                         <span className="text-brand-yellow mr-2">[1/4]</span> Havuzdan referans soru aranıyor: <span className="text-brand-green font-bold">{qKazanimlar.find((k) => k.id === qKazanimId)?.name}</span>
+                       </div>
+                       <div className={`transition-opacity duration-300 ${generationStep >= 2 ? 'opacity-100 text-foreground' : 'opacity-0'}`}>
+                         <span className="text-brand-yellow mr-2">[2/4]</span> İkiz Asistan risk profili kontrol ediliyor ({qSubjects.find(s => s.id === qSubjectId)?.name} ağırlığı {useTwinWeight ? 'açık' : 'kapalı'})...
+                       </div>
+                       <div className={`transition-opacity duration-300 ${generationStep >= 3 ? 'opacity-100 text-foreground' : 'opacity-0'}`}>
+                         <span className="text-brand-yellow mr-2">[3/4]</span> Gemini'ye istek gönderiliyor ({qLevel} zorluk, {qType})...
+                       </div>
+                       <div className={`transition-opacity duration-300 ${generationStep >= 4 ? 'opacity-100 text-brand-green font-bold' : 'opacity-0'}`}>
+                         <span className="text-brand-yellow mr-2">[4/4]</span> Yanıt doğrulanıyor... Lütfen bekleyin.
+                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {generatedQ && (
+                  <div className="animate-in slide-in-from-right-8 duration-500 h-full flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-2">
+                    {referenceQ && (
+                      <div className="rounded-2xl border border-border bg-background p-5">
+                        <h4 className="font-heading font-semibold text-sm text-foreground/70 mb-3 flex items-center gap-2">
+                          📖 Referans Soru {referenceQ.sourceLabel ? `— ${referenceQ.sourceLabel}` : "(havuzdan)"}
+                        </h4>
+                        <p className="text-sm leading-relaxed mb-3 text-foreground/90">{referenceQ.text}</p>
+                        {referenceQ.options.length > 0 && (
+                          <div className="grid gap-1 text-sm text-foreground/75 sm:grid-cols-2 mb-2">
+                            {referenceQ.options.map((opt, i) => (
+                              <div key={i}>{String.fromCharCode(65 + i)}) {opt}</div>
+                            ))}
+                          </div>
+                        )}
+                        <div className="text-xs text-foreground/50">Doğru cevap: {referenceQ.correctAnswer || "—"}</div>
+                      </div>
+                    )}
+
+                    <div>
+                      <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+                         <h3 className="font-heading font-semibold text-xl text-brand-green flex items-center gap-2">
+                           <TwinMark size={20} /> AI Tarafından Sentezlendi (Gemini)
+                         </h3>
+                         <div className="flex gap-2">
+                           <span className="bg-brand-green/10 text-brand-green px-2 py-1 rounded text-xs font-bold uppercase">{qLevel}</span>
+                           <span className="bg-surface-muted px-2 py-1 rounded text-xs font-bold uppercase text-foreground/70">
+                             {generatedQ.question_type === 'open_ended' ? 'Açık Uçlu' : 'Çoktan Seçmeli'}
+                           </span>
+                         </div>
+                      </div>
+
+                      <p className="text-sm font-medium leading-relaxed mb-6 text-foreground/90 text-justify">
+                        {generatedQ.question_text}
+                      </p>
+
+                      {generatedQ.question_type === 'multiple_choice' ? (
+                        <div className="space-y-3 text-sm font-medium">
+                          {generatedQ.options.map((opt, i) => {
+                            const letter = String.fromCharCode(65 + i);
+                            const isCorrect = showAnswer && letter === generatedQ.correct_answer;
+                            return (
+                              <label
+                                key={i}
+                                className={`p-3 border rounded-xl flex items-start gap-3 transition-colors ${
+                                  isCorrect
+                                    ? 'border-brand-green bg-brand-green/10'
+                                    : 'border-border hover:border-brand-green/50'
+                                }`}>
+                                <span className={isCorrect ? 'text-brand-green font-bold' : 'text-foreground/50 font-bold'}>{letter})</span>
+                                <span>{opt}</span>
+                                {isCorrect && <span className="ml-auto text-xs font-bold text-brand-green">DOĞRU CEVAP</span>}
+                              </label>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="mt-4 space-y-3">
+                          <textarea
+                            className="w-full h-32 bg-background border border-border rounded-xl p-4 text-sm outline-none focus:border-brand-green resize-none"
+                            placeholder="Çözümünü buraya yaz... (bu bir önizleme, kaydedilmez)"
+                          />
+                          {showAnswer && (
+                            <div className="rounded-xl border border-brand-green/30 bg-brand-green/5 p-4 text-sm">
+                              <span className="font-bold text-brand-green">Beklenen cevap: </span>
+                              {generatedQ.correct_answer}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {showAnswer && generatedQ.explanation && (
+                        <div className="mt-4 rounded-xl border border-border bg-surface-muted/50 p-4 text-sm text-foreground/80">
+                          <span className="font-bold text-foreground">Çözüm: </span>
+                          {generatedQ.explanation}
+                        </div>
+                      )}
+
+                      <div className="mt-6 pt-6 border-t border-border flex justify-between items-center">
+                        <div className="text-xs text-foreground/50 font-medium">✨ Gemini tarafından üretildi — havuzda değil</div>
+                        <button
+                          onClick={() => setShowAnswer((v) => !v)}
+                          className="bg-brand-green hover:bg-brand-green-600 text-white font-bold py-2 px-6 rounded-full transition-colors text-sm shadow-sm active:scale-95">
+                          {showAnswer ? 'Cevabı Gizle' : 'Cevabı Kontrol Et'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -617,34 +1175,57 @@ export default function StudentPanel() {
           </div>
         );
 
-      case 'chat':
+      case 'chat': {
+        const grouped: Record<string, ChatSessionSummary[]> = {};
+        for (const s of chatSessions) {
+          const label = sessionDayLabel(s.createdAt);
+          if (!grouped[label]) {
+            grouped[label] = [];
+          }
+          grouped[label].push(s);
+        }
+        const dayOrder = ["Bugün", "Dün", "Daha önce"];
+
         return (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 h-full flex flex-col -mx-4 -mb-4 lg:-mx-12 lg:-mb-12">
-            
+
             <div className="flex h-[calc(100vh-theme(spacing.24))] border-t border-border mt-4">
-              
+
               <div className="w-64 border-r border-border bg-surface flex flex-col shrink-0">
                 <div className="p-4 border-b border-border bg-background/50">
-                  <button className="w-full flex items-center justify-center gap-2 bg-brand-green text-white font-semibold py-3 rounded-xl text-sm hover:bg-brand-green-600 transition-transform active:scale-95 shadow-sm">
+                  <button
+                    onClick={handleNewChatSession}
+                    className="w-full flex items-center justify-center gap-2 bg-brand-green text-white font-semibold py-3 rounded-xl text-sm hover:bg-brand-green-600 transition-transform active:scale-95 shadow-sm">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Yeni Soru Sor
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar bg-surface">
-                  <div className="text-xs font-bold text-foreground/40 uppercase tracking-widest pl-3 pt-3 mb-2">Bugün</div>
-                  <button className="w-full text-left p-3 rounded-xl bg-surface-muted border border-border text-sm font-semibold truncate text-brand-green shadow-sm">
-                    Türev - Eğim ve İşaret
-                  </button>
-                  <button className="w-full text-left p-3 rounded-xl hover:bg-surface-muted border border-transparent text-sm font-medium text-foreground/70 truncate transition-colors">
-                    Optik - Mercekler
-                  </button>
-                  <div className="text-xs font-bold text-foreground/40 uppercase tracking-widest pl-3 pt-5 mb-2">Dün</div>
-                  <button className="w-full text-left p-3 rounded-xl hover:bg-surface-muted border border-transparent text-sm font-medium text-foreground/70 truncate transition-colors">
-                    Momentum Korunumu
-                  </button>
-                  <button className="w-full text-left p-3 rounded-xl hover:bg-surface-muted border border-transparent text-sm font-medium text-foreground/70 truncate transition-colors">
-                    Kimyasal Denge Soru #12
-                  </button>
+                  {chatSessionsLoading && (
+                    <div className="text-xs text-foreground/40 px-3 py-2">Yükleniyor…</div>
+                  )}
+                  {!chatSessionsLoading && chatSessions.length === 0 && (
+                    <div className="text-xs text-foreground/40 px-3 py-2">Henüz sohbet yok — &quot;Yeni Soru Sor&quot; ile başla.</div>
+                  )}
+                  {dayOrder
+                    .filter((label) => grouped[label]?.length)
+                    .map((label) => (
+                      <div key={label}>
+                        <div className="text-xs font-bold text-foreground/40 uppercase tracking-widest pl-3 pt-3 mb-2">{label}</div>
+                        {grouped[label].map((s) => (
+                          <button
+                            key={s.id}
+                            onClick={() => handleSelectChatSession(s.id)}
+                            className={`w-full text-left p-3 rounded-xl border text-sm truncate transition-colors ${
+                              s.id === activeChatSessionId
+                                ? "bg-surface-muted border-border font-semibold text-brand-green shadow-sm"
+                                : "hover:bg-surface-muted border-transparent font-medium text-foreground/70"
+                            }`}>
+                            {s.title || "Yeni sohbet"}
+                          </button>
+                        ))}
+                      </div>
+                    ))}
                 </div>
               </div>
 
@@ -656,43 +1237,92 @@ export default function StudentPanel() {
                 </div>
 
                 <div className="flex-1 p-8 pt-20 overflow-y-auto space-y-6 custom-scrollbar">
-                  <div className="flex justify-end">
-                    <div className="bg-surface p-5 rounded-2xl rounded-tr-sm max-w-lg shadow-sm border border-border">
-                      <p className="text-sm font-medium">Hocam, bu türev sorusunda eğimi bulurken işareti yanlış mı alıyorum?</p>
-                      <div className="mt-4 w-56 h-36 bg-surface-muted border border-border rounded-xl flex flex-col items-center justify-center text-xs text-foreground/50">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mb-2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                        [Ekran_Goruntusu.jpg]
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex justify-start">
-                    <div className="bg-surface-muted/50 p-6 rounded-2xl rounded-tl-sm max-w-2xl shadow-sm border border-brand-green/20">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="bg-brand-green/10 p-1.5 rounded-full">
-                          <TwinMark size={18} />
+                  {chatMessages.length === 0 && (
+                    <p className="text-sm text-foreground/50">
+                      Bir soru yaz ya da fotoğrafını yükle — okulda gördüğün yöntemle, adım adım anlatılır.
+                    </p>
+                  )}
+
+                  {chatMessages.map((m) => (
+                    <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                      {m.role === "user" ? (
+                        <div className="bg-surface p-5 rounded-2xl rounded-tr-sm max-w-lg shadow-sm border border-border">
+                          <p className="text-sm font-medium whitespace-pre-wrap">{m.text}</p>
+                          {m.imagePreview && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={m.imagePreview} alt="Gönderilen soru görseli" className="mt-4 max-h-40 rounded-xl border border-border object-contain" />
+                          )}
                         </div>
-                        <span className="text-xs font-bold text-brand-green uppercase tracking-wider">İkiz Asistan</span>
-                      </div>
-                      <div className="text-sm text-foreground/80 leading-relaxed space-y-3">
-                        <p>Merhaba Ayşe! Evet, haklısın. İkizin de aynı soruda aynı hatayı yapmıştı. Fonksiyon azalan olduğu için türevin negatif çıkması gerekiyor. Mutlak değerden çıkarırken başına (-) almayı unutmuşsun.</p>
-                        <p>Gel, adımları birlikte yazalım:</p>
-                        <div className="bg-background px-4 py-3 rounded-xl text-sm border border-border font-mono text-brand-green shadow-inner">
-                          f&apos;(x) = - (2x - 4) <br/>
-                          f&apos;(x) = -2x + 4
+                      ) : (
+                        <div className="bg-surface-muted/50 p-6 rounded-2xl rounded-tl-sm max-w-2xl shadow-sm border border-brand-green/20">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="bg-brand-green/10 p-1.5 rounded-full">
+                              <TwinMark size={18} />
+                            </div>
+                            <span className="text-xs font-bold text-brand-green uppercase tracking-wider">İkiz Asistan</span>
+                          </div>
+                          <div className="text-sm text-foreground/80 leading-relaxed space-y-3">
+                            <Markdown>{m.text}</Markdown>
+                          </div>
+                          {(m.topicLabel || m.sourceReference) && (
+                            <div className="mt-3 flex flex-wrap gap-1.5">
+                              {m.topicLabel && (
+                                <span className="rounded-full bg-background px-2.5 py-1 text-xs font-medium text-brand-coffee-600 border border-border">
+                                  {m.topicLabel}
+                                </span>
+                              )}
+                              {m.sourceReference && (
+                                <span className="rounded-full bg-background px-2.5 py-1 text-xs font-medium text-brand-green border border-border">
+                                  📖 {m.sourceReference}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <p>Burada eksi işaretini dağıtmayı unutmamak çok önemli. Anlaşılmayan bir yer var mı?</p>
-                      </div>
+                      )}
                     </div>
-                  </div>
+                  ))}
+
+                  {chatPending && <div className="text-xs text-brand-green">yazıyor…</div>}
+                  {chatError && <p className="text-sm text-red-600">{chatError}</p>}
                 </div>
 
                 <div className="p-6 bg-background">
+                  {chatImage && (
+                    <div className="max-w-4xl mx-auto mb-3 flex items-center gap-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={chatImage.previewUrl} alt="Eklenecek soru görseli" className="h-14 w-14 rounded-lg border border-border object-cover" />
+                      <button onClick={() => setChatImage(null)} className="text-xs text-foreground/50 hover:text-red-600">
+                        görseli kaldır
+                      </button>
+                    </div>
+                  )}
                   <div className="max-w-4xl mx-auto flex gap-3 relative bg-surface border border-border rounded-2xl p-2 shadow-sm focus-within:border-brand-green focus-within:ring-1 focus-within:ring-brand-green transition-all">
-                    <button className="p-3 bg-surface-muted rounded-xl hover:bg-surface border border-transparent hover:border-border transition-colors text-foreground/60 active:scale-95">
+                    <input
+                      ref={chatFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleChatImagePick}
+                      className="hidden"
+                      id="ogrenci-chat-image-input"
+                    />
+                    <label
+                      htmlFor="ogrenci-chat-image-input"
+                      className="p-3 bg-surface-muted rounded-xl hover:bg-surface border border-transparent hover:border-border transition-colors text-foreground/60 active:scale-95 cursor-pointer flex items-center justify-center">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-                    </button>
-                    <input type="text" placeholder="İkiz Asistan'a soru sor..." className="flex-1 bg-transparent px-2 text-sm outline-none placeholder:text-foreground/40 font-medium" />
-                    <button className="px-5 bg-brand-green text-white font-bold rounded-xl hover:bg-brand-green-600 transition-all shadow-sm active:scale-95">
+                    </label>
+                    <input
+                      type="text"
+                      value={chatDraft}
+                      onChange={(e) => setChatDraft(e.target.value)}
+                      onKeyDown={handleChatKeyDown}
+                      placeholder="İkiz Asistan'a soru sor..."
+                      className="flex-1 bg-transparent px-2 text-sm outline-none placeholder:text-foreground/40 font-medium"
+                    />
+                    <button
+                      onClick={handleChatSend}
+                      disabled={chatPending || (!chatDraft.trim() && !chatImage)}
+                      className="px-5 bg-brand-green text-white font-bold rounded-xl hover:bg-brand-green-600 transition-all shadow-sm active:scale-95 disabled:opacity-60">
                       Gönder
                     </button>
                   </div>
@@ -702,8 +1332,8 @@ export default function StudentPanel() {
             </div>
           </div>
         );
+      }
 
-      // homework, video, and analysis cases omitted for brevity - wait, I need to include them so I don't break the file!
       case 'homework':
         return (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">

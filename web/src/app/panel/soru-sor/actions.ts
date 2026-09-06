@@ -30,7 +30,7 @@ export async function sendMessageAction(params: {
         source_reference: answer.source_reference || null,
       },
     ]);
-    await bumpTwinRisk(user!.id, answer.topic_label);
+    await bumpTwinRisk(supabase, user!.id, answer.topic_label);
   }
 
   return answer;

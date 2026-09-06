@@ -1,15 +1,14 @@
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 
 /**
- * service_role client — RLS'yi tamamen atlar. Sadece sunucu tarafında (Server Action/
- * Route Handler) ve sadece gerçekten gerekli olan işlemler için kullan (ör. e-postadan
- * kullanıcı arama — auth.users tabloya normal client ile erişilemez). İstemciye asla
- * sızdırma.
+ * Service-role istemci — RLS'i bypass eder. Sadece "use server" action'ları içinden,
+ * ve sadece gerçek kullanıcı oturumu olmayan demo akışları için kullan (bkz.
+ * panel/ogrenci/actions.ts). Gerçek auth gerektiren yollar `lib/supabase/server.ts`
+ * (cookie tabanlı, RLS aktif) istemcisini kullanmaya devam etmeli.
  */
 export function createAdminClient() {
-  return createSupabaseClient(
+  return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
   );
 }

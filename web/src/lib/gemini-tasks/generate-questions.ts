@@ -1,37 +1,51 @@
 import { generateWithFallback } from "@/lib/gemini";
 import {
-  EXTRACTION_RESPONSE_SCHEMA,
-  extractionResultSchema,
-  type ExtractedQuestion,
-} from "@/lib/schemas/extraction";
-import { Type, type Schema } from "@google/genai";
+  GENERATION_RESPONSE_SCHEMA,
+  generationResultSchema,
+  type GeneratedQuestion,
+} from "@/lib/schemas/generation";
 
-const GENERATION_SCHEMA: Schema = {
-  type: Type.OBJECT,
-  properties: { questions: EXTRACTION_RESPONSE_SCHEMA.properties!.questions },
-  required: ["questions"],
-};
-
+/**
+ * Her soruya çağıran taraf (generateTestAction) tarafından önceden bir kazanım atanır
+ * (kazanimAssignments[i] → i'inci sorunun kazanımı) — modelin kendiliğinden çeşitlenmesini
+ * ummak yerine garanti çeşitlilik sağlanır (bkz. plan: "sadece sayıları değiştirerek değil").
+ */
 export async function generateQuestionsForTopic(params: {
-  topic: string;
+  subject: string;
+  kazanimAssignments: string[];
   difficultyLabel: string;
-  count: number;
+  mcCount: number;
+  openCount: number;
   twinHint?: string;
-}): Promise<ExtractedQuestion[]> {
-  const prompt = `YKS/LGS için "${params.topic}" konusundan, ${params.difficultyLabel} zorlukta,
-birbirinden farklı ${params.count} adet orijinal soru üret (havuzdaki sorularla birebir aynı olmasın).
-Her soru için: tam metni, şıkları (A/B/C öneki olmadan), doğru cevabı kendin çözerek bul, kısa bir
-çözüm gerekçesi, 1-5 arası zorluk puanı ver. topic_label alanına her zaman "${params.topic}" yaz.
-${params.twinHint ? `Öğrencinin bu konudaki hata deseni: ${params.twinHint} — sorular özellikle bu tür hataya düşürecek şekilde kurulsun.` : ""}`;
+}): Promise<GeneratedQuestion[]> {
+  const count = params.kazanimAssignments.length;
+  const kazanimList = params.kazanimAssignments
+    .map((k, i) => `${i + 1}. ${k}`)
+    .join("\n");
+
+  const prompt = `YKS/LGS için "${params.subject}" dersinden, ${params.difficultyLabel} zorlukta,
+birbirinden farklı ${count} adet orijinal soru üret (havuzdaki sorularla birebir aynı olmasın).
+
+Aşağıda her soruya bir kazanım atanmış — i'inci soru i'inci kazanımı hedeflesin, topic_label alanına
+o kazanımın adını BİREBİR kopyala:
+${kazanimList}
+
+Soru tipi dağılımı: ${params.mcCount} tanesi çoktan seçmeli (4 şık, A/B/C öneki olmadan, doğru cevabı
+kendin çözerek bul), ${params.openCount} tanesi açık uçlu (options boş dizi, correct_answer kısa cevap
+metni) — hangisinin hangi tip olacağına sen karar ver, toplam dağılıma uy.
+
+Her soru için: tam metni, (varsa) şıkları, doğru cevabı kendin çözerek bul, kısa bir çözüm gerekçesi,
+1-5 arası zorluk puanı ver.
+${params.twinHint ? `Öğrencinin bu derste hata deseni: ${params.twinHint} — mümkün olan sorularda özellikle bu tür hataya düşürecek şekilde kurgula.` : ""}`;
 
   const response = await generateWithFallback({
     contents: [{ role: "user", parts: [{ text: prompt }] }],
-    config: { responseMimeType: "application/json", responseSchema: GENERATION_SCHEMA },
+    config: { responseMimeType: "application/json", responseSchema: GENERATION_RESPONSE_SCHEMA },
   });
 
   if (!response.text) throw new Error("Gemini boş yanıt döndürdü");
 
-  const parsed = extractionResultSchema.safeParse(JSON.parse(response.text));
+  const parsed = generationResultSchema.safeParse(JSON.parse(response.text));
   if (!parsed.success) {
     throw new Error(`Gemini yanıtı beklenen şemaya uymadı: ${parsed.error.message}`);
   }

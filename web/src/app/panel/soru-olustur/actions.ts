@@ -3,6 +3,8 @@
 import { requireRoleAction, supabaseConfigured } from "@/lib/auth-guard";
 import { createClient } from "@/lib/supabase/server";
 import { generateQuestionsForTopic } from "@/lib/gemini-tasks/generate-questions";
+import { generateRagQuestion, type RetrievedQuestion } from "@/lib/gemini-tasks/generate-rag-question";
+import type { GeneratedQuestion } from "@/lib/schemas/generation";
 
 const DIFFICULTY_RANGES: Record<string, [number, number]> = {
   Kolay: [1, 2],
@@ -11,40 +13,63 @@ const DIFFICULTY_RANGES: Record<string, [number, number]> = {
   Karışık: [1, 5],
 };
 
+// Bu 4 ders şu an gerçek taranmış kaynaklarla (bkz. Kaynaklar/) besleniyor; hepsi TYT
+// düzeyinde, Coğrafya kısmı KPSS kaynaklı. AI ile üretilip havuza/ödeve eklenen sorulara
+// da (kaynağı olmadığı için) bu pragmatik varsayılan kategori atanıyor.
+const DEFAULT_CATEGORY_BY_SUBJECT: Record<string, string> = {
+  Biyoloji: "tyt",
+  Matematik: "tyt",
+  Kimya: "tyt",
+  Coğrafya: "kpss",
+};
+
+export type Subject = { id: string; name: string };
+export type Kazanim = { id: string; name: string };
+
 export type TestItem = {
   no: number;
   /** questions.id — havuzdan geldiyse dolu, yapay zeka ile üretildiyse null (henüz kaydedilmedi). */
   id: string | null;
   text: string;
+  questionType: "multiple_choice" | "open_ended";
   options: string[];
   correctAnswer: string;
   explanation: string;
   topicLabel: string;
+  topicId: string | null;
   difficulty: number;
   sourceLabel: string | null;
 };
 
-export async function listTopicsAction(): Promise<string[]> {
+export async function listSubjectsAction(): Promise<Subject[]> {
+  const { previewMode } = await requireRoleAction("student");
+  if (previewMode || !supabaseConfigured()) return [];
+
+  const supabase = await createClient();
+  const { data } = await supabase.from("subjects").select("id, name").order("name");
+  return data ?? [];
+}
+
+export async function listKazanimlarAction(subjectId: string): Promise<Kazanim[]> {
   const { previewMode } = await requireRoleAction("student");
   if (previewMode || !supabaseConfigured()) return [];
 
   const supabase = await createClient();
   const { data } = await supabase
-    .from("questions")
-    .select("topic_label")
-    .eq("status", "approved")
-    .not("topic_label", "is", null)
-    .limit(300);
-
-  const unique = Array.from(new Set((data ?? []).map((r) => r.topic_label).filter(Boolean)));
-  return unique as string[];
+    .from("topics")
+    .select("id, name")
+    .eq("subject_id", subjectId)
+    .order("name");
+  return data ?? [];
 }
 
 export async function generateTestAction(params: {
-  topic: string;
+  subjectId: string;
+  kazanimIds: string[];
   count: number;
   difficultyLabel: string;
   weightByRisk: boolean;
+  mcRatio: number; // 0-1, çoktan seçmeli oranı
 }): Promise<{ items: TestItem[]; previewMode: boolean }> {
   const { user, previewMode } = await requireRoleAction("student");
   const [minDiff, maxDiff] = DIFFICULTY_RANGES[params.difficultyLabel] ?? [1, 5];
@@ -55,13 +80,27 @@ export async function generateTestAction(params: {
 
   const supabase = await createClient();
 
+  const { data: subjectRow } = await supabase
+    .from("subjects")
+    .select("name")
+    .eq("id", params.subjectId)
+    .single();
+  const subjectName = subjectRow?.name ?? "";
+
+  const { data: kazanimRows } = await supabase
+    .from("topics")
+    .select("id, name")
+    .in("id", params.kazanimIds);
+  const kazanimlar = kazanimRows ?? [];
+  const kazanimIdByName = new Map(kazanimlar.map((k) => [k.name, k.id]));
+
   const { data: poolRows } = await supabase
     .from("questions")
     .select(
-      "id, question_text, options, correct_answer, explanation, difficulty, topic_label, scans(book_title, page_number)",
+      "id, question_text, question_type, options, correct_answer, explanation, difficulty, topic_label, topic_id, scans(book_title, page_number)",
     )
     .eq("status", "approved")
-    .ilike("topic_label", `%${params.topic}%`)
+    .in("topic_id", params.kazanimIds)
     .gte("difficulty", minDiff)
     .lte("difficulty", maxDiff)
     .limit(params.count);
@@ -72,10 +111,12 @@ export async function generateTestAction(params: {
       no: i + 1,
       id: q.id,
       text: q.question_text,
+      questionType: (q.question_type as "multiple_choice" | "open_ended") ?? "multiple_choice",
       options: (q.options as string[]) ?? [],
       correctAnswer: q.correct_answer ?? "",
       explanation: q.explanation ?? "",
-      topicLabel: q.topic_label ?? params.topic,
+      topicLabel: q.topic_label ?? "",
+      topicId: q.topic_id,
       difficulty: q.difficulty ?? 3,
       sourceLabel: scan?.book_title
         ? `${scan.book_title}${scan.page_number ? `, s. ${scan.page_number}` : ""}`
@@ -84,24 +125,47 @@ export async function generateTestAction(params: {
   });
 
   const missing = params.count - items.length;
-  if (missing > 0) {
+  if (missing > 0 && kazanimlar.length > 0) {
+    // weightByRisk açıksa, öğrencinin risk skoru yüksek olan kazanımlarını sıranın başına
+    // al — round-robin doldurma sırasında kalan (bölünemeyen) sorular öne, yani riskli
+    // kazanımlara gider.
+    let orderedKazanim = [...kazanimlar];
     let twinHint: string | undefined;
     if (params.weightByRisk) {
-      const { data: twinRow } = await supabase
+      const { data: twinRows } = await supabase
         .from("twin_state")
-        .select("risk_score, sample_count")
-        .eq("student_id", user.id)
-        .ilike("topic_label", `%${params.topic}%`)
-        .maybeSingle();
-      if (twinRow) {
-        twinHint = `bu konuda risk skoru %${Math.round(twinRow.risk_score)} (${twinRow.sample_count} kayıt) — belirgin şekilde zayıf`;
+        .select("topic_label, risk_score, sample_count")
+        .eq("student_id", user.id);
+
+      const riskByKazanimId = new Map<string, number>();
+      for (const k of kazanimlar) {
+        const hit = (twinRows ?? []).find(
+          (t) => t.topic_label && t.topic_label.toLowerCase().includes(k.name.toLowerCase()),
+        );
+        if (hit) riskByKazanimId.set(k.id, Number(hit.risk_score));
+      }
+      orderedKazanim = [...kazanimlar].sort(
+        (a, b) => (riskByKazanimId.get(b.id) ?? 0) - (riskByKazanimId.get(a.id) ?? 0),
+      );
+      const topRisk = riskByKazanimId.get(orderedKazanim[0]?.id);
+      if (topRisk) {
+        twinHint = `"${orderedKazanim[0].name}" kazanımında risk skoru %${Math.round(topRisk)} — belirgin şekilde zayıf`;
       }
     }
 
+    const kazanimAssignments = Array.from(
+      { length: missing },
+      (_, i) => orderedKazanim[i % orderedKazanim.length].name,
+    );
+    const mcCount = Math.round(missing * params.mcRatio);
+    const openCount = missing - mcCount;
+
     const generated = await generateQuestionsForTopic({
-      topic: params.topic,
+      subject: subjectName,
+      kazanimAssignments,
       difficultyLabel: params.difficultyLabel,
-      count: missing,
+      mcCount,
+      openCount,
       twinHint,
     });
 
@@ -111,10 +175,12 @@ export async function generateTestAction(params: {
         no: baseNo + i + 1,
         id: null,
         text: q.question_text,
+        questionType: q.question_type,
         options: q.options,
         correctAnswer: q.correct_answer,
         explanation: q.explanation,
-        topicLabel: q.topic_label || params.topic,
+        topicLabel: q.topic_label,
+        topicId: kazanimIdByName.get(q.topic_label) ?? null,
         difficulty: q.difficulty,
         sourceLabel: null,
       });
@@ -124,8 +190,50 @@ export async function generateTestAction(params: {
   return { items, previewMode: false };
 }
 
+/**
+ * RAG unification pilotu (bkz. TODO.md Track 1): tek bir kazanım için, havuzdaki gerçek
+ * benzer sorulara bakarak (retrieval) Gemini ile tek bir soru üretir. Şu an sadece Matematik/
+ * "Mantık" kazanımı için referans veri var (bkz. `ingest-matematik-kazanim.ts`) — başka bir
+ * kazanım seçilirse `references` boş döner, prompt kendi müfredat bilgisiyle üretir (bkz.
+ * generate-rag-question.ts). Ana `generateTestAction` akışına kasıtlı olarak karışmıyor —
+ * ayrı, gözlemlenebilir bir önizleme.
+ */
+export async function generateRagPreviewAction(params: {
+  subjectId: string;
+  kazanimId: string;
+  difficultyLabel: string;
+}): Promise<{
+  question: GeneratedQuestion | null;
+  references: RetrievedQuestion[];
+  previewMode: boolean;
+}> {
+  const { previewMode } = await requireRoleAction("student");
+  if (previewMode || !supabaseConfigured()) {
+    return { question: null, references: [], previewMode: true };
+  }
+
+  const supabase = await createClient();
+  const [{ data: subjectRow }, { data: kazanimRow }] = await Promise.all([
+    supabase.from("subjects").select("name").eq("id", params.subjectId).single(),
+    supabase.from("topics").select("name").eq("id", params.kazanimId).single(),
+  ]);
+  if (!subjectRow || !kazanimRow) {
+    throw new Error("Ders/kazanım bulunamadı");
+  }
+
+  const { question, references } = await generateRagQuestion({
+    subject: subjectRow.name,
+    kazanim: kazanimRow.name,
+    difficultyLabel: params.difficultyLabel,
+    questionType: "multiple_choice",
+  });
+
+  return { question, references, previewMode: false };
+}
+
 export async function assignAsHomeworkAction(payload: {
   title: string;
+  subjectName: string;
   items: TestItem[];
 }): Promise<{ assigned: boolean; previewMode: boolean }> {
   const { user, previewMode } = await requireRoleAction("student");
@@ -134,6 +242,7 @@ export async function assignAsHomeworkAction(payload: {
   }
 
   const supabase = await createClient();
+  const category = DEFAULT_CATEGORY_BY_SUBJECT[payload.subjectName] ?? "tyt";
 
   // Yapay zekayla üretilip henüz kaydedilmemiş sorular (id yok) — ödev olarak
   // atanabilmesi için önce havuza (approved, source: ai_generated) yazılıyor.
@@ -145,11 +254,15 @@ export async function assignAsHomeworkAction(payload: {
       .insert(
         unsaved.map((q) => ({
           question_text: q.text,
+          question_type: q.questionType,
           options: q.options,
           correct_answer: q.correctAnswer,
           explanation: q.explanation,
           difficulty: q.difficulty,
           topic_label: q.topicLabel,
+          topic_id: q.topicId,
+          category,
+          subject_name: payload.subjectName,
           source: "ai_generated" as const,
           status: "approved" as const,
           created_by: user.id,

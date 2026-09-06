@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const RISK_START = 55;
 const RISK_STEP = 6;
@@ -10,12 +10,18 @@ const RISK_STEP = 6;
  * henüz seed edilmediği için `topic_label` (serbest metin) üzerinden eşleşiyor
  * (bkz. migration 0006) — topic_id ileride gerçek taksonomiye bağlanınca bu fonksiyon
  * onu da dolduracak şekilde genişletilebilir.
+ *
+ * `supabase`: çağıran taraf hangi istemciyi (cookie tabanlı gerçek auth ya da
+ * service-role admin, bkz. panel/ogrenci/actions.ts) kullanıyorsa onu geçirir.
  */
-export async function bumpTwinRisk(studentId: string, topicLabel: string) {
+export async function bumpTwinRisk(
+  supabase: SupabaseClient,
+  studentId: string,
+  topicLabel: string,
+) {
   const label = topicLabel.trim();
   if (!label) return;
 
-  const supabase = await createClient();
   const { data: existing } = await supabase
     .from("twin_state")
     .select("id, risk_score, sample_count")

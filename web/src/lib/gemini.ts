@@ -56,4 +56,23 @@ export async function generateWithFallback(
   throw lastError;
 }
 
+/**
+ * RAG retrieval için: metni 768 boyutlu bir vektöre çevirir (ücretsiz text-embedding-004).
+ * `questions.embedding vector(768)` kolonu ve `match_questions` RPC'si (migration 0012)
+ * bu boyutu bekliyor — model değişirse ikisi de güncellenmeli.
+ */
+export async function embedText(text: string): Promise<number[]> {
+  const ai = getClient();
+  const response = await ai.models.embedContent({
+    model: "gemini-embedding-001",
+    contents: text,
+    // questions.embedding vector(768) (migration 0001) ve match_questions RPC'si (migration
+    // 0012) bu boyutu bekliyor — model varsayılanı 3072, outputDimensionality ile kısıtlanıyor.
+    config: { outputDimensionality: 768 },
+  });
+  const values = response.embeddings?.[0]?.values;
+  if (!values) throw new Error("Gemini embedding boş döndü");
+  return values;
+}
+
 export { getClient as getGeminiClient };

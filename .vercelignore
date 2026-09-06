@@ -1,0 +1,6 @@
+# Uygulama çalışırken bunlardan hiçbirini okumuyor (Supabase'e zaten yazıldı) — sadece
+# yerel ingestion script'lerinin (web/scripts/ingest-matematik-kazanim.ts) kaynağı.
+# Deploy'a dahil edilmesi hem gereksiz hem de Vercel'in ücretsiz plan dosya-yükleme
+# limitini (günde 5000 istek) Kaynaklar/'daki ~9800 dosya yüzünden aşmasına sebep oluyordu.
+Kaynaklar/
+Kayisi_Diyari_Urun_Katalogu_2026.pdf

@@ -41,3 +41,44 @@ export async function extractQuestionsFromImage(
 
   return parsed.data;
 }
+
+const TEXT_PROMPT = `Aşağıda bir YKS/LGS kaynak kitabından bir sayfanın düz metni var (PDF/OCR değil,
+kitabın kendi temiz metin çıktısı — iki sütunlu dizgiden dolayı satırlar biraz karışık
+gelebilir, dikkatlice ayrıştır). Bu metinle birlikte SANA GÖRSEL/ŞEKİL/TABLO/GRAFİK
+VERİLMİYOR, sadece düz metin var. Önce sayfadaki konu anlatımının/metnin kısa bir özetini
+çıkar (page_summary). Sonra sayfadaki her soruyu ayrı bir kayıt olarak çıkar — ANCAK bir
+soru "yukarıdaki/aşağıdaki şekil", "verilen tablo", "grafikte", "şekildeki üçgen/dörtgen"
+gibi metinde bulunmayan bir görsele dayanıyorsa VE o görsel olmadan soru gerçekten
+çözülemiyorsa (çoğu geometri/tablo/grafik sorusu böyledir), o soruyu ATLA — questions
+listesine ekleme, uydurma bir görsel tanımlayıp çözmeye çalışma. Sadece salt metinden
+(sayılarla, önermelerle, tanımlarla vb.) tam ve doğru çözülebilen sorular için: tam metni,
+şıkları (A/B/C öneki olmadan), doğru cevabı kendin çözerek bul (tek harf ya da kısa cevap),
+kısa bir çözüm gerekçesi, 1-5 arası zorluk tahmini ve sorunun ait olduğu konu/kazanım
+tahminini ver. Sayfada uygun soru yoksa boş bir questions listesi döndür.
+
+SAYFA METNİ:
+"""
+`;
+
+/** `extractQuestionsFromImage`'ın metin-tabanlı ikizi — bookText.xml gibi kaynaklardan
+ * gelen temiz sayfa metnini aynı şemayla yapılandırılmış soru listesine çevirir. */
+export async function extractQuestionsFromText(pageText: string): Promise<ExtractionResult> {
+  const response = await generateWithFallback({
+    contents: [{ role: "user", parts: [{ text: `${TEXT_PROMPT}${pageText}\n"""` }] }],
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: EXTRACTION_RESPONSE_SCHEMA,
+    },
+  });
+
+  if (!response.text) {
+    throw new Error("Gemini boş yanıt döndürdü");
+  }
+
+  const parsed = extractionResultSchema.safeParse(JSON.parse(response.text));
+  if (!parsed.success) {
+    throw new Error(`Gemini yanıtı beklenen şemaya uymadı: ${parsed.error.message}`);
+  }
+
+  return parsed.data;
+}
