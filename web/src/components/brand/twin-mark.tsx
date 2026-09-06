@@ -51,7 +51,7 @@ export function TwinMark({
       className={className}
       width={size}
       height={size}
-      viewBox="0 0 400 120" 
+      viewBox="0 0 500 120" 
       fill="none" 
       xmlns="http://www.w3.org/2000/svg"
       style={size ? undefined : { width: 'auto', height: '100%' }}

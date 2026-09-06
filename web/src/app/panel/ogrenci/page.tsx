@@ -686,6 +686,18 @@ export default function StudentPanel() {
                     ))}
                   </div>
                 </div>
+
+                {/* Topluluk Yönlendirmesi */}
+                <div className="bg-gradient-to-r from-brand-green to-teal-600 rounded-3xl p-8 text-center text-white shadow-xl relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <h3 className="text-xl font-bold mb-3">Soru Havuzu ve Ders Notları</h3>
+                  <p className="text-white/80 text-sm mb-5 max-w-xl mx-auto">
+                    Diğer öğrencilerin ve öğretmenlerin LGS/YKS için paylaştığı binlerce kaynağa, çözümlü sorulara ve taktiklere erişin.
+                  </p>
+                  <Link href="/topluluk-egitim" className="inline-block bg-white text-brand-green px-6 py-2.5 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg text-sm">
+                    Topluluğu Keşfet 📚
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

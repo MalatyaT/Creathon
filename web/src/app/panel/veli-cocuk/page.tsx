@@ -55,6 +55,18 @@ export default function VeliCocukPanel() {
              <p className="text-yellow-600/80 text-sm font-medium">Kalem tutma ve çizim yetenekleri hızla gelişiyor.</p>
            </div>
         </div>
+
+        {/* Topluluk Yönlendirmesi */}
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl p-8 text-center text-white shadow-xl relative overflow-hidden group">
+          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <h3 className="text-2xl font-bold mb-3">Veliler ve Öğretmenlerle Etkileşime Geçin</h3>
+          <p className="text-white/80 mb-6 max-w-xl mx-auto">
+            Diğer velilerin çocuklarıyla yaptığı etkinlikleri keşfedin, kendi deneyimlerinizi paylaşın ve fikir alışverişinde bulunun.
+          </p>
+          <Link href="/topluluk" className="inline-block bg-white text-purple-700 px-8 py-3 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg">
+            Topluluğa Git 🚀
+          </Link>
+        </div>
       </main>
     </div>
   );
