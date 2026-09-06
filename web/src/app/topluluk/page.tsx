@@ -1,24 +1,45 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { TwinMark } from "@/components/brand/twin-mark";
-import { Search, Heart, Plus, Filter, Image as ImageIcon, X, FileText } from "lucide-react";
-import { getCommunityPosts, createCommunityPost, likeCommunityPost, type CommunityPost } from "./actions";
+import { Search, Plus, Filter } from "lucide-react";
+import {
+  getCommunityPosts,
+  likeCommunityPost,
+  deleteCommunityPost,
+  incrementPostView,
+  getComments,
+  addComment,
+  deleteComment,
+  type CommunityPost,
+  type CommunityComment,
+} from "./actions";
+import { PostCard } from "./_components/post-card";
+import { PostDetailModal } from "./_components/post-detail-modal";
+import { UploadModal } from "./_components/upload-modal";
+
+const LIKED_POSTS_KEY = "topluluk_liked_posts";
+
+function loadLikedPostIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = window.localStorage.getItem(LIKED_POSTS_KEY);
+    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+  } catch {
+    return new Set();
+  }
+}
 
 export default function ToplulukLibrary() {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [activeTag, setActiveTag] = useState<string>("Tümü");
-  const [isUploading, setIsUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
 
-  // Form State
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [tags, setTags] = useState("");
-  const [imageBase64, setImageBase64] = useState("");
-  const [imagePreview, setImagePreview] = useState("");
+  const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
+  const [comments, setComments] = useState<CommunityComment[]>([]);
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
   const allTags = ["Tümü", "Doğa", "Matematik", "Motor Beceriler", "Eğitici Oyun", "Sanat"];
 
@@ -27,91 +48,93 @@ export default function ToplulukLibrary() {
     setPosts(data);
   };
 
+  const initLikedPostIds = async () => {
+    setLikedPostIds(loadLikedPostIds());
+  };
+
   useEffect(() => {
     fetchPosts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTag]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.type === 'application/pdf') {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImageBase64(reader.result as string);
-          setImagePreview("pdf");
-        };
-        reader.readAsDataURL(file);
-      } else {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const img = new Image();
-          img.src = reader.result as string;
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 1000;
-            const MAX_HEIGHT = 1000;
-            let width = img.width;
-            let height = img.height;
-            if (width > height) {
-              if (width > MAX_WIDTH) {
-                height *= MAX_WIDTH / width;
-                width = MAX_WIDTH;
-              }
-            } else {
-              if (height > MAX_HEIGHT) {
-                width *= MAX_HEIGHT / height;
-                height = MAX_HEIGHT;
-              }
-            }
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx?.drawImage(img, 0, 0, width, height);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-            setImageBase64(dataUrl);
-            setImagePreview(dataUrl);
-          }
-        };
-        reader.readAsDataURL(file);
-      }
+  useEffect(() => {
+    initLikedPostIds();
+  }, []);
+
+  const persistLikedPostIds = (ids: Set<string>) => {
+    setLikedPostIds(ids);
+    try {
+      window.localStorage.setItem(LIKED_POSTS_KEY, JSON.stringify(Array.from(ids)));
+    } catch {
+      // ignore storage failures (e.g. private browsing)
     }
   };
 
-  const handleUploadSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsUploading(true);
-    
+  const handleLike = async (post: CommunityPost) => {
+    if (likedPostIds.has(post.id)) return;
+
+    setPosts(prev => prev.map(p => p.id === post.id ? { ...p, likes: p.likes + 1 } : p));
+    setSelectedPost(prev => prev && prev.id === post.id ? { ...prev, likes: prev.likes + 1 } : prev);
+    persistLikedPostIds(new Set(likedPostIds).add(post.id));
+
+    await likeCommunityPost(post.id);
+  };
+
+  const handleDeletePost = async (post: CommunityPost) => {
+    if (!window.confirm(`"${post.title}" etkinliğini silmek istediğine emin misin?`)) return;
+
+    setPosts(prev => prev.filter(p => p.id !== post.id));
+    setSelectedPost(prev => prev && prev.id === post.id ? null : prev);
+
+    await deleteCommunityPost(post.id);
+  };
+
+  const openPostDetail = async (post: CommunityPost) => {
+    setSelectedPost(post);
+    setComments([]);
+
+    setPosts(prev => prev.map(p => p.id === post.id ? { ...p, views: p.views + 1 } : p));
+    setSelectedPost(prev => prev && prev.id === post.id ? { ...prev, views: prev.views + 1 } : prev);
+
+    const [postComments] = await Promise.all([
+      getComments(post.id),
+      incrementPostView(post.id),
+    ]);
+    setComments(postComments);
+  };
+
+  const closeDetail = () => {
+    setSelectedPost(null);
+    setComments([]);
+  };
+
+  const handleSubmitComment = async (content: string) => {
+    if (!selectedPost) return;
+    setIsSubmittingComment(true);
     try {
       const formData = new FormData();
-      formData.append("title", title);
       formData.append("content", content);
-      formData.append("tags", tags);
-      formData.append("image_base64", imageBase64);
       formData.append("author", "Ziyaretçi Veli");
       formData.append("role", "Veli");
 
-      await createCommunityPost(formData);
-      
-      setShowUploadModal(false);
-      setTitle("");
-      setContent("");
-      setTags("");
-      setImageBase64("");
-      setImagePreview("");
-      await fetchPosts();
+      await addComment(selectedPost.id, formData);
+      const updatedComments = await getComments(selectedPost.id);
+      setComments(updatedComments);
+      setPosts(prev => prev.map(p => p.id === selectedPost.id ? { ...p, comment_count: updatedComments.length } : p));
     } catch (err) {
       console.error(err);
-      alert("Gönderi paylaşılırken bir hata oluştu.");
+      alert("Yorum eklenirken bir hata oluştu.");
     } finally {
-      setIsUploading(false);
+      setIsSubmittingComment(false);
     }
   };
 
-  const handleLike = async (id: string) => {
-    // Optimistic UI update
-    setPosts(posts.map(p => p.id === id ? { ...p, likes: p.likes + 1 } : p));
-    await likeCommunityPost(id);
+  const handleDeleteComment = async (comment: CommunityComment) => {
+    if (!selectedPost) return;
+    setComments(prev => prev.filter(c => c.id !== comment.id));
+    setPosts(prev => prev.map(p => p.id === selectedPost.id ? { ...p, comment_count: Math.max(0, p.comment_count - 1) } : p));
+
+    await deleteComment(comment.id);
   };
 
   return (
@@ -126,7 +149,7 @@ export default function ToplulukLibrary() {
           <span className="text-foreground/70 font-medium hidden sm:block">Etkinlik Kütüphanesi</span>
         </div>
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => setShowUploadModal(true)}
             className="bg-purple-600 text-white px-5 py-2.5 rounded-full font-semibold flex items-center gap-2 hover:bg-purple-700 transition-all shadow-md hover:shadow-lg"
           >
@@ -145,9 +168,9 @@ export default function ToplulukLibrary() {
           </div>
           <div className="relative w-full md:w-96">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40" size={20} />
-            <input 
-              type="text" 
-              placeholder="Etkinlik ara..." 
+            <input
+              type="text"
+              placeholder="Etkinlik ara..."
               className="w-full bg-white border border-border rounded-full py-3 pl-12 pr-4 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all shadow-sm"
             />
           </div>
@@ -177,167 +200,34 @@ export default function ToplulukLibrary() {
             </div>
           )}
           {posts.map((post) => (
-            <div key={post.id} className="bg-white rounded-3xl overflow-hidden border border-border shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col">
-              {/* Image Thumbnail */}
-              <div className="w-full relative bg-surface-muted aspect-[4/3] overflow-hidden">
-                {post.image_base64 ? (
-                  post.image_base64.startsWith('data:application/pdf') ? (
-                    <a href={post.image_base64} download={`${post.title}.pdf`} className="w-full h-full flex flex-col items-center justify-center text-red-500 bg-red-50 group-hover:bg-red-100 transition-colors">
-                      <FileText size={48} className="mb-2" />
-                      <span className="font-bold text-sm underline">PDF İndir</span>
-                    </a>
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={post.image_base64} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                  )
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-foreground/20">
-                    <ImageIcon size={48} />
-                  </div>
-                )}
-                <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-                  {post.tags.map(tag => (
-                    <span key={tag} className="bg-white/90 backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full text-purple-700 shadow-sm">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Content */}
-              <div className="p-5 flex-1 flex flex-col">
-                <h3 className="font-bold text-lg mb-2 line-clamp-2 leading-tight">{post.title}</h3>
-                <p className="text-foreground/70 text-sm mb-4 line-clamp-3 flex-1">{post.content}</p>
-                
-                <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-sm shadow-inner">
-                      {post.role === 'Öğretmen' ? '👩‍🏫' : '👩‍👦'}
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold leading-none">{post.author}</span>
-                      <span className="text-[10px] text-foreground/50">{post.role}</span>
-                    </div>
-                  </div>
-                  
-                  <button 
-                    onClick={() => handleLike(post.id)}
-                    className="flex items-center gap-1.5 text-foreground/50 hover:text-pink-500 transition-colors"
-                  >
-                    <Heart size={18} className={post.likes > 0 ? 'fill-pink-500 text-pink-500' : ''} />
-                    <span className={`text-sm font-medium ${post.likes > 0 ? 'text-pink-500' : ''}`}>{post.likes}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+            <PostCard
+              key={post.id}
+              post={post}
+              hasLiked={likedPostIds.has(post.id)}
+              onOpen={openPostDetail}
+              onLike={handleLike}
+              onDelete={handleDeletePost}
+            />
           ))}
         </div>
       </main>
 
-      {/* Upload Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center p-6 border-b border-border">
-              <h2 className="text-2xl font-bold font-heading">Yeni Etkinlik Paylaş</h2>
-              <button onClick={() => setShowUploadModal(false)} className="p-2 hover:bg-surface rounded-full transition-colors text-foreground/50 hover:text-foreground">
-                <X size={24} />
-              </button>
-            </div>
-            
-            <form onSubmit={handleUploadSubmit} className="p-6 space-y-5">
-              <div>
-                <label className="block text-sm font-bold mb-2">Etkinlik Başlığı</label>
-                <input 
-                  type="text" 
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" 
-                  placeholder="Örn: Evde Renk Avı Oyunu"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-bold mb-2">Açıklama / Deneyim</label>
-                <textarea 
-                  required
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 min-h-[120px] resize-none" 
-                  placeholder="Etkinliği nasıl yaptınız? Çocuklar nasıl tepki verdi?"
-                />
-              </div>
+        <UploadModal onClose={() => setShowUploadModal(false)} onCreated={fetchPosts} />
+      )}
 
-              <div>
-                <label className="block text-sm font-bold mb-2">Etiketler (Virgülle ayırın)</label>
-                <input 
-                  type="text" 
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" 
-                  placeholder="Doğa, Eğitici Oyun, Renkler"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold mb-2">Dosya (Fotoğraf veya PDF)</label>
-                {imagePreview ? (
-                  <div className="relative w-full h-48 rounded-xl overflow-hidden border border-border flex items-center justify-center bg-surface">
-                    {imagePreview === 'pdf' ? (
-                      <div className="flex flex-col items-center justify-center text-red-500">
-                         <FileText size={48} className="mb-2" />
-                         <span className="font-bold">PDF Eklendi</span>
-                      </div>
-                    ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={imagePreview} alt="Önizleme" className="w-full h-full object-cover" />
-                    )}
-                    <button 
-                      type="button"
-                      onClick={() => { setImagePreview(""); setImageBase64(""); if(fileInputRef.current) fileInputRef.current.value = ""; }}
-                      className="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ) : (
-                  <div 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full h-32 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center text-foreground/50 hover:text-purple-600 hover:border-purple-400 hover:bg-purple-50/50 cursor-pointer transition-all"
-                  >
-                    <ImageIcon size={32} className="mb-2" />
-                    <span className="font-medium">Bilgisayardan/Telefondan Seç</span>
-                  </div>
-                )}
-                <input 
-                  type="file" 
-                  accept="image/*,application/pdf"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-              </div>
-
-              <div className="pt-4 border-t border-border flex justify-end gap-3">
-                <button 
-                  type="button" 
-                  onClick={() => setShowUploadModal(false)}
-                  className="px-6 py-3 rounded-xl font-bold text-foreground/60 hover:bg-surface transition-colors"
-                >
-                  İptal
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={isUploading}
-                  className="bg-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-purple-700 transition-colors shadow-md disabled:opacity-50"
-                >
-                  {isUploading ? "Yükleniyor..." : "Kütüphaneye Ekle"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {selectedPost && (
+        <PostDetailModal
+          post={selectedPost}
+          comments={comments}
+          hasLiked={likedPostIds.has(selectedPost.id)}
+          isSubmittingComment={isSubmittingComment}
+          onClose={closeDetail}
+          onLike={handleLike}
+          onDeletePost={handleDeletePost}
+          onDeleteComment={handleDeleteComment}
+          onSubmitComment={handleSubmitComment}
+        />
       )}
     </div>
   );
