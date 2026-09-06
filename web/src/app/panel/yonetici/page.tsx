@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { TwinMark } from "@/components/brand/twin-mark";
+import { getPoolStats } from "@/app/panel/yonetici/actions";
+import type { QuestionPoolStats } from "@/lib/question-pool-stats";
 
 const icons = {
   panel: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>,
@@ -44,6 +46,13 @@ export default function YoneticiPanel() {
   const [assignClass, setAssignClass] = useState(CLASSES[0].name);
   const [assigned, setAssigned] = useState(false);
 
+  // Soru havuzu istatistikleri gerçek `questions` tablosundan (bkz. panel/yonetici/actions.ts) —
+  // kullanıcı isteği: "genel ve soru bazlı gerçek verilerden gidelim".
+  const [poolStats, setPoolStats] = useState<QuestionPoolStats | null>(null);
+  useEffect(() => {
+    getPoolStats().then(setPoolStats);
+  }, []);
+
   const renderContent = () => {
     switch (activeTab) {
       case "panel":
@@ -72,10 +81,10 @@ export default function YoneticiPanel() {
                 <span className="text-sm text-foreground/60">Tüm sınıflar geneli</span>
               </div>
               <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-                <span className="text-sm font-semibold text-foreground/50 uppercase tracking-wider">Müfredat Kapsamı</span>
-                <div className="text-5xl font-bold mt-4">%64</div>
+                <span className="text-sm font-semibold text-foreground/50 uppercase tracking-wider">Soru Havuzu</span>
+                <div className="text-5xl font-bold mt-4">{poolStats ? poolStats.total : "…"}</div>
                 <div className="h-1.5 w-12 bg-border mt-4 mb-3 rounded-full" />
-                <span className="text-sm text-foreground/60">İşlenen kazanım oranı</span>
+                <span className="text-sm text-foreground/60">{poolStats ? `${poolStats.approved} onaylı, ${poolStats.pendingReview} beklemede` : "Gerçek soru sayısı"}</span>
               </div>
             </div>
 
@@ -255,6 +264,43 @@ export default function YoneticiPanel() {
                 </div>
               ))}
             </div>
+
+            <h3 className="font-heading font-semibold text-xl mb-4 mt-10">Ders Bazında Soru Havuzu</h3>
+            <p className="text-sm text-foreground/60 mb-5 max-w-2xl">Kaynak Yöneticisi&apos;nin havuza kattığı gerçek soru sayıları — ders bazında ve genel.</p>
+            {!poolStats ? (
+              <p className="text-sm text-foreground/50">Yükleniyor...</p>
+            ) : poolStats.bySubject.length === 0 ? (
+              <p className="text-sm text-foreground/50">Havuzda henüz soru yok.</p>
+            ) : (
+              <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-surface-muted/50 border-b border-border">
+                    <tr>
+                      <th className="px-6 py-4 font-semibold text-foreground/70">Ders</th>
+                      <th className="px-6 py-4 font-semibold text-foreground/70">Toplam Soru</th>
+                      <th className="px-6 py-4 font-semibold text-foreground/70">Onaylı</th>
+                      <th className="px-6 py-4 font-semibold text-foreground/70 text-right">Beklemede</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {poolStats.bySubject.map((s) => (
+                      <tr key={s.subjectName} className="hover:bg-surface-muted/30 transition-colors">
+                        <td className="px-6 py-4 font-medium">{s.subjectName}</td>
+                        <td className="px-6 py-4">{s.total}</td>
+                        <td className="px-6 py-4 text-brand-green font-semibold">{s.approved}</td>
+                        <td className="px-6 py-4 text-right text-brand-yellow-700 font-semibold">{s.pendingReview}</td>
+                      </tr>
+                    ))}
+                    <tr className="bg-surface-muted/30 font-semibold">
+                      <td className="px-6 py-4">Genel Toplam</td>
+                      <td className="px-6 py-4">{poolStats.total}</td>
+                      <td className="px-6 py-4 text-brand-green">{poolStats.approved}</td>
+                      <td className="px-6 py-4 text-right text-brand-yellow-700">{poolStats.pendingReview}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         );
 

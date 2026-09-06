@@ -70,7 +70,7 @@ export default function KaynakUreticiPanel() {
           <div>
             <h1 className="text-3xl font-heading font-semibold mb-2 tracking-tight">Hoş geldin, Selin Yayıncı</h1>
             <p className="text-foreground/60 mb-8">
-              <span className="font-semibold text-brand-green">6 kaynak</span> taradın, havuza <span className="font-semibold text-brand-green">946 soru</span> kattın. İşte bugünün özeti:
+              <span className="font-semibold text-brand-green">6 kaynak</span> taradın, havuza <span className="font-semibold text-brand-green">{poolStats ? poolStats.total : "…"} soru</span> kattın. İşte bugünün özeti:
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
@@ -82,23 +82,40 @@ export default function KaynakUreticiPanel() {
               </div>
               <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
                 <span className="text-sm font-semibold text-brand-yellow-600 uppercase tracking-wider">Bekleyen Değerlendirme</span>
-                <div className="text-5xl font-bold mt-4">{queue.length}</div>
+                <div className="text-5xl font-bold mt-4">{queueLoading ? "…" : queue.length}</div>
                 <div className="h-1.5 w-12 bg-brand-yellow mt-4 mb-3 rounded-full" />
                 <span className="text-sm text-foreground/60">Onay bekleyen soru</span>
               </div>
               <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
                 <span className="text-sm font-semibold text-foreground/50 uppercase tracking-wider">Toplam Soru</span>
-                <div className="text-5xl font-bold mt-4">946</div>
+                <div className="text-5xl font-bold mt-4">{poolStats ? poolStats.total : "…"}</div>
                 <div className="h-1.5 w-12 bg-border mt-4 mb-3 rounded-full" />
-                <span className="text-sm text-foreground/60">Havuza kazandırılan</span>
+                <span className="text-sm text-foreground/60">{poolStats ? `${poolStats.approved} onaylı` : "Havuzdaki gerçek soru sayısı"}</span>
               </div>
               <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-                <span className="text-sm font-semibold text-foreground/50 uppercase tracking-wider">Taranan Sayfa</span>
-                <div className="text-5xl font-bold mt-4">456</div>
+                <span className="text-sm font-semibold text-foreground/50 uppercase tracking-wider">Ders Sayısı</span>
+                <div className="text-5xl font-bold mt-4">{poolStats ? poolStats.bySubject.length : "…"}</div>
                 <div className="h-1.5 w-12 bg-border mt-4 mb-3 rounded-full" />
-                <span className="text-sm text-foreground/60">Bu ay</span>
+                <span className="text-sm text-foreground/60">Havuzda soru içeren ders</span>
               </div>
             </div>
+
+            {poolStats && poolStats.bySubject.length > 0 && (
+              <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm mb-10">
+                <h3 className="font-heading font-semibold text-lg mb-4">Ders Bazında Soru Havuzu</h3>
+                <div className="space-y-3">
+                  {poolStats.bySubject.map((s) => (
+                    <div key={s.subjectName} className="flex items-center gap-4">
+                      <div className="w-28 shrink-0 text-sm font-medium">{s.subjectName}</div>
+                      <div className="flex-1 h-2.5 bg-surface-muted rounded-full overflow-hidden">
+                        <div className="h-full rounded-full bg-brand-green" style={{ width: `${poolStats.total ? (s.total / poolStats.total) * 100 : 0}%` }} />
+                      </div>
+                      <div className="w-32 shrink-0 text-xs text-foreground/60 text-right">{s.total} soru ({s.approved} onaylı)</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="bg-surface p-8 rounded-2xl border border-border shadow-sm relative overflow-hidden">
@@ -128,11 +145,13 @@ export default function KaynakUreticiPanel() {
                 <div className="space-y-4">
                   {queue.slice(0, 3).map((q) => (
                     <div key={q.id} className="p-4 rounded-xl bg-background border border-border hover:border-brand-yellow/50 transition-colors cursor-pointer" onClick={() => setActiveTab("review")}>
-                      <div className="font-semibold text-sm line-clamp-1">{q.text}</div>
-                      <div className="text-xs text-foreground/60 mt-1">{q.topic} · {q.source}</div>
+                      <div className="font-semibold text-sm line-clamp-1">{q.questionText}</div>
+                      <div className="text-xs text-foreground/60 mt-1">
+                        {q.topicLabel ?? q.subjectName ?? "Konu yok"}{q.bookTitle ? ` · ${q.bookTitle}${q.pageNumber ? `, s. ${q.pageNumber}` : ""}` : ""}
+                      </div>
                     </div>
                   ))}
-                  {queue.length === 0 && (
+                  {!queueLoading && queue.length === 0 && (
                     <p className="text-sm text-foreground/50">Bekleyen soru yok, tebrikler!</p>
                   )}
                 </div>
@@ -240,7 +259,11 @@ export default function KaynakUreticiPanel() {
               Taranan sorular havuza girmeden önce burada onaylanır — yapay zekanın yanlış okuduğu ya da yanlış çözdüğü sorular elenir.
             </p>
 
-            {queue.length === 0 ? (
+            {queueLoading ? (
+              <div className="bg-surface p-12 rounded-2xl border border-border shadow-sm text-center">
+                <p className="text-foreground/60">Yükleniyor...</p>
+              </div>
+            ) : queue.length === 0 ? (
               <div className="bg-surface p-12 rounded-2xl border border-border shadow-sm text-center">
                 <p className="text-foreground/60">Bekleyen soru kalmadı — hepsi değerlendirildi.</p>
               </div>
@@ -249,28 +272,32 @@ export default function KaynakUreticiPanel() {
                 {queue.map((q) => (
                   <div key={q.id} className="bg-surface p-6 rounded-2xl border border-border shadow-sm">
                     <div className="flex justify-between items-start gap-4 mb-4">
-                      <div className="text-[15px] leading-relaxed font-medium">{q.text}</div>
-                      <span className="shrink-0 text-xs text-foreground/50">{q.source}</span>
+                      <div className="text-[15px] leading-relaxed font-medium">{q.questionText}</div>
+                      <span className="shrink-0 text-xs text-foreground/50">
+                        {q.bookTitle ? `${q.bookTitle}${q.pageNumber ? `, s. ${q.pageNumber}` : ""}` : "Kaynak yok"}
+                      </span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4">
-                      {q.options.map((opt, i) => {
-                        const letter = String.fromCharCode(65 + i);
-                        const isCorrect = letter === q.answer;
-                        return (
-                          <div
-                            key={i}
-                            className={`text-sm px-3 py-2 rounded-lg border ${isCorrect ? "border-brand-green bg-brand-green/5 font-semibold text-brand-green" : "border-border bg-background text-foreground/70"}`}
-                          >
-                            {letter}) {opt}
-                          </div>
-                        );
-                      })}
-                    </div>
+                    {q.options.length > 0 && (
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4">
+                        {q.options.map((opt, i) => {
+                          const letter = String.fromCharCode(65 + i);
+                          const isCorrect = letter === q.correctAnswer.trim().toUpperCase();
+                          return (
+                            <div
+                              key={i}
+                              className={`text-sm px-3 py-2 rounded-lg border ${isCorrect ? "border-brand-green bg-brand-green/5 font-semibold text-brand-green" : "border-border bg-background text-foreground/70"}`}
+                            >
+                              {letter}) {opt}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                     <div className="flex items-center justify-between">
-                      <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium">{q.topic}</span>
+                      <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium">{q.topicLabel ?? q.subjectName ?? "Konu yok"}</span>
                       <div className="flex gap-3">
-                        <button onClick={() => resolveQuestion(q.id)} className="text-sm font-semibold text-red-600 hover:underline">Reddet</button>
-                        <button onClick={() => resolveQuestion(q.id)} className="bg-brand-green text-white font-bold px-5 py-2 rounded-full text-sm hover:bg-brand-green-600 shadow-sm">Onayla</button>
+                        <button onClick={() => resolveQuestion(q.id, "reject")} className="text-sm font-semibold text-red-600 hover:underline">Reddet</button>
+                        <button onClick={() => resolveQuestion(q.id, "approve")} className="bg-brand-green text-white font-bold px-5 py-2 rounded-full text-sm hover:bg-brand-green-600 shadow-sm">Onayla</button>
                       </div>
                     </div>
                   </div>

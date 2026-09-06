@@ -22,9 +22,24 @@ export type QuestionPoolStats = {
  * ayrı bir RPC yazmak yerine (ölçek küçük, ~1000-2000 satır) sadece status+subject_name
  * kolonlarını çekip JS'te grupluyoruz.
  */
+const PAGE_SIZE = 1000;
+
 export async function getQuestionPoolStats(supabase: SupabaseClient): Promise<QuestionPoolStats> {
-  const { data } = await supabase.from("questions").select("status, subject_name");
-  const rows = data ?? [];
+  // PostgREST varsayılan olarak tek istekte en fazla 1000 satır döndürür — havuz bunu
+  // aştığı için (bkz. gerçek test: 1149 soru, ilk sürüm sessizce 1000'de kesiyordu) sayfalayarak
+  // hepsini çekiyoruz.
+  const rows: Array<{ status: string | null; subject_name: string | null }> = [];
+  let from = 0;
+  while (true) {
+    const { data } = await supabase
+      .from("questions")
+      .select("status, subject_name")
+      .range(from, from + PAGE_SIZE - 1);
+    if (!data || data.length === 0) break;
+    rows.push(...data);
+    if (data.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
 
   const bySubjectMap = new Map<string, SubjectPoolStat>();
   let approved = 0;
