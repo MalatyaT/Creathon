@@ -712,6 +712,11 @@ export default function OgretmenPanel() {
                       </span>
                     </div>
 
+                    {!gradingResult.persisted && (
+                      <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4 text-xs text-red-700">
+                        ⚠ Sonuçlar veritabanına kaydedilemedi{gradingResult.persistError ? ` (${gradingResult.persistError})` : ""} — aşağıdaki okuma/not doğru ama "Doğru/Yanlış işaretle" onayları ve dijital ikiz güncellemesi çalışmayacak. Muhtemelen bekleyen bir migration var, `apply-pending-migrations.ts` çalıştırılmalı.
+                      </div>
+                    )}
                     <div className="bg-brand-yellow/5 border border-brand-yellow/20 rounded-xl p-4 mb-6">
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-xs font-semibold uppercase tracking-wide text-brand-yellow-700">Ön Değerlendirme — Genel Not</span>

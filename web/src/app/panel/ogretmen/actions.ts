@@ -67,6 +67,8 @@ export type GradePaperResult = {
   questions: GradedQuestion[];
   overallGrade: number;
   overallComment: string;
+  persisted: boolean;
+  persistError: string | null;
 };
 
 export async function gradePaperAction(formData: FormData): Promise<GradePaperResult> {
@@ -173,10 +175,18 @@ export async function gradePaperAction(formData: FormData): Promise<GradePaperRe
     }
   }
 
-  const { data: inserted } = await supabase.from("question_attempts").insert(attemptRows).select("id");
+  const { data: inserted, error: insertError } = await supabase
+    .from("question_attempts")
+    .insert(attemptRows)
+    .select("id");
   (inserted ?? []).forEach((row, i) => {
     if (results[i]) results[i].attemptId = row.id;
   });
+  // question_attempts tablosu henüz canlıya uygulanmamışsa (migration 0014 bekliyor) insert
+  // sessizce başarısız olabilirdi — bunu artık açıkça yüzeye çıkarıyoruz: onay butonları ve
+  // dijital ikiz güncellemesi bu satırlara bağlı, o yüzden öğretmenin bunu bilmesi gerekiyor.
+  const persisted = !insertError && (inserted?.length ?? 0) === attemptRows.length;
+  const persistError = insertError?.message ?? null;
 
   const scoreTotal = results.length;
   const scoreCorrect = results.filter((r) => r.isCorrect === true).length;
@@ -203,7 +213,7 @@ export async function gradePaperAction(formData: FormData): Promise<GradePaperRe
     // Ön değerlendirme adımı başarısız oldu — basit doğru/yanlış oranı yeterli olsun.
   }
 
-  return { scoreCorrect, scoreTotal, questions: results, overallGrade, overallComment };
+  return { scoreCorrect, scoreTotal, questions: results, overallGrade, overallComment, persisted, persistError };
 }
 
 export async function confirmOpenEndedAttempt(params: {
