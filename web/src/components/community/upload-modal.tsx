@@ -5,8 +5,17 @@ import { Image as ImageIcon, X, FileText, Plus } from "lucide-react";
 import { createCommunityPost } from "@/lib/community/actions";
 import type { CommunityTheme } from "@/lib/community/theme";
 
-const MAX_WIDTH = 1000;
-const MAX_HEIGHT = 1000;
+const FULL_MAX_DIM = 1000;
+// Kept small on purpose: this is the only per-attachment data the grid list
+// query fetches, so it must stay tiny even with dozens of posts on screen.
+const THUMB_MAX_DIM = 200;
+const THUMB_QUALITY = 0.5;
+
+type Attachment = {
+  full: string;
+  thumbnail: string | null; // null for PDFs (card shows a static file icon instead)
+  isPdf: boolean;
+};
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -17,7 +26,7 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
-function resizeImageDataUrl(dataUrl: string): Promise<string> {
+function resizeImageDataUrl(dataUrl: string, maxDim: number, quality: number): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image();
     img.src = dataUrl;
@@ -26,29 +35,35 @@ function resizeImageDataUrl(dataUrl: string): Promise<string> {
       let width = img.width;
       let height = img.height;
       if (width > height) {
-        if (width > MAX_WIDTH) {
-          height *= MAX_WIDTH / width;
-          width = MAX_WIDTH;
+        if (width > maxDim) {
+          height *= maxDim / width;
+          width = maxDim;
         }
       } else {
-        if (height > MAX_HEIGHT) {
-          width *= MAX_HEIGHT / height;
-          height = MAX_HEIGHT;
+        if (height > maxDim) {
+          width *= maxDim / height;
+          height = maxDim;
         }
       }
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d');
       ctx?.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', 0.8));
+      resolve(canvas.toDataURL('image/jpeg', quality));
     };
   });
 }
 
-async function processFile(file: File): Promise<string> {
+async function processFile(file: File): Promise<Attachment> {
   const dataUrl = await readFileAsDataUrl(file);
-  if (file.type === 'application/pdf') return dataUrl;
-  return resizeImageDataUrl(dataUrl);
+  if (file.type === 'application/pdf') {
+    return { full: dataUrl, thumbnail: null, isPdf: true };
+  }
+  const [full, thumbnail] = await Promise.all([
+    resizeImageDataUrl(dataUrl, FULL_MAX_DIM, 0.8),
+    resizeImageDataUrl(dataUrl, THUMB_MAX_DIM, THUMB_QUALITY),
+  ]);
+  return { full, thumbnail, isPdf: false };
 }
 
 type UploadModalProps = {
@@ -65,7 +80,7 @@ export function UploadModal({ theme, onClose, onCreated }: UploadModalProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [tags, setTags] = useState("");
-  const [images, setImages] = useState<string[]>([]);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -74,15 +89,15 @@ export function UploadModal({ theme, onClose, onCreated }: UploadModalProps) {
     setIsProcessingFiles(true);
     try {
       const processed = await Promise.all(files.map(processFile));
-      setImages(prev => [...prev, ...processed]);
+      setAttachments(prev => [...prev, ...processed]);
     } finally {
       setIsProcessingFiles(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
-  const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,7 +109,10 @@ export function UploadModal({ theme, onClose, onCreated }: UploadModalProps) {
       formData.append("title", title);
       formData.append("content", content);
       formData.append("tags", tags);
-      images.forEach(img => formData.append("images", img));
+      attachments.forEach(a => formData.append("images", a.full));
+      const cover = attachments[0];
+      formData.append("cover_thumbnail", cover?.thumbnail ?? "");
+      formData.append("cover_is_pdf", String(cover?.isPdf ?? false));
       formData.append("author", "Ziyaretçi Veli");
       formData.append("role", "Veli");
 
@@ -157,20 +175,20 @@ export function UploadModal({ theme, onClose, onCreated }: UploadModalProps) {
           <div>
             <label className="block text-sm font-bold mb-2">Dosyalar (Fotoğraf veya PDF, birden fazla seçilebilir)</label>
             <div className="flex flex-wrap gap-3">
-              {images.map((img, index) => (
+              {attachments.map((att, index) => (
                 <div key={index} className="relative w-24 h-24 rounded-xl overflow-hidden border border-border flex items-center justify-center bg-surface shrink-0">
-                  {img.startsWith('data:application/pdf') ? (
+                  {att.isPdf ? (
                     <div className="flex flex-col items-center justify-center text-red-500">
                       <FileText size={24} />
                       <span className="text-[10px] font-bold mt-1">PDF</span>
                     </div>
                   ) : (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={img} alt={`Ek ${index + 1}`} className="w-full h-full object-cover" />
+                    <img src={att.full} alt={`Ek ${index + 1}`} className="w-full h-full object-cover" />
                   )}
                   <button
                     type="button"
-                    onClick={() => removeImage(index)}
+                    onClick={() => removeAttachment(index)}
                     className="absolute top-1 right-1 bg-black/50 text-white p-1 rounded-full hover:bg-black/70 transition-colors"
                   >
                     <X size={12} />
@@ -187,7 +205,7 @@ export function UploadModal({ theme, onClose, onCreated }: UploadModalProps) {
                 <span className="text-[11px] font-medium text-center px-1">{isProcessingFiles ? "Yükleniyor..." : "Ekle"}</span>
               </button>
             </div>
-            {images.length === 0 && (
+            {attachments.length === 0 && (
               <p className="text-xs text-foreground/40 mt-2 flex items-center gap-1">
                 <ImageIcon size={14} /> İhtiyaç duyulan malzemeleri göstermek için birden fazla fotoğraf ekleyebilirsiniz.
               </p>

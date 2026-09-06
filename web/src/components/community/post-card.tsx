@@ -2,20 +2,18 @@
 
 import Link from "next/link";
 import { Heart, Eye, MessageCircle, FileText, Image as ImageIcon, Trash2, Images } from "lucide-react";
-import type { CommunityPost } from "@/lib/community/actions";
+import type { CommunityPostSummary } from "@/lib/community/actions";
 import type { CommunityTheme } from "@/lib/community/theme";
 
 type PostCardProps = {
-  post: CommunityPost;
+  post: CommunityPostSummary;
   theme: CommunityTheme;
   hasLiked: boolean;
-  onLike: (post: CommunityPost) => void;
-  onDelete: (post: CommunityPost) => void;
+  onLike: (post: CommunityPostSummary) => void;
+  onDelete: (post: CommunityPostSummary) => void;
 };
 
 export function PostCard({ post, theme, hasLiked, onLike, onDelete }: PostCardProps) {
-  const coverImage = post.images[0];
-
   return (
     <Link
       href={`${theme.basePath}/${post.id}`}
@@ -23,16 +21,14 @@ export function PostCard({ post, theme, hasLiked, onLike, onDelete }: PostCardPr
     >
       {/* Image Thumbnail */}
       <div className="w-full relative bg-surface-muted aspect-[4/3] overflow-hidden">
-        {coverImage ? (
-          coverImage.startsWith('data:application/pdf') ? (
-            <div className="w-full h-full flex flex-col items-center justify-center text-red-500 bg-red-50 group-hover:bg-red-100 transition-colors">
-              <FileText size={48} className="mb-2" />
-              <span className="font-bold text-sm">PDF Eki</span>
-            </div>
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={coverImage} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-          )
+        {post.cover_is_pdf ? (
+          <div className="w-full h-full flex flex-col items-center justify-center text-red-500 bg-red-50 group-hover:bg-red-100 transition-colors">
+            <FileText size={48} className="mb-2" />
+            <span className="font-bold text-sm">PDF Eki</span>
+          </div>
+        ) : post.cover_thumbnail ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={post.cover_thumbnail} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-foreground/20">
             <ImageIcon size={48} />
@@ -45,9 +41,9 @@ export function PostCard({ post, theme, hasLiked, onLike, onDelete }: PostCardPr
             </span>
           ))}
         </div>
-        {post.images.length > 1 && (
+        {post.image_count > 1 && (
           <span className="absolute bottom-3 right-3 bg-black/60 text-white text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
-            <Images size={12} /> {post.images.length}
+            <Images size={12} /> {post.image_count}
           </span>
         )}
         <button

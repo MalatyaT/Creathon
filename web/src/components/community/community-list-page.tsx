@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { TwinMark } from "@/components/brand/twin-mark";
 import { Search, Plus, Filter } from "lucide-react";
-import { getCommunityPosts, likeCommunityPost, deleteCommunityPost, type CommunityPost } from "@/lib/community/actions";
+import { getCommunityPosts, likeCommunityPost, deleteCommunityPost, type CommunityPostSummary } from "@/lib/community/actions";
 import type { CommunityTheme } from "@/lib/community/theme";
 import { PostCard } from "./post-card";
 import { UploadModal } from "./upload-modal";
@@ -24,7 +24,7 @@ function loadLikedPostIds(basePath: string): Set<string> {
 }
 
 export function CommunityListPage({ theme }: { theme: CommunityTheme }) {
-  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [posts, setPosts] = useState<CommunityPostSummary[]>([]);
   const [activeTag, setActiveTag] = useState<string>("Tümü");
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
@@ -48,7 +48,7 @@ export function CommunityListPage({ theme }: { theme: CommunityTheme }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleLike = async (post: CommunityPost) => {
+  const handleLike = async (post: CommunityPostSummary) => {
     if (likedPostIds.has(post.id)) return;
 
     setPosts(prev => prev.map(p => p.id === post.id ? { ...p, likes: p.likes + 1 } : p));
@@ -63,7 +63,7 @@ export function CommunityListPage({ theme }: { theme: CommunityTheme }) {
     await likeCommunityPost(post.id, theme.basePath);
   };
 
-  const handleDeletePost = async (post: CommunityPost) => {
+  const handleDeletePost = async (post: CommunityPostSummary) => {
     if (!window.confirm(`"${post.title}" ${theme.itemNoun.toLowerCase()}ini silmek istediğine emin misin?`)) return;
     setPosts(prev => prev.filter(p => p.id !== post.id));
     await deleteCommunityPost(post.id, theme.basePath);

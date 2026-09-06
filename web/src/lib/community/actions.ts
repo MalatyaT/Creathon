@@ -10,7 +10,10 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export type CommunityCategory = "anaokulu" | "egitim";
 
-export type CommunityPost = {
+// Lean shape for grid/list views — carries only a small pre-generated
+// thumbnail instead of the full (often multi-hundred-KB) attachment data,
+// which used to make the list query pull several MB for a handful of posts.
+export type CommunityPostSummary = {
   id: string;
   title: string;
   content: string;
@@ -18,12 +21,18 @@ export type CommunityPost = {
   role: string;
   tags: string[];
   category: CommunityCategory;
-  image_base64?: string;
-  images: string[];
+  cover_thumbnail: string | null;
+  cover_is_pdf: boolean;
+  image_count: number;
   likes: number;
   views: number;
   comment_count: number;
   created_at: string;
+};
+
+export type CommunityPost = CommunityPostSummary & {
+  image_base64?: string;
+  images: string[];
 };
 
 export type CommunityComment = {
@@ -40,10 +49,12 @@ function postImages(post: { images?: string[] | null; image_base64?: string | nu
   return post.image_base64 ? [post.image_base64] : [];
 }
 
-export async function getCommunityPosts(category: CommunityCategory, tagFilter?: string): Promise<CommunityPost[]> {
+const SUMMARY_COLUMNS = "id,title,content,author,role,tags,category,cover_thumbnail,cover_is_pdf,image_count,likes,views,created_at";
+
+export async function getCommunityPosts(category: CommunityCategory, tagFilter?: string): Promise<CommunityPostSummary[]> {
   let query = supabase
     .from("community_posts")
-    .select("*, community_post_comments(count)")
+    .select(`${SUMMARY_COLUMNS}, community_post_comments(count)`)
     .eq("category", category)
     .order("created_at", { ascending: false });
 
@@ -58,12 +69,11 @@ export async function getCommunityPosts(category: CommunityCategory, tagFilter?:
   }
 
   return (data ?? []).map((row) => {
-    const { community_post_comments, ...post } = row as CommunityPost & {
+    const { community_post_comments, ...post } = row as CommunityPostSummary & {
       community_post_comments: { count: number }[];
     };
     return {
       ...post,
-      images: postImages(post),
       comment_count: community_post_comments?.[0]?.count ?? 0,
     };
   });
@@ -95,6 +105,8 @@ export async function createCommunityPost(formData: FormData, category: Communit
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
   const images = formData.getAll("images").filter(Boolean) as string[];
+  const coverThumbnail = (formData.get("cover_thumbnail") as string) || null;
+  const coverIsPdf = formData.get("cover_is_pdf") === "true";
   const tagsString = formData.get("tags") as string; // Comma separated
   const author = formData.get("author") as string || "Ziyaretçi Veli";
   const role = formData.get("role") as string || "Veli";
@@ -115,6 +127,9 @@ export async function createCommunityPost(formData: FormData, category: Communit
       tags,
       images,
       category,
+      cover_thumbnail: coverThumbnail,
+      cover_is_pdf: coverIsPdf,
+      image_count: images.length,
     });
 
   if (error) {
