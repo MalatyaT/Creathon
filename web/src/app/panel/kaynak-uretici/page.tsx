@@ -1,8 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { TwinMark } from "@/components/brand/twin-mark";
+import {
+  approveQuestion,
+  getPoolStats,
+  listPendingQuestions,
+  rejectQuestion,
+  type PendingQuestion as RealPendingQuestion,
+} from "@/app/panel/kaynak-uretici/actions";
+import type { QuestionPoolStats } from "@/lib/question-pool-stats";
 
 const icons = {
   panel: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>,
@@ -22,42 +30,6 @@ const RESOURCES = [
   { title: "Bilfen LGS Soru Bankası", category: "LGS", pages: 180, questions: 320, added: "2 hafta önce" },
 ];
 
-type PendingQuestion = {
-  id: number;
-  text: string;
-  options: string[];
-  answer: string;
-  topic: string;
-  source: string;
-};
-
-const PENDING: PendingQuestion[] = [
-  {
-    id: 1,
-    text: "Bir sayının 3 katının 5 fazlası 26 olduğuna göre, bu sayı kaçtır?",
-    options: ["5", "6", "7", "8", "9"],
-    answer: "C",
-    topic: "Birinci Dereceden Denklemler",
-    source: "3D TYT Matematik, s. 64",
-  },
-  {
-    id: 2,
-    text: "Aşağıdaki cümlelerin hangisinde bir yazım yanlışı vardır?",
-    options: ["Yalnızca sen gelebilirsin.", "Herşey yolunda gitti.", "Bir şey söylemedi.", "Her şeyi anlattı.", "Hiçbir şey kalmadı."],
-    answer: "B",
-    topic: "Yazım Kuralları",
-    source: "Hız Yayınları Türkçe, s. 12",
-  },
-  {
-    id: 3,
-    text: "Düzgün altıgenin bir iç açısının ölçüsü kaç derecedir?",
-    options: ["100", "108", "120", "135", "144"],
-    answer: "C",
-    topic: "Çokgenler",
-    source: "3D TYT Matematik, s. 64",
-  },
-];
-
 export default function KaynakUreticiPanel() {
   const [activeTab, setActiveTab] = useState("panel");
 
@@ -66,10 +38,29 @@ export default function KaynakUreticiPanel() {
   const [pageFile, setPageFile] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState(false);
 
-  const [queue, setQueue] = useState(PENDING);
+  // Soru Değerlendirme + Panel istatistikleri artık gerçek `questions` tablosundan
+  // (bkz. panel/kaynak-uretici/actions.ts) — önceden ikisi de mock'tu.
+  const [queue, setQueue] = useState<RealPendingQuestion[]>([]);
+  const [queueLoading, setQueueLoading] = useState(true);
+  const [poolStats, setPoolStats] = useState<QuestionPoolStats | null>(null);
 
-  function resolveQuestion(id: number) {
+  function refreshPoolStats() {
+    getPoolStats().then(setPoolStats);
+  }
+
+  useEffect(() => {
+    listPendingQuestions().then((list) => {
+      setQueue(list);
+      setQueueLoading(false);
+    });
+    refreshPoolStats();
+  }, []);
+
+  async function resolveQuestion(id: string, decision: "approve" | "reject") {
     setQueue((q) => q.filter((item) => item.id !== id));
+    if (decision === "approve") await approveQuestion(id);
+    else await rejectQuestion(id);
+    refreshPoolStats();
   }
 
   const renderContent = () => {

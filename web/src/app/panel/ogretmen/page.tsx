@@ -4,11 +4,18 @@ import { useEffect, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import { TwinMark } from "@/components/brand/twin-mark";
 import {
+  assignExamAsHomeworkAction,
   confirmOpenEndedAttempt,
+  generateExamAction,
   gradeFreeformPaperAction,
   gradePaperAction,
+  listExamKazanim,
+  listExamSubjects,
   listLinkedStudents,
   listStudentHomework,
+  type ExamItem,
+  type ExamKazanim,
+  type ExamSubject,
   type FreeformResultItem,
   type GradedQuestion,
   type GradePaperResult,
@@ -149,9 +156,83 @@ export default function OgretmenPanel() {
   const [qLevel, setQLevel] = useState("Orta");
   const [useClassWeight, setUseClassWeight] = useState(true);
 
-  // Sınav Oluşturma
+  // Sınav Oluşturma — gerçek ders/kazanım/havuz (bkz. panel/ogretmen/actions.ts,
+  // panel/soru-olustur/actions.ts'teki generateTestAction'ın öğretmen sürümü)
   const [examStep, setExamStep] = useState(1);
+  const [examSubjects, setExamSubjects] = useState<ExamSubject[]>([]);
+  const [examSubjectId, setExamSubjectId] = useState("");
   const [examSubject, setExamSubject] = useState("");
+  const [examKazanimlar, setExamKazanimlar] = useState<ExamKazanim[]>([]);
+  const [examSelectedKazanimIds, setExamSelectedKazanimIds] = useState<string[]>([]);
+  const [examCount, setExamCount] = useState(10);
+  const [examDifficulty, setExamDifficulty] = useState("Orta");
+  const [examStudentId, setExamStudentId] = useState("");
+  const [examItems, setExamItems] = useState<ExamItem[] | null>(null);
+  const [examLoading, setExamLoading] = useState(false);
+  const [examError, setExamError] = useState<string | null>(null);
+  const [examAssigned, setExamAssigned] = useState(false);
+
+  useEffect(() => {
+    listExamSubjects().then((list) => {
+      setExamSubjects(list);
+      setExamSubjectId(list[0]?.id ?? "");
+      setExamSubject(list[0]?.name ?? "");
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!examSubjectId) return;
+    listExamKazanim(examSubjectId).then((list) => {
+      setExamKazanimlar(list);
+      setExamSelectedKazanimIds([]);
+    });
+  }, [examSubjectId]);
+
+  function toggleExamKazanim(id: string) {
+    setExamSelectedKazanimIds((prev) =>
+      prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id],
+    );
+  }
+
+  async function handleGenerateExam() {
+    if (!examSubjectId || examSelectedKazanimIds.length === 0) return;
+    setExamLoading(true);
+    setExamError(null);
+    setExamAssigned(false);
+    try {
+      const items = await generateExamAction({
+        subjectId: examSubjectId,
+        kazanimIds: examSelectedKazanimIds,
+        count: examCount,
+        difficultyLabel: examDifficulty,
+        mcRatio: 0.7,
+      });
+      setExamItems(items);
+      setExamStep(3);
+    } catch (err) {
+      setExamError(err instanceof Error ? err.message : "Sınav oluşturulamadı");
+    } finally {
+      setExamLoading(false);
+    }
+  }
+
+  async function handleAssignExam() {
+    if (!examItems || !examStudentId) return;
+    setExamLoading(true);
+    try {
+      await assignExamAsHomeworkAction({
+        studentId: examStudentId,
+        title: `${examSubject} Sınavı`,
+        subjectName: examSubject,
+        items: examItems,
+      });
+      setExamAssigned(true);
+    } catch (err) {
+      setExamError(err instanceof Error ? err.message : "Ödev olarak atanamadı");
+    } finally {
+      setExamLoading(false);
+    }
+  }
 
   // Sınıf Yönetme
   const [selectedClass, setSelectedClass] = useState("12a");
@@ -460,14 +541,17 @@ export default function OgretmenPanel() {
                 {examStep === 1 && (
                   <div className="space-y-4">
                     <label className="block text-sm font-semibold mb-2">1. Adım: Ders Seçin</label>
+                    {examSubjects.length === 0 && (
+                      <p className="text-sm text-foreground/50">Havuzu hazır (bitmiş) bir ders yok.</p>
+                    )}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {["Matematik", "Fizik", "Kimya", "Biyoloji", "Türkçe", "Tarih", "Coğrafya", "Felsefe"].map((sub) => (
+                      {examSubjects.map((sub) => (
                         <button
-                          key={sub}
-                          onClick={() => { setExamSubject(sub); setExamStep(2); }}
+                          key={sub.id}
+                          onClick={() => { setExamSubjectId(sub.id); setExamSubject(sub.name); setExamStep(2); }}
                           className="p-4 rounded-xl border border-border bg-background hover:border-brand-green hover:bg-brand-green/5 transition-all font-medium text-center shadow-sm"
                         >
-                          {sub}
+                          {sub.name}
                         </button>
                       ))}
                     </div>
@@ -481,33 +565,119 @@ export default function OgretmenPanel() {
                       <button onClick={() => setExamStep(1)} className="text-xs text-foreground/50 hover:text-foreground hover:underline font-medium px-2 py-1 rounded bg-surface-muted">← Ders Seçimine Dön</button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2">
-                      {["Temel Kavramlar", "Üslü Sayılar", "Köklü Sayılar", "Çarpanlara Ayırma", "Denklemler", "Fonksiyonlar", "Polinomlar", "Limit"].map((kaz) => (
-                        <label key={kaz} className="flex items-center gap-3 p-3.5 rounded-xl border border-border bg-background hover:bg-surface-muted hover:border-brand-yellow/50 cursor-pointer transition-all">
-                          <input type="checkbox" className="w-4 h-4 accent-brand-yellow-600 rounded cursor-pointer" />
-                          <span className="text-sm font-medium">{kaz}</span>
+                      {examKazanimlar.map((kaz) => (
+                        <label key={kaz.id} className="flex items-center gap-3 p-3.5 rounded-xl border border-border bg-background hover:bg-surface-muted hover:border-brand-yellow/50 cursor-pointer transition-all">
+                          <input
+                            type="checkbox"
+                            checked={examSelectedKazanimIds.includes(kaz.id)}
+                            onChange={() => toggleExamKazanim(kaz.id)}
+                            className="w-4 h-4 accent-brand-yellow-600 rounded cursor-pointer"
+                          />
+                          <span className="text-sm font-medium">{kaz.name}</span>
                         </label>
                       ))}
                     </div>
-                    <div className="flex gap-4 pt-4 border-t border-border mt-4">
-                      <label className="text-sm font-semibold">Sınıf:</label>
-                      <select className="bg-background border border-border rounded-lg px-3 py-1.5 text-sm outline-none">
-                        {CLASSES.map((c) => <option key={c.id}>{c.name}</option>)}
-                      </select>
-                      <button onClick={() => setExamStep(3)} className="ml-auto bg-brand-yellow hover:bg-brand-yellow-600 text-foreground font-bold px-8 py-2.5 rounded-xl text-sm shadow-sm">Sınavı Oluştur ve Ata</button>
+                    <div className="flex flex-wrap items-end gap-4 pt-4 border-t border-border mt-4">
+                      <div>
+                        <label className="block text-xs font-semibold mb-1.5 text-foreground/60">Soru Sayısı</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={40}
+                          value={examCount}
+                          onChange={(e) => setExamCount(Number(e.target.value) || 1)}
+                          className="w-24 bg-background border border-border rounded-lg px-3 py-1.5 text-sm outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold mb-1.5 text-foreground/60">Zorluk</label>
+                        <select
+                          value={examDifficulty}
+                          onChange={(e) => setExamDifficulty(e.target.value)}
+                          className="bg-background border border-border rounded-lg px-3 py-1.5 text-sm outline-none"
+                        >
+                          <option>Kolay</option>
+                          <option>Orta</option>
+                          <option>Zor</option>
+                          <option>Karışık</option>
+                        </select>
+                      </div>
+                      {examError && <p className="text-sm text-red-600">{examError}</p>}
+                      <button
+                        onClick={handleGenerateExam}
+                        disabled={examSelectedKazanimIds.length === 0 || examLoading}
+                        className="ml-auto bg-brand-yellow hover:bg-brand-yellow-600 text-foreground font-bold px-8 py-2.5 rounded-xl text-sm shadow-sm disabled:opacity-50"
+                      >
+                        {examLoading ? "Oluşturuluyor..." : "Sınavı Havuzdan Oluştur"}
+                      </button>
                     </div>
                   </div>
                 )}
 
-                {examStep === 3 && (
-                  <div className="flex flex-col items-center justify-center py-10 text-center">
-                    <div className="w-20 h-20 bg-brand-green/10 rounded-full flex items-center justify-center text-brand-green mb-5">
-                      {icons.exam}
+                {examStep === 3 && examItems && (
+                  <div>
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <h4 className="font-bold text-xl text-brand-green mb-1">{examSubject} Sınavı Hazır</h4>
+                        <p className="text-sm text-foreground/60">
+                          {examItems.filter((q) => q.id).length} soru havuzdan, {examItems.filter((q) => !q.id).length} soru yapay zeka ile üretildi — toplam {examItems.length} soru.
+                        </p>
+                      </div>
+                      <button onClick={() => { setExamStep(1); setExamItems(null); setExamAssigned(false); }} className="text-sm font-semibold text-foreground/50 underline hover:text-foreground shrink-0">Yeni Sınav</button>
                     </div>
-                    <h4 className="font-bold text-xl text-brand-green mb-2">Sınav Oluşturuldu ve Sınıfa Atandı</h4>
-                    <p className="text-sm text-foreground/60 mb-8 max-w-md">
-                      {examSubject} sınavı, seçtiğin kazanımlara göre havuzdan derlendi ve öğrencilerin ödev listesine düştü.
-                    </p>
-                    <button onClick={() => setExamStep(1)} className="text-sm font-semibold text-foreground/50 underline hover:text-foreground">Yeni Sınav Oluştur</button>
+
+                    <div className="space-y-4 max-h-96 overflow-y-auto pr-2 mb-6">
+                      {examItems.map((q, i) => (
+                        <div key={q.id ?? `ai-${i}`} className="p-4 rounded-xl border border-border bg-background">
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <span className="text-sm font-medium">{i + 1}. {q.questionText}</span>
+                            <span className="shrink-0 text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-surface-muted text-foreground/50">
+                              {q.id ? "Havuz" : "✨ AI"}
+                            </span>
+                          </div>
+                          {q.questionType === "multiple_choice" ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                              {q.options.map((opt, oi) => {
+                                const letter = String.fromCharCode(65 + oi);
+                                const isCorrect = letter === q.correctAnswer.trim().toUpperCase();
+                                return (
+                                  <div key={oi} className={`text-xs px-2 py-1.5 rounded-lg border ${isCorrect ? "border-brand-green bg-brand-green/5 font-semibold text-brand-green" : "border-border text-foreground/60"}`}>
+                                    {letter}) {opt}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-foreground/60">Doğru cevap: <span className="font-semibold">{q.correctAnswer}</span></p>
+                          )}
+                          <div className="text-xs text-foreground/40 mt-1.5">{q.topicLabel}{q.sourceLabel ? ` · ${q.sourceLabel}` : ""}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-wrap items-end gap-4 pt-4 border-t border-border">
+                      <div>
+                        <label className="block text-xs font-semibold mb-1.5 text-foreground/60">Öğrenciye Ödev Olarak Ata</label>
+                        <select
+                          value={examStudentId}
+                          onChange={(e) => setExamStudentId(e.target.value)}
+                          className="bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none min-w-[180px]"
+                        >
+                          <option value="">Öğrenci seç...</option>
+                          {gradingStudents.map((s) => (
+                            <option key={s.id} value={s.id}>{s.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <button
+                        onClick={handleAssignExam}
+                        disabled={!examStudentId || examLoading}
+                        className="bg-brand-green text-white font-bold px-6 py-2.5 rounded-xl text-sm shadow-sm hover:bg-brand-green-600 disabled:opacity-50"
+                      >
+                        Ödev Olarak Ata
+                      </button>
+                      {examAssigned && <span className="text-sm text-brand-green font-medium">Ödev olarak atandı.</span>}
+                    </div>
                   </div>
                 )}
               </div>

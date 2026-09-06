@@ -4,7 +4,16 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { readAnswerSheet } from "@/lib/gemini-tasks/read-answer-sheet";
 import { extractAnswerSheet } from "@/lib/gemini-tasks/extract-answer-sheet";
 import { assessPaper } from "@/lib/gemini-tasks/assess-paper";
+import { generateQuestionsForTopic } from "@/lib/gemini-tasks/generate-questions";
+import { listFinishedSubjectIds, listFinishedTopicIds } from "@/lib/finished-kazanim";
 import { bumpTwinRisk } from "@/lib/twin";
+
+const DIFFICULTY_RANGES: Record<string, [number, number]> = {
+  Kolay: [1, 2],
+  Orta: [3, 3],
+  Zor: [4, 5],
+  Karışık: [1, 5],
+};
 
 // Bu panel (panel/ogretmen) tasarım gereği gerçek girişi atlıyor (bkz. panel/ogrenci/
 // actions.ts'teki aynı desen) — sabit bir demo öğretmen hesabına (Test Öğretmen, zaten
@@ -48,6 +57,201 @@ export async function listStudentHomework(studentId: string): Promise<HomeworkOp
     title: h.title,
     questionCount: (h.question_ids ?? []).length,
   }));
+}
+
+export type ExamSubject = { id: string; name: string };
+export type ExamKazanim = { id: string; name: string };
+
+// "Bitmiş" (embedding'i olan, gerçekten ingest edilmiş) ders/kazanımlarla aynı kaynak —
+// bkz. lib/finished-kazanim.ts. panel/soru-olustur/actions.ts'teki öğrenci-özel
+// listSubjectsAction/listKazanimlarAction ile aynı mantık, ama requireRoleAction("student")
+// gerektirmiyor (bu panel demo-öğretmen bypass'ıyla çalışıyor).
+export async function listExamSubjects(): Promise<ExamSubject[]> {
+  const supabase = createAdminClient();
+  const finishedSubjectIds = await listFinishedSubjectIds(supabase);
+  const { data } = await supabase.from("subjects").select("id, name").order("name");
+  return (data ?? []).filter((s) => finishedSubjectIds.has(s.id));
+}
+
+export async function listExamKazanim(subjectId: string): Promise<ExamKazanim[]> {
+  const supabase = createAdminClient();
+  const finishedTopicIds = await listFinishedTopicIds(supabase);
+  const { data } = await supabase
+    .from("topics")
+    .select("id, name")
+    .eq("subject_id", subjectId)
+    .order("name");
+  return (data ?? []).filter((t) => finishedTopicIds.has(t.id));
+}
+
+export type ExamItem = {
+  id: string | null;
+  questionText: string;
+  questionType: "multiple_choice" | "open_ended";
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+  topicLabel: string;
+  topicId: string | null;
+  difficulty: number;
+  sourceLabel: string | null;
+};
+
+/**
+ * Öğretmen paneli "Sınav Oluşturma": panel/soru-olustur/actions.ts'teki generateTestAction
+ * ile AYNI mantık (havuzdan çek, yetersizse Gemini ile tamamla) — ama o fonksiyon
+ * requireRoleAction("student") + auth.uid() gerektirdiği için (öğrencinin kendi twin_state'i
+ * ve kendi homework'üne yazma) burada tekrar kullanılamıyor. Bu yüzden öğretmen bypass'ıyla
+ * çalışan ayrı, risk-ağırlıklandırma yapmayan (sınıf geneli, tek öğrenciye özel değil) bir
+ * kopyası.
+ */
+export async function generateExamAction(params: {
+  subjectId: string;
+  kazanimIds: string[];
+  count: number;
+  difficultyLabel: string;
+  mcRatio: number;
+}): Promise<ExamItem[]> {
+  const supabase = createAdminClient();
+  const [minDiff, maxDiff] = DIFFICULTY_RANGES[params.difficultyLabel] ?? [1, 5];
+
+  const { data: subjectRow } = await supabase
+    .from("subjects")
+    .select("name")
+    .eq("id", params.subjectId)
+    .single();
+  const subjectName = subjectRow?.name ?? "";
+
+  const { data: kazanimRows } = await supabase
+    .from("topics")
+    .select("id, name")
+    .in("id", params.kazanimIds);
+  const kazanimlar = kazanimRows ?? [];
+  const kazanimIdByName = new Map(kazanimlar.map((k) => [k.name, k.id]));
+
+  const { data: poolRows } = await supabase
+    .from("questions")
+    .select(
+      "id, question_text, question_type, options, correct_answer, explanation, difficulty, topic_label, topic_id, scans(book_title, page_number)",
+    )
+    .eq("status", "approved")
+    .in("topic_id", params.kazanimIds)
+    .gte("difficulty", minDiff)
+    .lte("difficulty", maxDiff)
+    .limit(params.count);
+
+  const items: ExamItem[] = (poolRows ?? []).map((q) => {
+    const scan = Array.isArray(q.scans) ? q.scans[0] : q.scans;
+    return {
+      id: q.id,
+      questionText: q.question_text,
+      questionType: (q.question_type as "multiple_choice" | "open_ended") ?? "multiple_choice",
+      options: (q.options as string[]) ?? [],
+      correctAnswer: q.correct_answer ?? "",
+      explanation: q.explanation ?? "",
+      topicLabel: q.topic_label ?? "",
+      topicId: q.topic_id,
+      difficulty: q.difficulty ?? 3,
+      sourceLabel: scan?.book_title
+        ? `${scan.book_title}${scan.page_number ? `, s. ${scan.page_number}` : ""}`
+        : null,
+    };
+  });
+
+  const missing = params.count - items.length;
+  if (missing > 0 && kazanimlar.length > 0) {
+    const kazanimAssignments = Array.from(
+      { length: missing },
+      (_, i) => kazanimlar[i % kazanimlar.length].name,
+    );
+    const mcCount = Math.round(missing * params.mcRatio);
+    const openCount = missing - mcCount;
+
+    const generated = await generateQuestionsForTopic({
+      subject: subjectName,
+      kazanimAssignments,
+      difficultyLabel: params.difficultyLabel,
+      mcCount,
+      openCount,
+    });
+
+    generated.forEach((q) => {
+      items.push({
+        id: null,
+        questionText: q.question_text,
+        questionType: q.question_type,
+        options: q.options,
+        correctAnswer: q.correct_answer,
+        explanation: q.explanation,
+        topicLabel: q.topic_label,
+        topicId: kazanimIdByName.get(q.topic_label) ?? null,
+        difficulty: q.difficulty,
+        sourceLabel: null,
+      });
+    });
+  }
+
+  return items;
+}
+
+/**
+ * Yapay zekayla üretilip henüz kaydedilmemiş sorular (id yok) önce havuza yazılır (approved,
+ * ai_generated), sonra hepsi gerçek bir öğrenciye ödev olarak atanır (bkz. panel/soru-olustur/
+ * actions.ts'teki assignAsHomeworkAction — aynı desen, ama assigned_by/student_id burada
+ * demo öğretmen/seçilen gerçek öğrenci).
+ */
+export async function assignExamAsHomeworkAction(params: {
+  studentId: string;
+  title: string;
+  subjectName: string;
+  items: ExamItem[];
+}): Promise<{ assigned: boolean }> {
+  const supabase = createAdminClient();
+
+  const unsaved = params.items.filter((q) => !q.id);
+  let savedIds: string[] = [];
+  if (unsaved.length > 0) {
+    const { data: inserted, error } = await supabase
+      .from("questions")
+      .insert(
+        unsaved.map((q) => ({
+          question_text: q.questionText,
+          question_type: q.questionType,
+          options: q.options,
+          correct_answer: q.correctAnswer,
+          explanation: q.explanation,
+          difficulty: q.difficulty,
+          topic_label: q.topicLabel,
+          topic_id: q.topicId,
+          subject_name: params.subjectName,
+          source: "ai_generated" as const,
+          status: "approved" as const,
+          created_by: DEMO_TEACHER_ID,
+        })),
+      )
+      .select("id");
+    if (error) throw new Error(error.message);
+    savedIds = (inserted ?? []).map((r) => r.id);
+  }
+
+  const questionIds = [
+    ...params.items.filter((q): q is ExamItem & { id: string } => Boolean(q.id)).map((q) => q.id),
+    ...savedIds,
+  ];
+
+  const dueDate = new Date();
+  dueDate.setDate(dueDate.getDate() + 7);
+
+  const { error: hwError } = await supabase.from("homework").insert({
+    assigned_by: DEMO_TEACHER_ID,
+    student_id: params.studentId,
+    title: params.title,
+    question_ids: questionIds,
+    due_date: dueDate.toISOString().slice(0, 10),
+  });
+  if (hwError) throw new Error(hwError.message);
+
+  return { assigned: true };
 }
 
 export type GradedQuestion = {

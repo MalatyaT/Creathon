@@ -68,7 +68,7 @@ export async function createCommunityPost(formData: FormData) {
     throw new Error("Failed to create post");
   }
 
-  revalidatePath("/topluluk");
+  revalidatePath("/topluluk-egitim");
 }
 
 export async function likeCommunityPost(postId: string) {
@@ -85,6 +85,6 @@ export async function likeCommunityPost(postId: string) {
       .update({ likes: post.likes + 1 })
       .eq("id", postId);
       
-    revalidatePath("/topluluk");
+    revalidatePath("/topluluk-egitim");
   }
 }

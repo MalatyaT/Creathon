@@ -20,7 +20,7 @@ export default function ToplulukLibrary() {
   const [imageBase64, setImageBase64] = useState("");
   const [imagePreview, setImagePreview] = useState("");
 
-  const allTags = ["Tümü", "TYT", "AYT", "LGS", "Matematik", "Fizik", "Ders Notu", "Soru Çözümü"];
+  const allTags = ["Tümü", "TYT", "AYT", "LGS", "Matematik", "Fizik", "Ders Notu", "Soru Çözümü", "TYT Denemesi", "AYT Denemesi"];
 
   const fetchPosts = async () => {
     const data = await getCommunityPosts(activeTag === "Tümü" ? undefined : activeTag);
