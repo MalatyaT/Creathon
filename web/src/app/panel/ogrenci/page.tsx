@@ -1810,6 +1810,17 @@ export default function StudentPanel() {
           })}
         </nav>
 
+        <div className="px-4 pb-3">
+          <Link
+            href="/panel/ogrenci/t3"
+            className="flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all font-medium text-sm border border-transparent bg-gradient-to-r from-red-600 via-orange-500 to-blue-700 text-white shadow-sm hover:shadow-md hover:scale-[1.02]"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/t3/t3-logo.webp" alt="" className="w-6 h-6 rounded-full bg-white/90 p-0.5 object-contain shrink-0" />
+            T3 Vakfı Entegrasyonu
+          </Link>
+        </div>
+
         <div className="p-4 border-t border-border bg-surface-muted/30">
           <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-surface-muted cursor-pointer transition-colors">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-green to-brand-green-600 text-white flex items-center justify-center font-bold shadow-sm">
