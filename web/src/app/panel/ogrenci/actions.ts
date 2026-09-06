@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { answerStudentQuestion, type ChatTurn } from "@/lib/gemini-tasks/answer-question";
 import { findRelatedSources } from "@/lib/gemini-tasks/find-related-sources";
 import { generateRagQuestion } from "@/lib/gemini-tasks/generate-rag-question";
+import { listFinishedSubjectIds, listFinishedTopicIds } from "@/lib/finished-kazanim";
 import { bumpTwinRisk } from "@/lib/twin";
 import type { ChatAnswer } from "@/lib/schemas/chat";
 import type { GeneratedQuestion } from "@/lib/schemas/generation";
@@ -135,18 +136,20 @@ export type KazanimOption = { id: string; name: string };
 
 export async function listSubjectOptions(): Promise<SubjectOption[]> {
   const supabase = createAdminClient();
+  const finishedSubjectIds = await listFinishedSubjectIds(supabase);
   const { data } = await supabase.from("subjects").select("id, name").order("name");
-  return data ?? [];
+  return (data ?? []).filter((s) => finishedSubjectIds.has(s.id));
 }
 
 export async function listKazanimOptions(subjectId: string): Promise<KazanimOption[]> {
   const supabase = createAdminClient();
+  const finishedTopicIds = await listFinishedTopicIds(supabase);
   const { data } = await supabase
     .from("topics")
     .select("id, name")
     .eq("subject_id", subjectId)
     .order("name");
-  return data ?? [];
+  return (data ?? []).filter((t) => finishedTopicIds.has(t.id));
 }
 
 export type ReferenceQuestion = {

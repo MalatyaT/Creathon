@@ -4,6 +4,7 @@ import { requireRoleAction, supabaseConfigured } from "@/lib/auth-guard";
 import { createClient } from "@/lib/supabase/server";
 import { generateQuestionsForTopic } from "@/lib/gemini-tasks/generate-questions";
 import { generateRagQuestion, type RetrievedQuestion } from "@/lib/gemini-tasks/generate-rag-question";
+import { listFinishedSubjectIds, listFinishedTopicIds } from "@/lib/finished-kazanim";
 import type { GeneratedQuestion } from "@/lib/schemas/generation";
 
 const DIFFICULTY_RANGES: Record<string, [number, number]> = {
@@ -46,8 +47,9 @@ export async function listSubjectsAction(): Promise<Subject[]> {
   if (previewMode || !supabaseConfigured()) return [];
 
   const supabase = await createClient();
+  const finishedSubjectIds = await listFinishedSubjectIds(supabase);
   const { data } = await supabase.from("subjects").select("id, name").order("name");
-  return data ?? [];
+  return (data ?? []).filter((s) => finishedSubjectIds.has(s.id));
 }
 
 export async function listKazanimlarAction(subjectId: string): Promise<Kazanim[]> {
@@ -55,12 +57,13 @@ export async function listKazanimlarAction(subjectId: string): Promise<Kazanim[]
   if (previewMode || !supabaseConfigured()) return [];
 
   const supabase = await createClient();
+  const finishedTopicIds = await listFinishedTopicIds(supabase);
   const { data } = await supabase
     .from("topics")
     .select("id, name")
     .eq("subject_id", subjectId)
     .order("name");
-  return data ?? [];
+  return (data ?? []).filter((t) => finishedTopicIds.has(t.id));
 }
 
 export async function generateTestAction(params: {

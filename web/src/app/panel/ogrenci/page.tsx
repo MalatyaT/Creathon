@@ -344,9 +344,22 @@ export default function StudentPanel() {
     }
   };
 
-  // Sınav-Deneme (exam) States
+  // Sınav-Deneme (exam) States — ders/kazanım listesi qSubjects/qKazanimlar'daki aynı
+  // "bitmiş" (embedding'i olan) kazanım kaynağından geliyor (bkz. lib/finished-kazanim.ts).
   const [examStep, setExamStep] = useState(1);
+  const [examSubjects, setExamSubjects] = useState<SubjectOption[]>([]);
+  const [examSubjectId, setExamSubjectId] = useState("");
   const [examSubject, setExamSubject] = useState("");
+  const [examKazanimlar, setExamKazanimlar] = useState<KazanimOption[]>([]);
+
+  useEffect(() => {
+    listSubjectOptions().then(setExamSubjects);
+  }, []);
+
+  useEffect(() => {
+    if (!examSubjectId) return;
+    listKazanimOptions(examSubjectId).then(setExamKazanimlar);
+  }, [examSubjectId]);
 
   // Soru Sor (chat) States — gerçek Gemini bağlantısı + oturum (session) geçmişi
   const [chatSessions, setChatSessions] = useState<ChatSessionSummary[]>([]);
@@ -1056,12 +1069,15 @@ export default function StudentPanel() {
                   <div className="animate-in fade-in slide-in-from-right-8 space-y-4">
                     <label className="block text-sm font-semibold mb-2">1. Adım: Ders Seçin</label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {['Matematik', 'Fizik', 'Kimya', 'Biyoloji', 'Türkçe', 'Tarih', 'Coğrafya', 'Felsefe'].map(sub => (
-                        <button 
-                          key={sub} 
-                          onClick={() => { setExamSubject(sub); setExamStep(2); }} 
+                      {examSubjects.length === 0 && (
+                        <p className="col-span-full text-sm text-foreground/50">Henüz sınav havuzu hazır olan bir ders yok.</p>
+                      )}
+                      {examSubjects.map(sub => (
+                        <button
+                          key={sub.id}
+                          onClick={() => { setExamSubjectId(sub.id); setExamSubject(sub.name); setExamStep(2); }}
                           className="p-4 rounded-xl border border-border bg-background hover:border-brand-green hover:bg-brand-green/5 transition-all hover:scale-[1.02] font-medium text-center shadow-sm">
-                          {sub}
+                          {sub.name}
                         </button>
                       ))}
                     </div>
@@ -1074,12 +1090,12 @@ export default function StudentPanel() {
                       <label className="block text-sm font-semibold">2. Adım: {examSubject} Kazanımlarını Seçin</label>
                       <button onClick={() => setExamStep(1)} className="text-xs text-foreground/50 hover:text-foreground hover:underline font-medium px-2 py-1 rounded bg-surface-muted transition-colors">← Ders Seçimine Dön</button>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                      {['Temel Kavramlar', 'Üslü Sayılar', 'Köklü Sayılar', 'Çarpanlara Ayırma', 'Denklemler', 'Fonksiyonlar', 'Polinomlar', 'Limit'].map(kaz => (
-                        <label key={kaz} className="flex items-center gap-3 p-3.5 rounded-xl border border-border bg-background hover:bg-surface-muted hover:border-brand-yellow/50 cursor-pointer transition-all">
+                      {examKazanimlar.map(kaz => (
+                        <label key={kaz.id} className="flex items-center gap-3 p-3.5 rounded-xl border border-border bg-background hover:bg-surface-muted hover:border-brand-yellow/50 cursor-pointer transition-all">
                           <input type="checkbox" className="w-4 h-4 text-brand-yellow accent-brand-yellow-600 rounded cursor-pointer" />
-                          <span className="text-sm font-medium">{kaz}</span>
+                          <span className="text-sm font-medium">{kaz.name}</span>
                         </label>
                       ))}
                     </div>
