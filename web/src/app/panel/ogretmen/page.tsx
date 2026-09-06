@@ -12,6 +12,7 @@ import {
   type HomeworkOption,
   type LinkedStudent,
 } from "@/app/panel/ogretmen/actions";
+import { useCurriculum, YKS_MATH_CURRICULUM, type WeekStatus } from "@/lib/curriculum-data";
 
 const icons = {
   panel: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>,
@@ -67,30 +68,75 @@ const RESOURCES = [
   { title: "Hız Yayınları Türkçe Paragraf", category: "TYT", pages: 96, questions: 210, status: "Tamamlandı" },
 ];
 
-const CURRICULUM = [
-  {
-    subject: "Matematik",
-    topics: [
-      { name: "Limit ve Süreklilik", outcomes: 6, covered: 6 },
-      { name: "Türev", outcomes: 8, covered: 5 },
-      { name: "Polinomlar", outcomes: 4, covered: 4 },
-      { name: "Olasılık", outcomes: 5, covered: 2 },
-    ],
-  },
-  {
-    subject: "Fizik",
-    topics: [
-      { name: "Optik", outcomes: 5, covered: 5 },
-      { name: "Elektrik ve Manyetizma", outcomes: 7, covered: 3 },
-    ],
-  },
-];
-
 const PENDING_GRADING = [
   { student: "Ayşe Yılmaz", exam: "Karekök Deneme 12", uploaded: "2 saat önce" },
   { student: "Deniz Kaya", exam: "Karekök Deneme 12", uploaded: "3 saat önce" },
   { student: "Mert Şahin", exam: "Bilfen TYT 7", uploaded: "Dün" },
 ];
+
+function CurriculumTab() {
+  const { state, updateWeek, isLoading } = useCurriculum();
+
+  if (isLoading || !state) return <div>Yükleniyor...</div>;
+
+  return (
+    <div>
+      <h1 className="text-3xl font-heading font-semibold mb-2 tracking-tight">YKS Matematik Kazanım Yönetimi</h1>
+      <p className="text-foreground/60 mb-8 max-w-2xl">Öğrencilerin müfredat takibini buradan yönetebilirsiniz. 38 haftalık plandaki işleniş durumlarını ve uyarıları (dijital ikiz hataları) değiştirin.</p>
+
+      <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+        <div className="grid grid-cols-[80px_1fr_150px_150px] gap-4 p-4 border-b border-border bg-surface-muted/30 font-semibold text-sm text-foreground/70">
+          <div>Hafta</div>
+          <div>Kazanım / Konu</div>
+          <div>Durum</div>
+          <div>İkiz Uyarısı</div>
+        </div>
+        
+        <div className="divide-y divide-border max-h-[600px] overflow-y-auto">
+          {YKS_MATH_CURRICULUM.map((week) => {
+            const current = state[week.id];
+            
+            return (
+              <div key={week.id} className="grid grid-cols-[80px_1fr_150px_150px] gap-4 p-4 items-center hover:bg-surface-muted/20 transition-colors">
+                <div className="font-bold text-brand-green">{week.week}. Hafta</div>
+                <div className="font-medium text-sm">{week.topic} <span className="text-xs text-foreground/40 ml-2">({week.term}. Dönem)</span></div>
+                
+                <div>
+                  <select 
+                    value={current.status} 
+                    onChange={(e) => updateWeek(week.id, { status: e.target.value as WeekStatus })}
+                    className={`text-xs font-bold px-3 py-1.5 rounded-lg border outline-none cursor-pointer ${
+                      current.status === 'tamamlandi' ? 'bg-brand-green/10 text-brand-green border-brand-green/20' : 
+                      current.status === 'isleniyor' ? 'bg-brand-yellow/10 text-brand-yellow-700 border-brand-yellow/30' : 
+                      'bg-background text-foreground/50 border-border hover:bg-surface-muted'
+                    }`}
+                  >
+                    <option value="bekliyor">Bekliyor</option>
+                    <option value="isleniyor">İşleniyor</option>
+                    <option value="tamamlandi">Tamamlandı</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <button 
+                    onClick={() => updateWeek(week.id, { hasTwinWarning: !current.hasTwinWarning })}
+                    className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors ${
+                      current.hasTwinWarning 
+                        ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' 
+                        : 'bg-background text-foreground/30 border-border hover:bg-surface-muted'
+                    }`}
+                  >
+                    {current.hasTwinWarning ? '⚠️ Hata Var' : 'Sorun Yok'}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function OgretmenPanel() {
   const [activeTab, setActiveTab] = useState("panel");
@@ -154,14 +200,14 @@ export default function OgretmenPanel() {
 
   async function handleConfirmOpenEnded(attemptId: string, isCorrect: boolean) {
     await confirmOpenEndedAttempt({ attemptId, isCorrect });
-    setGradingResult((prev) =>
+    setGradingResult((prev: GradePaperResult | null) =>
       prev
         ? {
             ...prev,
-            questions: prev.questions.map((q) =>
+            questions: prev.questions.map((q: any) =>
               q.attemptId === attemptId ? { ...q, isCorrect, needsReview: false } : q,
             ),
-            scoreCorrect: prev.questions.filter((q) =>
+            scoreCorrect: prev.questions.filter((q: any) =>
               q.attemptId === attemptId ? isCorrect : q.isCorrect === true,
             ).length,
           }
@@ -838,36 +884,7 @@ export default function OgretmenPanel() {
         );
 
       case "curriculum":
-        return (
-          <div>
-            <h1 className="text-3xl font-heading font-semibold mb-2 tracking-tight">Kazanım / Müfredat Yönetme</h1>
-            <p className="text-foreground/60 mb-8 max-w-2xl">Ders → konu → kazanım hiyerarşisini yönet, havuzdaki soruların hangi kazanımı kapsadığını izle.</p>
-
-            <div className="space-y-8">
-              {CURRICULUM.map((subj) => (
-                <div key={subj.subject} className="bg-surface p-6 rounded-2xl border border-border shadow-sm">
-                  <h3 className="font-heading font-semibold text-lg mb-5">{subj.subject}</h3>
-                  <div className="space-y-4">
-                    {subj.topics.map((t) => (
-                      <div key={t.name} className="flex items-center gap-5">
-                        <div className="w-40 text-sm font-medium">{t.name}</div>
-                        <div className="flex-1 h-2.5 bg-surface-muted rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${t.covered === t.outcomes ? "bg-brand-green" : "bg-brand-yellow"}`}
-                            style={{ width: `${(t.covered / t.outcomes) * 100}%` }}
-                          />
-                        </div>
-                        <div className="w-20 text-right text-sm text-foreground/60">{t.covered}/{t.outcomes} kazanım</div>
-                        <button className="text-xs font-semibold text-brand-green hover:underline shrink-0">Düzenle</button>
-                      </div>
-                    ))}
-                  </div>
-                  <button className="mt-5 text-sm font-semibold text-brand-green hover:underline">+ {subj.subject} için konu ekle</button>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
+        return <CurriculumTab />;
 
       default:
         return null;

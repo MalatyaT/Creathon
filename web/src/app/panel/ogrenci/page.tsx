@@ -19,6 +19,7 @@ import {
   type SubjectOption,
 } from "@/app/panel/ogrenci/actions";
 import type { GeneratedQuestion } from "@/lib/schemas/generation";
+import { useCurriculum, YKS_MATH_CURRICULUM } from "@/lib/curriculum-data";
 
 type ChatUIMessage = {
   id: string;
@@ -63,6 +64,7 @@ const icons = {
   chat: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
   video: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>,
   analysis: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+  curriculum: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
 };
 
 const navItems = [
@@ -74,6 +76,7 @@ const navItems = [
   { id: 'chat', label: 'Soru Sor (Chatbot)', icon: icons.chat },
   { id: 'video', label: 'Videolar', icon: icons.video },
   { id: 'analysis', label: 'Analiz', icon: icons.analysis },
+  { id: 'curriculum', label: 'Kazanım Takibi', icon: icons.curriculum },
 ];
 
 const rootNodes = [
@@ -269,6 +272,92 @@ const twinData: Record<string, TwinData> = {
     ]
   }
 };
+
+function StudentCurriculumTab() {
+  const { state, isLoading } = useCurriculum();
+
+  if (isLoading || !state) return <div className="p-8">Yükleniyor...</div>;
+
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <h1 className="text-3xl font-heading font-semibold mb-2 tracking-tight">Kazanım / Müfredat Takibi</h1>
+      <p className="text-foreground/60 mb-8 max-w-2xl">
+        YKS Matematik için 38 haftalık çalışma programın. İşlenen konuları takip et ve dijital ikizinin nerelerde zorlandığını gör.
+      </p>
+
+      <div className="bg-surface rounded-2xl border border-border shadow-sm p-8 relative">
+        {/* Dikey Çizgi */}
+        <div className="absolute left-[59px] top-12 bottom-12 w-0.5 bg-border z-0"></div>
+
+        <div className="space-y-6 relative z-10">
+          {YKS_MATH_CURRICULUM.map((week) => {
+            const current = state[week.id];
+            
+            const isCompleted = current.status === "tamamlandi";
+            const isCurrent = current.status === "isleniyor";
+            const isPending = current.status === "bekliyor";
+            const hasWarning = current.hasTwinWarning;
+
+            return (
+              <div key={week.id} className="flex gap-6 items-start group">
+                <div className="w-16 text-right pt-2 font-bold text-sm text-foreground/40 shrink-0">
+                  {week.week}. Hafta
+                </div>
+                
+                <div className="relative shrink-0 flex flex-col items-center justify-start h-full">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 z-10 mt-0.5 shadow-sm transition-transform group-hover:scale-110
+                    ${isCompleted ? 'bg-brand-green border-brand-green text-white' : 
+                      isCurrent ? 'bg-brand-yellow-400 border-brand-yellow-500 text-white' : 
+                      'bg-surface-muted border-border text-foreground/30'}
+                  `}>
+                    {isCompleted && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                    {isCurrent && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>}
+                    {isPending && <div className="w-2 h-2 rounded-full bg-border"></div>}
+                  </div>
+                </div>
+
+                <div className={`flex-1 p-5 rounded-2xl border transition-all ${
+                  isCompleted ? 'bg-surface border-border opacity-70' :
+                  isCurrent ? 'bg-brand-yellow/10 border-brand-yellow-400 shadow-md ring-1 ring-brand-yellow/20' :
+                  'bg-surface-muted/30 border-dashed border-border/50 text-foreground/50'
+                }`}>
+                  <div className="flex justify-between items-start gap-4">
+                    <div>
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded ${
+                          isCompleted ? 'bg-brand-green/10 text-brand-green' :
+                          isCurrent ? 'bg-brand-yellow-600 text-white shadow-sm' :
+                          'bg-background border border-border text-foreground/40'
+                        }`}>
+                          {week.term}. Dönem
+                        </span>
+                        {isCurrent && <span className="flex h-2 w-2 relative">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-yellow-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-yellow-500"></span>
+                        </span>}
+                      </div>
+                      <h4 className={`font-bold text-base mt-2 ${isCurrent ? 'text-brand-yellow-900' : ''}`}>{week.topic}</h4>
+                    </div>
+
+                    {hasWarning && (
+                      <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-xl shrink-0 shadow-sm animate-in zoom-in">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold uppercase tracking-wide opacity-70 leading-none mb-0.5">Uyarı</span>
+                          <span className="text-xs font-semibold leading-none">İkizin hata yaptı</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function StudentPanel() {
   const [activeTab, setActiveTab] = useState('panel');
@@ -491,6 +580,8 @@ export default function StudentPanel() {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'curriculum':
+        return <StudentCurriculumTab />;
       case 'panel':
         return (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
