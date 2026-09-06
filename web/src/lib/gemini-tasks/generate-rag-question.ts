@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { embedText, generateWithFallback } from "@/lib/gemini";
+import { embedText, generateWithFallback, repairJsonLatexEscapes } from "@/lib/gemini";
 import {
   GENERATION_RESPONSE_SCHEMA,
   generationResultSchema,
@@ -120,7 +120,7 @@ export async function generateRagQuestion(params: {
 
   if (!response.text) throw new Error("Gemini boş yanıt döndürdü");
 
-  const parsed = generationResultSchema.safeParse(JSON.parse(response.text));
+  const parsed = generationResultSchema.safeParse(JSON.parse(repairJsonLatexEscapes(response.text)));
   if (!parsed.success) {
     throw new Error(`Gemini yanıtı beklenen şemaya uymadı: ${parsed.error.message}`);
   }

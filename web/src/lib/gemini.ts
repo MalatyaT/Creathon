@@ -75,4 +75,19 @@ export async function embedText(text: string): Promise<number[]> {
   return values;
 }
 
+/**
+ * Gemini'den LaTeX içeren JSON istendiğinde (soru üretimi, chat vb.) model bazen tek bir
+ * ters eğik çizgiyi çift kaçırmayı unutuyor (\frac yerine \\frac yazması gerekirken \frac
+ * yazıyor). JSON.parse için \b/\f/\n/\r/\t GEÇERLİ kaçış dizileridir — yani "\frac" sessizce
+ * form-feed + "rac" olarak bozuluyor (hata fırlatmıyor, fark edilmesi zor), diğer harfler
+ * (\sqrt, \times gibi) ise geçersiz kaçış olduğu için parse'ı tamamen çökertiyor. Gerçek bir
+ * JSON kaçış dizisi (\", \\, \/, \b, \f, \n, \r, \t, \uXXXX) asla harfle devam eden TEK bir
+ * ters eğik çizgi olarak LaTeX bağlamında kastedilmez, o yüzden harfle devam eden ve zaten
+ * başka bir ters eğik çizgiyle kaçırılmamış her ters eğik çizgiyi güvenle ikiye katlıyoruz.
+ * (Test edildi: doğru kaçırılmış \\frac'ı bozmuyor, sadece tek kalmış \frac'ı düzeltiyor.)
+ */
+export function repairJsonLatexEscapes(raw: string): string {
+  return raw.replace(/(?<!\\)\\(?=[a-zA-Z])/g, "\\\\");
+}
+
 export { getClient as getGeminiClient };

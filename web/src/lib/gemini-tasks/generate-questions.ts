@@ -1,4 +1,4 @@
-import { generateWithFallback } from "@/lib/gemini";
+import { generateWithFallback, repairJsonLatexEscapes } from "@/lib/gemini";
 import {
   GENERATION_RESPONSE_SCHEMA,
   generationResultSchema,
@@ -49,7 +49,7 @@ LaTeX (\\sqrt{...} gibi çıplak komutlar) sitede render edilmiyor, düz metin o
 
   if (!response.text) throw new Error("Gemini boş yanıt döndürdü");
 
-  const parsed = generationResultSchema.safeParse(JSON.parse(response.text));
+  const parsed = generationResultSchema.safeParse(JSON.parse(repairJsonLatexEscapes(response.text)));
   if (!parsed.success) {
     throw new Error(`Gemini yanıtı beklenen şemaya uymadı: ${parsed.error.message}`);
   }

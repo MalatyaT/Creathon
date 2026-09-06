@@ -1,4 +1,4 @@
-import { generateWithFallback } from "@/lib/gemini";
+import { generateWithFallback, repairJsonLatexEscapes } from "@/lib/gemini";
 import {
   PAPER_ASSESSMENT_RESPONSE_SCHEMA,
   paperAssessmentSchema,
@@ -53,7 +53,7 @@ export async function assessPaper(questions: GradedQuestionSummary[]): Promise<P
 
   if (!response.text) throw new Error("Gemini boş yanıt döndürdü");
 
-  const parsed = paperAssessmentSchema.safeParse(JSON.parse(response.text));
+  const parsed = paperAssessmentSchema.safeParse(JSON.parse(repairJsonLatexEscapes(response.text)));
   if (!parsed.success) {
     throw new Error(`Gemini yanıtı beklenen şemaya uymadı: ${parsed.error.message}`);
   }

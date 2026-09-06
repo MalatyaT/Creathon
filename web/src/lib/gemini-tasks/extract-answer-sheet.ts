@@ -1,4 +1,4 @@
-import { generateWithFallback } from "@/lib/gemini";
+import { generateWithFallback, repairJsonLatexEscapes } from "@/lib/gemini";
 import {
   FREEFORM_SHEET_RESPONSE_SCHEMA,
   freeformSheetResultSchema,
@@ -58,7 +58,7 @@ export async function extractAnswerSheet(imageBase64: string, mimeType: string):
     throw new Error("Gemini boş yanıt döndürdü");
   }
 
-  const parsed = freeformSheetResultSchema.safeParse(JSON.parse(response.text));
+  const parsed = freeformSheetResultSchema.safeParse(JSON.parse(repairJsonLatexEscapes(response.text)));
   if (!parsed.success) {
     throw new Error(`Gemini yanıtı beklenen şemaya uymadı: ${parsed.error.message}`);
   }

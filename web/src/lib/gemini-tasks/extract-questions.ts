@@ -1,4 +1,4 @@
-import { generateWithFallback } from "@/lib/gemini";
+import { generateWithFallback, repairJsonLatexEscapes } from "@/lib/gemini";
 import {
   EXTRACTION_RESPONSE_SCHEMA,
   extractionResultSchema,
@@ -36,7 +36,7 @@ export async function extractQuestionsFromImage(
     throw new Error("Gemini boş yanıt döndürdü");
   }
 
-  const parsed = extractionResultSchema.safeParse(JSON.parse(response.text));
+  const parsed = extractionResultSchema.safeParse(JSON.parse(repairJsonLatexEscapes(response.text)));
   if (!parsed.success) {
     throw new Error(`Gemini yanıtı beklenen şemaya uymadı: ${parsed.error.message}`);
   }
@@ -79,7 +79,7 @@ export async function extractQuestionsFromText(pageText: string): Promise<Extrac
     throw new Error("Gemini boş yanıt döndürdü");
   }
 
-  const parsed = extractionResultSchema.safeParse(JSON.parse(response.text));
+  const parsed = extractionResultSchema.safeParse(JSON.parse(repairJsonLatexEscapes(response.text)));
   if (!parsed.success) {
     throw new Error(`Gemini yanıtı beklenen şemaya uymadı: ${parsed.error.message}`);
   }

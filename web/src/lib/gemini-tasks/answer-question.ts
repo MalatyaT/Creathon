@@ -1,4 +1,4 @@
-import { generateWithFallback } from "@/lib/gemini";
+import { generateWithFallback, repairJsonLatexEscapes } from "@/lib/gemini";
 import { CHAT_RESPONSE_SCHEMA, chatAnswerSchema, type ChatAnswer } from "@/lib/schemas/chat";
 import type { RelatedSource } from "@/lib/gemini-tasks/find-related-sources";
 
@@ -71,7 +71,7 @@ export async function answerStudentQuestion(params: {
     throw new Error("Gemini boş yanıt döndürdü");
   }
 
-  const parsed = chatAnswerSchema.safeParse(JSON.parse(response.text));
+  const parsed = chatAnswerSchema.safeParse(JSON.parse(repairJsonLatexEscapes(response.text)));
   if (!parsed.success) {
     throw new Error(`Gemini yanıtı beklenen şemaya uymadı: ${parsed.error.message}`);
   }

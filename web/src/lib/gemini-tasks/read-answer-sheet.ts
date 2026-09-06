@@ -1,4 +1,4 @@
-import { generateWithFallback } from "@/lib/gemini";
+import { generateWithFallback, repairJsonLatexEscapes } from "@/lib/gemini";
 import {
   READ_ANSWER_SHEET_RESPONSE_SCHEMA,
   readAnswerSheetResultSchema,
@@ -67,7 +67,7 @@ export async function readAnswerSheet(
     throw new Error("Gemini boş yanıt döndürdü");
   }
 
-  const parsed = readAnswerSheetResultSchema.safeParse(JSON.parse(response.text));
+  const parsed = readAnswerSheetResultSchema.safeParse(JSON.parse(repairJsonLatexEscapes(response.text)));
   if (!parsed.success) {
     throw new Error(`Gemini yanıtı beklenen şemaya uymadı: ${parsed.error.message}`);
   }
