@@ -11,16 +11,26 @@ sayısı YOK ve sorular numaralanmamış olabilir (ör. bir ızgara/grid düzeni
 olabilir) — kağıtta kaç soru varsa hepsini kendin tespit et ve soldan sağa, yukarıdan aşağıya
 doğal okuma sırasına göre kendin 1'den başlayarak numarala.
 
+ÇOK ÖNEMLİ — hiçbir soruyu SESSİZCE ATLAMA: Kağıt bir ızgara/tablo düzenindeyse (ör. eşit
+boyutlu hücreler), düzendeki her hücre bir soru sayılır — bir hücre lekelenmiş, karalanmış,
+buruşmuş, üzeri kapatılmış ya da başka bir sebeple tamamen okunamaz durumdaysa bile o hücre
+için mutlaka bir kayıt oluştur: question_text ve answer_text alanlarına "Okunamıyor" yaz ve
+confidence'ı 0'a yakın ver. Bir soruyu listeden tamamen çıkarmak (yok saymak), onu düşük
+güvenle raporlamaktan çok daha kötüdür — çünkü öğretmen o zaman o sorunun var olduğunu bile
+bilemez.
+
 Görseli dikkatlice, gerekirse bölge bölge incele — el yazısı ilk bakışta net görünmeyebilir,
 aceleyle tahmin etme. Her soru için:
-- question_text: sorunun tam metnini yaz (basılıysa aynen, el yazmasıysa transkript et).
+- question_text: sorunun tam metnini yaz (basılıysa aynen, el yazmasıysa transkript et). Hiç
+  okunamıyorsa "Okunamıyor" yaz.
 - answer_text: o soru için yazılan çözümü/nihai cevabı OLDUĞU GİBİ aktar. Rakamları ve son
   cevabı özellikle dikkatli oku (birbirine karışabilen rakam/harfleri — 1/7, 0/6, l/1 gibi —
-  ayırt etmeye çalış).
+  ayırt etmeye çalış). Hiç okunamıyorsa "Okunamıyor" yaz.
 - confidence'ı GERÇEKÇİ ver: hem soru hem cevap gerçekten net okunduysa yüksek (0.8+), biraz
-  belirsizse orta (0.5-0.8), silik/karışık/üstü çizili ise DÜŞÜK (0.5 altı) ver — emin olmadığın
-  bir okumayı yüksek güvenle işaretlemek, düşük güvenle işaretlemekten daha kötüdür, çünkü bu not
-  öğretmenin hangi soruları elle kontrol edeceğine karar vermesi için kullanılacak.
+  belirsizse orta (0.5-0.8), silik/karışık/üstü çizili/lekeli/tamamen okunamaz ise DÜŞÜK (0.5
+  altı, tamamen okunamazsa 0.1'e yakın) ver — emin olmadığın bir okumayı yüksek güvenle
+  işaretlemek, düşük güvenle işaretlemekten daha kötüdür, çünkü bu not öğretmenin hangi
+  soruları elle kontrol edeceğine karar vermesi için kullanılacak.
 Doğru mu yanlış mı olduğuna KARAR VERME — sadece ne yazdığını aktar.`;
 
 /**
