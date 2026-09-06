@@ -20,22 +20,23 @@ function escapeBarePercentInMath(text: string): string {
 }
 
 /**
- * Gemini bazen düz cümle içindeki sıradan sayıları da ("8 işçi", "15 günde" gibi — kesir/kök/üs
- * içermeyen tek başına bir sayı) gereksiz yere $...$ ile sarmalıyor (bkz. kullanıcı geri bildirimi:
- * "sayıların başında sonunda dolar işareti var"). Prompt'lara bunu yapmaması söylendi ama garanti
- * değil — burada da kesin bir güvenlik ağı olarak, İÇİNDE SADECE tek bir sayı (ondalık/virgüllü
- * olabilir) olan $...$ bloklarını sarmalamadan çıkarıyoruz. Bir LaTeX komutu/operatör içeren
- * bloklara (\sqrt, \frac, ^, vb.) dokunmuyoruz.
+ * Gemini bazen düz cümle içindeki sıradan sayıları/basamak-yer-tutucularını ("8 işçi", "15 günde",
+ * "A3B5 sayısı", tek başına "A" gibi — gerçek bir kesir/kök/üs/işlem İÇERMEYEN salt harf+rakam
+ * dizileri) gereksiz yere $...$ ile sarmalıyor (bkz. kullanıcı geri bildirimi — bu iki farklı
+ * şekilde görüldü: salt sayılar ve harf+rakam karışık basamak gösterimleri). Prompt'lara bunu
+ * yapmaması söylendi ama garanti değil — kesin bir güvenlik ağı olarak, İÇİNDE SADECE harf/rakam
+ * (hiç \komut, ^, _, +, -, /, =, boşluk vb. YOK) olan $...$ bloklarını sarmalamadan çıkarıyoruz.
+ * Gerçek bir LaTeX komutu/operatörü olan hiçbir bloğa dokunmuyoruz.
  */
-function unwrapPlainNumberMath(text: string): string {
-  return text.replace(/\$(\d+(?:[.,]\d+)?)\$/g, "$1");
+function unwrapPlainAlphanumericMath(text: string): string {
+  return text.replace(/\$([A-Za-z0-9]+(?:[.,][0-9]+)?)\$/g, "$1");
 }
 
 export function Markdown({ children }: { children: string }) {
   return (
     <div className="prose-markdown">
       <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-        {unwrapPlainNumberMath(escapeBarePercentInMath(children))}
+        {unwrapPlainAlphanumericMath(escapeBarePercentInMath(children))}
       </ReactMarkdown>
     </div>
   );
