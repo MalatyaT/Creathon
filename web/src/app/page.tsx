@@ -132,6 +132,41 @@ export default function LandingPage() {
             })}
           </div>
         </div>
+
+        {/* Topluluk Keşfet Bölümü */}
+        <div className="w-full max-w-6xl mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+          {isAnaokulu ? (
+            <div className="md:col-span-2 bg-gradient-to-br from-purple-600 to-pink-500 rounded-3xl p-8 sm:p-12 text-white shadow-xl flex flex-col items-center text-center relative overflow-hidden group">
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <Library size={48} className="mb-6 opacity-90" />
+              <h2 className="text-3xl font-heading font-bold mb-4">Etkinlik Topluluğunu Keşfet</h2>
+              <p className="text-white/80 text-lg max-w-2xl mb-8">
+                Diğer velilerin ve öğretmenlerin hazırladığı binlerce eğlenceli ve öğretici etkinliğe göz at. Kendi etkinliklerini paylaş, ilham al ve çocukların gelişimine destek ol!
+              </p>
+              <Link 
+                href="/topluluk"
+                className="bg-white text-purple-600 px-8 py-4 rounded-xl font-bold text-lg hover:scale-105 transition-transform shadow-lg"
+              >
+                Etkinlikleri İncele 🚀
+              </Link>
+            </div>
+          ) : (
+            <div className="md:col-span-2 bg-gradient-to-br from-brand-green to-teal-600 rounded-3xl p-8 sm:p-12 text-white shadow-xl flex flex-col items-center text-center relative overflow-hidden group">
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <Library size={48} className="mb-6 opacity-90" />
+              <h2 className="text-3xl font-heading font-bold mb-4">Soru ve Eğitim Topluluğunu Keşfet</h2>
+              <p className="text-white/80 text-lg max-w-2xl mb-8">
+                Öğretmenlerin ve derece öğrencilerinin paylaştığı ders notları, yeni nesil soru çözümleri ve stratejilere anında erişin. Kendi notlarınızı paylaşarak topluluğa katkıda bulunun!
+              </p>
+              <Link 
+                href="/topluluk-egitim"
+                className="bg-white text-brand-green px-8 py-4 rounded-xl font-bold text-lg hover:scale-105 transition-transform shadow-lg"
+              >
+                Kaynakları İncele 📚
+              </Link>
+            </div>
+          )}
+        </div>
       </main>
 
       <footer className="px-6 py-8 text-center text-sm text-foreground/50 relative z-10 bg-background/80 backdrop-blur-md">

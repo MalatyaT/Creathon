@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { TwinMark } from "@/components/brand/twin-mark";
-import { Search, Heart, Plus, Filter, Image as ImageIcon, X } from "lucide-react";
+import { Search, Heart, Plus, Filter, Image as ImageIcon, X, FileText } from "lucide-react";
 import { getCommunityPosts, createCommunityPost, likeCommunityPost, type CommunityPost } from "./actions";
 
 export default function ToplulukLibrary() {
@@ -35,12 +35,46 @@ export default function ToplulukLibrary() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageBase64(reader.result as string);
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      if (file.type === 'application/pdf') {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImageBase64(reader.result as string);
+          setImagePreview("pdf");
+        };
+        reader.readAsDataURL(file);
+      } else {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const img = new Image();
+          img.src = reader.result as string;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 1000;
+            const MAX_HEIGHT = 1000;
+            let width = img.width;
+            let height = img.height;
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            setImageBase64(dataUrl);
+            setImagePreview(dataUrl);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -147,8 +181,15 @@ export default function ToplulukLibrary() {
               {/* Image Thumbnail */}
               <div className="w-full relative bg-surface-muted aspect-[4/3] overflow-hidden">
                 {post.image_base64 ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={post.image_base64} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  post.image_base64.startsWith('data:application/pdf') ? (
+                    <a href={post.image_base64} download={`${post.title}.pdf`} className="w-full h-full flex flex-col items-center justify-center text-red-500 bg-red-50 group-hover:bg-red-100 transition-colors">
+                      <FileText size={48} className="mb-2" />
+                      <span className="font-bold text-sm underline">PDF İndir</span>
+                    </a>
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={post.image_base64} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  )
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-foreground/20">
                     <ImageIcon size={48} />
@@ -240,11 +281,18 @@ export default function ToplulukLibrary() {
               </div>
 
               <div>
-                <label className="block text-sm font-bold mb-2">Gerçek Fotoğraf Ekle</label>
+                <label className="block text-sm font-bold mb-2">Dosya (Fotoğraf veya PDF)</label>
                 {imagePreview ? (
-                  <div className="relative w-full h-48 rounded-xl overflow-hidden border border-border">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={imagePreview} alt="Önizleme" className="w-full h-full object-cover" />
+                  <div className="relative w-full h-48 rounded-xl overflow-hidden border border-border flex items-center justify-center bg-surface">
+                    {imagePreview === 'pdf' ? (
+                      <div className="flex flex-col items-center justify-center text-red-500">
+                         <FileText size={48} className="mb-2" />
+                         <span className="font-bold">PDF Eklendi</span>
+                      </div>
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={imagePreview} alt="Önizleme" className="w-full h-full object-cover" />
+                    )}
                     <button 
                       type="button"
                       onClick={() => { setImagePreview(""); setImageBase64(""); if(fileInputRef.current) fileInputRef.current.value = ""; }}
@@ -264,7 +312,7 @@ export default function ToplulukLibrary() {
                 )}
                 <input 
                   type="file" 
-                  accept="image/*"
+                  accept="image/*,application/pdf"
                   ref={fileInputRef}
                   onChange={handleFileChange}
                   className="hidden"
