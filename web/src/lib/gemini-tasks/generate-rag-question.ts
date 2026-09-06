@@ -19,13 +19,24 @@ export type RetrievedQuestion = {
 /**
  * RAG'ın "R" kısmı: verilen kazanıma (embed edilip) en yakın soruları `match_questions`
  * RPC'siyle (migration 0012) çeker. Embedding Gemini (`embedText`) ile yapılır.
+ *
+ * Embedding API'sinin kendi ayrı, GÜNLÜK olarak çok daha düşük bir kotası var (bkz. sunum
+ * öncesi kontrol, 2026-09-06: 1000 istekten 974'ü kullanılmış) — bu, ana metin üretimi
+ * kotasından bağımsız ve çok daha çabuk tükenebilir. Embedding başarısız olursa (kota/hata)
+ * boş referans listesiyle sessizce devam ediyoruz — generateRagQuestion zaten "referans
+ * bulunamadı" durumunu (kendi müfredat bilgisiyle üretir) sorunsuz karşılıyor.
  */
 export async function retrieveSimilarQuestions(
   kazanim: string,
   subjectName: string,
   limit = 5,
 ): Promise<RetrievedQuestion[]> {
-  const queryEmbedding = await embedText(kazanim);
+  let queryEmbedding: number[];
+  try {
+    queryEmbedding = await embedText(kazanim);
+  } catch {
+    return [];
+  }
   const supabase = createAdminClient();
 
   const { data, error } = await supabase.rpc("match_questions", {
