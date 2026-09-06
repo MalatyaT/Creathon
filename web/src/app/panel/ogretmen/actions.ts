@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { readAnswerSheet } from "@/lib/gemini-tasks/read-answer-sheet";
+import { assessPaper } from "@/lib/gemini-tasks/assess-paper";
 import { bumpTwinRisk } from "@/lib/twin";
 
 // Bu panel (panel/ogretmen) tasarım gereği gerçek girişi atlıyor (bkz. panel/ogrenci/
@@ -64,6 +65,8 @@ export type GradePaperResult = {
   scoreCorrect: number;
   scoreTotal: number;
   questions: GradedQuestion[];
+  overallGrade: number;
+  overallComment: string;
 };
 
 export async function gradePaperAction(formData: FormData): Promise<GradePaperResult> {
@@ -178,7 +181,29 @@ export async function gradePaperAction(formData: FormData): Promise<GradePaperRe
   const scoreTotal = results.length;
   const scoreCorrect = results.filter((r) => r.isCorrect === true).length;
 
-  return { scoreCorrect, scoreTotal, questions: results };
+  // Ön genel değerlendirme: doğru/yanlış kararını değiştirmez, sadece holistik bir not+yorum
+  // ekler (bkz. assess-paper.ts) — bu adım başarısız olursa (Gemini hatası) kağıt puanlaması
+  // yine de tamamlanmış sayılır, sadece genel değerlendirme geri düşer.
+  let overallGrade = scoreTotal > 0 ? Math.round((scoreCorrect / scoreTotal) * 100) : 0;
+  let overallComment = "";
+  try {
+    const assessment = await assessPaper(
+      results.map((r) => ({
+        questionNumber: r.questionNumber,
+        questionType: r.questionType,
+        studentAnswer: r.studentAnswer,
+        correctAnswer: r.correctAnswer,
+        isCorrect: r.isCorrect,
+        confidence: r.confidence,
+      })),
+    );
+    overallGrade = assessment.overall_grade;
+    overallComment = assessment.overall_comment;
+  } catch {
+    // Ön değerlendirme adımı başarısız oldu — basit doğru/yanlış oranı yeterli olsun.
+  }
+
+  return { scoreCorrect, scoreTotal, questions: results, overallGrade, overallComment };
 }
 
 export async function confirmOpenEndedAttempt(params: {

@@ -658,13 +658,23 @@ export default function OgretmenPanel() {
                   </div>
                 ) : (
                   <div>
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center justify-between mb-2">
                       <h3 className="font-heading font-semibold text-lg">Puanlama Sonucu</h3>
                       <span className="text-3xl font-heading font-bold text-brand-green">
                         {gradingResult.scoreCorrect}/{gradingResult.scoreTotal}
                         <span className="text-sm text-foreground/40 font-sans"> doğru</span>
                       </span>
                     </div>
+
+                    <div className="bg-brand-yellow/5 border border-brand-yellow/20 rounded-xl p-4 mb-6">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-brand-yellow-700">Ön Değerlendirme — Genel Not</span>
+                        <span className="text-xl font-heading font-bold text-brand-yellow-700">{gradingResult.overallGrade}/100</span>
+                      </div>
+                      <p className="text-sm text-foreground/70">{gradingResult.overallComment || "Genel değerlendirme üretilemedi."}</p>
+                      <p className="text-[11px] text-foreground/40 mt-1.5">Bu bir ön değerlendirmedir — nihai notu öğretmen kendisi verir.</p>
+                    </div>
+
                     <div className="text-sm font-semibold mb-3">Soru bazlı sonuç</div>
                     <div className="space-y-2">
                       {gradingResult.questions.map((q) => (
@@ -679,7 +689,21 @@ export default function OgretmenPanel() {
                           }`}
                         >
                           <div className="flex items-center justify-between gap-4">
-                            <span className="text-sm font-medium">Soru {q.questionNumber}</span>
+                            <span className="text-sm font-medium flex items-center gap-2">
+                              Soru {q.questionNumber}
+                              <span
+                                title="Yapay zekanın okuma güveni"
+                                className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${
+                                  q.confidence >= 0.8
+                                    ? "bg-brand-green/10 text-brand-green"
+                                    : q.confidence >= 0.5
+                                      ? "bg-brand-yellow/20 text-brand-yellow-700"
+                                      : "bg-red-100 text-red-700"
+                                }`}
+                              >
+                                Güven %{Math.round(q.confidence * 100)}
+                              </span>
+                            </span>
                             {q.questionType === "multiple_choice" ? (
                               <span className="text-xs font-semibold">
                                 İşaretlenen: {q.studentAnswer || "—"} · Doğru: {q.correctAnswer}

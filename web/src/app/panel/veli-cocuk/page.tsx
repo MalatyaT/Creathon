@@ -10,9 +10,8 @@ export default function VeliCocukPanel() {
       <div className="absolute bottom-[20%] right-[-5%] w-[40%] h-[40%] rounded-full bg-blue-500/20 blur-3xl pointer-events-none" />
 
       <header className="flex justify-between items-center mb-10 relative z-10">
-        <div className="flex items-center gap-3">
-          <TwinMark />
-          <h1 className="text-2xl font-bold text-purple-600">İkiz Çocuk - Veli Paneli</h1>
+        <div className="flex items-center gap-3 h-12 sm:h-16">
+          <TwinMark variant="cocuk" className="h-full" />
         </div>
         <Link href="/" className="text-foreground/60 hover:text-purple-600 font-medium transition-colors">
           Ana Sayfaya Dön

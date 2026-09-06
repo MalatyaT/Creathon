@@ -14,7 +14,13 @@ if (typeof globalThis.WebSocket === "undefined") {
 // planına göre bu yeni script'lerin ortak deseni.
 export function loadEnvLocal() {
   const envPath = path.join(__dirname, "..", "..", ".env.local");
-  const raw = fs.readFileSync(envPath, "utf-8");
+  let raw = "";
+  try {
+    raw = fs.readFileSync(envPath, "utf-8");
+  } catch (e) {
+    // If running in Vercel or environment without .env.local, fallback to process.env
+    return;
+  }
 
   for (const line of raw.split("\n")) {
     const trimmed = line.trim();

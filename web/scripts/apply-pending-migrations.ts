@@ -4,6 +4,8 @@
 // gibi doğrudan Postgres bağlantısıyla çalışır. Idempotent: her dosya için ayırt edici
 // bir sütun/tablo/fonksiyon kontrolü yapıp sadece eksikse çalıştırır.
 import fs from "fs";
+import dns from "dns";
+dns.setDefaultResultOrder("ipv4first");
 import path from "path";
 import { Client } from "pg";
 import { loadEnvLocal, projectRefFromUrl } from "./lib/load-env";
@@ -41,12 +43,19 @@ const CHECKS: Array<{ file: string; check: string }> = [
     file: "0014_question_attempts.sql",
     check: `select 1 from information_schema.tables where table_name='question_attempts'`,
   },
+  {
+    file: "0015_community_posts.sql",
+    check: `select 1 from information_schema.tables where table_name='community_posts'`,
+  },
 ];
 
 async function main() {
   const ref = projectRefFromUrl(process.env.NEXT_PUBLIC_SUPABASE_URL!);
   const password = process.env.SUPABASE_DB_PASSWORD;
-  if (!password) throw new Error("SUPABASE_DB_PASSWORD tanımlı değil (.env.local kontrol et)");
+  if (!password) {
+    console.warn("SUPABASE_DB_PASSWORD tanımlı değil. Migration'lar atlanıyor...");
+    return;
+  }
 
   const client = new Client({
     host: `db.${ref}.supabase.co`,

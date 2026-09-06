@@ -44,3 +44,26 @@ export const READ_ANSWER_SHEET_RESPONSE_SCHEMA: Schema = {
   },
   required: ["answers"],
 };
+
+export const paperAssessmentSchema = z.object({
+  overall_grade: z.number().min(0).max(100),
+  overall_comment: z.string().default(""),
+});
+
+export type PaperAssessment = z.infer<typeof paperAssessmentSchema>;
+
+// Gemini'ye verilen response şeması, yukarıdaki zod şemasıyla elle eşleştirilmiştir.
+export const PAPER_ASSESSMENT_RESPONSE_SCHEMA: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    overall_grade: {
+      type: Type.NUMBER,
+      description: "100 üzerinden genel not — sadece doğru/yanlış oranı değil, açık uçlu sorulardaki çözüm kalitesi/çabası da dahil",
+    },
+    overall_comment: {
+      type: Type.STRING,
+      description: "Öğretmene 2-3 cümlelik kısa, yapıcı genel değerlendirme (güçlü/zayıf yönler, dikkat çeken hata örüntüleri)",
+    },
+  },
+  required: ["overall_grade", "overall_comment"],
+};
