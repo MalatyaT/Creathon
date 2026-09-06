@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { generateQuestionsForTopic } from "@/lib/gemini-tasks/generate-questions";
 import { generateRagQuestion, type RetrievedQuestion } from "@/lib/gemini-tasks/generate-rag-question";
 import { listFinishedSubjectIds, listFinishedTopicIds } from "@/lib/finished-kazanim";
+import { splitEqually } from "@/lib/split-equally";
 import type { GeneratedQuestion } from "@/lib/schemas/generation";
 
 const DIFFICULTY_RANGES: Record<string, [number, number]> = {
@@ -97,35 +98,46 @@ export async function generateTestAction(params: {
   const kazanimlar = kazanimRows ?? [];
   const kazanimIdByName = new Map(kazanimlar.map((k) => [k.name, k.id]));
 
-  const { data: poolRows } = await supabase
-    .from("questions")
-    .select(
-      "id, question_text, question_type, options, correct_answer, explanation, difficulty, topic_label, topic_id, scans(book_title, page_number)",
-    )
-    .eq("status", "approved")
-    .in("topic_id", params.kazanimIds)
-    .gte("difficulty", minDiff)
-    .lte("difficulty", maxDiff)
-    .limit(params.count);
+  // ÖNEMLİ (kullanıcı geri bildirimiyle bulunan bug, bkz. panel/ogretmen/actions.ts'teki
+  // generateExamAction): tek bir `.in("topic_id", ...).limit(count)` sorgusu sonuç sırası
+  // garanti olmadığı için havuzun pratikte tek bir kazanımda yığılmasına yol açıyordu — birden
+  // fazla kazanım seçilse bile hepsi tek konudan gelebiliyordu. Her kazanım için ayrı ayrı,
+  // toplamı eşit bölen bir hedef sayı kadar sorgu yapılıyor.
+  const perKazanimCounts = splitEqually(params.count, params.kazanimIds.length);
+  const items: TestItem[] = [];
+  for (let i = 0; i < params.kazanimIds.length; i++) {
+    const target = perKazanimCounts[i];
+    if (target <= 0) continue;
+    const { data: poolRows } = await supabase
+      .from("questions")
+      .select(
+        "id, question_text, question_type, options, correct_answer, explanation, difficulty, topic_label, topic_id, scans(book_title, page_number)",
+      )
+      .eq("status", "approved")
+      .eq("topic_id", params.kazanimIds[i])
+      .gte("difficulty", minDiff)
+      .lte("difficulty", maxDiff)
+      .limit(target);
 
-  const items: TestItem[] = (poolRows ?? []).map((q, i) => {
-    const scan = Array.isArray(q.scans) ? q.scans[0] : q.scans;
-    return {
-      no: i + 1,
-      id: q.id,
-      text: q.question_text,
-      questionType: (q.question_type as "multiple_choice" | "open_ended") ?? "multiple_choice",
-      options: (q.options as string[]) ?? [],
-      correctAnswer: q.correct_answer ?? "",
-      explanation: q.explanation ?? "",
-      topicLabel: q.topic_label ?? "",
-      topicId: q.topic_id,
-      difficulty: q.difficulty ?? 3,
-      sourceLabel: scan?.book_title
-        ? `${scan.book_title}${scan.page_number ? `, s. ${scan.page_number}` : ""}`
-        : null,
-    };
-  });
+    (poolRows ?? []).forEach((q) => {
+      const scan = Array.isArray(q.scans) ? q.scans[0] : q.scans;
+      items.push({
+        no: items.length + 1,
+        id: q.id,
+        text: q.question_text,
+        questionType: (q.question_type as "multiple_choice" | "open_ended") ?? "multiple_choice",
+        options: (q.options as string[]) ?? [],
+        correctAnswer: q.correct_answer ?? "",
+        explanation: q.explanation ?? "",
+        topicLabel: q.topic_label ?? "",
+        topicId: q.topic_id,
+        difficulty: q.difficulty ?? 3,
+        sourceLabel: scan?.book_title
+          ? `${scan.book_title}${scan.page_number ? `, s. ${scan.page_number}` : ""}`
+          : null,
+      });
+    });
+  }
 
   const missing = params.count - items.length;
   if (missing > 0 && kazanimlar.length > 0) {

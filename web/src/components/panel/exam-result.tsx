@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { TwinMark } from "@/components/brand/twin-mark";
 import { Markdown } from "@/components/ui/markdown";
+import { splitEqually } from "@/lib/split-equally";
 
 export type PrintableExamItem = {
   id: string | null;
@@ -14,14 +15,6 @@ export type PrintableExamItem = {
   difficulty: number;
   sourceLabel: string | null;
 };
-
-/** İlk soruya kalan puanı (bölünemeyen artığı) veren eşit dağılım — toplam her zaman 100. */
-function splitEqually(count: number): number[] {
-  if (count === 0) return [];
-  const base = Math.floor(100 / count);
-  const remainder = 100 - base * count;
-  return Array.from({ length: count }, (_, i) => (i < remainder ? base + 1 : base));
-}
 
 /**
  * Sınav sonucu görünümü + PDF export — hem öğretmen (panel/ogretmen "Sınav Oluştur") hem
@@ -39,7 +32,7 @@ export function ExamResultView({
   subjectName: string;
   actions?: ReactNode;
 }) {
-  const [points, setPoints] = useState<number[]>(() => splitEqually(items.length));
+  const [points, setPoints] = useState<number[]>(() => splitEqually(100, items.length));
   const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
 
   function updatePoint(index: number, value: number) {

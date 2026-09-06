@@ -20,6 +20,7 @@ import {
 } from "@/app/panel/ogrenci/actions";
 import { generateExamAction, type ExamItem } from "@/app/panel/ogretmen/actions";
 import { ExamResultView } from "@/components/panel/exam-result";
+import { splitEqually } from "@/lib/split-equally";
 import type { GeneratedQuestion } from "@/lib/schemas/generation";
 import { useCurriculum, YKS_MATH_CURRICULUM } from "@/lib/curriculum-data";
 
@@ -443,6 +444,9 @@ export default function StudentPanel() {
   const [examSubject, setExamSubject] = useState("");
   const [examKazanimlar, setExamKazanimlar] = useState<KazanimOption[]>([]);
   const [examSelectedKazanimIds, setExamSelectedKazanimIds] = useState<string[]>([]);
+  // Kazanım bazlı soru sayısı: her seçili kazanıma otomatik eşit dağıtılır ama elle
+  // değiştirilebilir (bkz. panel/ogretmen/page.tsx'teki aynı desen).
+  const [examKazanimCounts, setExamKazanimCounts] = useState<Record<string, number>>({});
   const [examCount, setExamCount] = useState(10);
   const [examDifficulty, setExamDifficulty] = useState("Orta");
   const [examItems, setExamItems] = useState<ExamItem[] | null>(null);
@@ -458,14 +462,27 @@ export default function StudentPanel() {
     listKazanimOptions(examSubjectId).then((list) => {
       setExamKazanimlar(list);
       setExamSelectedKazanimIds([]);
+      setExamKazanimCounts({});
     });
   }, [examSubjectId]);
 
   function toggleExamKazanim(id: string) {
-    setExamSelectedKazanimIds((prev) =>
-      prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id],
-    );
+    setExamSelectedKazanimIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id];
+      const shares = splitEqually(examCount, next.length);
+      setExamKazanimCounts(Object.fromEntries(next.map((kid, i) => [kid, shares[i]])));
+      return next;
+    });
   }
+
+  function updateExamKazanimCount(id: string, count: number) {
+    setExamKazanimCounts((prev) => ({ ...prev, [id]: Math.max(0, count) }));
+  }
+
+  const examTotalCount = examSelectedKazanimIds.reduce(
+    (sum, id) => sum + (examKazanimCounts[id] ?? 0),
+    0,
+  );
 
   async function handleGenerateExam() {
     if (!examSubjectId || examSelectedKazanimIds.length === 0) return;
@@ -474,8 +491,10 @@ export default function StudentPanel() {
     try {
       const items = await generateExamAction({
         subjectId: examSubjectId,
-        kazanimIds: examSelectedKazanimIds,
-        count: examCount,
+        kazanimCounts: examSelectedKazanimIds.map((kazanimId) => ({
+          kazanimId,
+          count: examKazanimCounts[kazanimId] ?? 0,
+        })),
         difficultyLabel: examDifficulty,
         mcRatio: 0.7,
       });
@@ -1233,30 +1252,53 @@ export default function StudentPanel() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                      {examKazanimlar.map(kaz => (
-                        <label key={kaz.id} className="flex items-center gap-3 p-3.5 rounded-xl border border-border bg-background hover:bg-surface-muted hover:border-brand-yellow/50 cursor-pointer transition-all">
-                          <input
-                            type="checkbox"
-                            checked={examSelectedKazanimIds.includes(kaz.id)}
-                            onChange={() => toggleExamKazanim(kaz.id)}
-                            className="w-4 h-4 text-brand-yellow accent-brand-yellow-600 rounded cursor-pointer"
-                          />
-                          <span className="text-sm font-medium">{kaz.name}</span>
-                        </label>
-                      ))}
+                      {examKazanimlar.map(kaz => {
+                        const isSelected = examSelectedKazanimIds.includes(kaz.id);
+                        return (
+                          <div key={kaz.id} className="flex items-center gap-3 p-3.5 rounded-xl border border-border bg-background hover:bg-surface-muted hover:border-brand-yellow/50 transition-all">
+                            <label className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleExamKazanim(kaz.id)}
+                                className="w-4 h-4 text-brand-yellow accent-brand-yellow-600 rounded cursor-pointer shrink-0"
+                              />
+                              <span className="text-sm font-medium truncate">{kaz.name}</span>
+                            </label>
+                            {isSelected && (
+                              <input
+                                type="number"
+                                min={0}
+                                value={examKazanimCounts[kaz.id] ?? 0}
+                                onChange={(e) => updateExamKazanimCount(kaz.id, Number(e.target.value) || 0)}
+                                title="Bu kazanımdan kaç soru"
+                                className="w-14 shrink-0 bg-background border border-border rounded-lg px-2 py-1 text-sm text-right outline-none focus:border-brand-yellow"
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
 
                     <div className="flex flex-wrap items-end gap-4 pt-4 border-t border-border mt-4">
                       <div>
-                        <label className="block text-xs font-semibold mb-1.5 text-foreground/60">Soru Sayısı</label>
+                        <label className="block text-xs font-semibold mb-1.5 text-foreground/60">Toplam Soru Sayısı</label>
                         <input
                           type="number"
                           min={1}
-                          max={40}
+                          max={60}
                           value={examCount}
-                          onChange={(e) => setExamCount(Number(e.target.value) || 1)}
+                          onChange={(e) => {
+                            const next = Number(e.target.value) || 1;
+                            setExamCount(next);
+                            const shares = splitEqually(next, examSelectedKazanimIds.length);
+                            setExamKazanimCounts(
+                              Object.fromEntries(examSelectedKazanimIds.map((kid, i) => [kid, shares[i]])),
+                            );
+                          }}
                           className="w-24 bg-background border border-border rounded-lg px-3 py-1.5 text-sm outline-none"
                         />
+                        <p className="text-[11px] text-foreground/40 mt-1">Kazanım yanındaki sayıları elle de değiştirebilirsin (şu an: {examTotalCount})</p>
                       </div>
                       <div>
                         <label className="block text-xs font-semibold mb-1.5 text-foreground/60">Zorluk</label>
@@ -1274,7 +1316,7 @@ export default function StudentPanel() {
                       {examError && <p className="text-sm text-red-600">{examError}</p>}
                       <button
                         onClick={handleGenerateExam}
-                        disabled={examSelectedKazanimIds.length === 0 || examLoading}
+                        disabled={examSelectedKazanimIds.length === 0 || examTotalCount === 0 || examLoading}
                         className="ml-auto bg-brand-yellow hover:bg-brand-yellow-600 text-foreground font-bold px-8 py-3 rounded-xl text-sm shadow-sm transition-transform active:scale-95 disabled:opacity-50"
                       >
                         {examLoading ? "Oluşturuluyor..." : "Havuzdan Sınavı Oluştur"}

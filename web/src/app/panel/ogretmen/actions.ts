@@ -104,16 +104,24 @@ export type ExamItem = {
  * ve kendi homework'üne yazma) burada tekrar kullanılamıyor. Bu yüzden öğretmen bypass'ıyla
  * çalışan ayrı, risk-ağırlıklandırma yapmayan (sınıf geneli, tek öğrenciye özel değil) bir
  * kopyası.
+ *
+ * ÖNEMLİ (kullanıcı geri bildirimiyle bulunan bug): `kazanimIds` sadece bir IN filtresi olarak
+ * kullanılıp tek bir `.limit(count)` çekilirse, sonuç sıralaması garanti olmadığı için havuzun
+ * pratikte tek bir kazanımda yığılmış olması (ör. hepsi "Bölme - Bölünebilme") çok olası —
+ * birden fazla kazanım seçilse bile hepsi tek konudan gelebiliyordu. Şimdi her kazanım için
+ * AYRI AYRI hedef sayı kadar sorgu yapılıyor (kazanimCounts), böylece her seçilen kazanım
+ * gerçekten kendi payı kadar soru getiriyor; havuzda yetersiz kalan kısmı o kazanıma özel
+ * Gemini üretimiyle tamamlanıyor.
  */
 export async function generateExamAction(params: {
   subjectId: string;
-  kazanimIds: string[];
-  count: number;
+  kazanimCounts: { kazanimId: string; count: number }[];
   difficultyLabel: string;
   mcRatio: number;
 }): Promise<ExamItem[]> {
   const supabase = createAdminClient();
   const [minDiff, maxDiff] = DIFFICULTY_RANGES[params.difficultyLabel] ?? [1, 5];
+  const targets = params.kazanimCounts.filter((k) => k.count > 0);
 
   const { data: subjectRow } = await supabase
     .from("subjects")
@@ -125,70 +133,72 @@ export async function generateExamAction(params: {
   const { data: kazanimRows } = await supabase
     .from("topics")
     .select("id, name")
-    .in("id", params.kazanimIds);
-  const kazanimlar = kazanimRows ?? [];
-  const kazanimIdByName = new Map(kazanimlar.map((k) => [k.name, k.id]));
+    .in("id", targets.map((t) => t.kazanimId));
+  const kazanimNameById = new Map((kazanimRows ?? []).map((k) => [k.id, k.name]));
 
-  const { data: poolRows } = await supabase
-    .from("questions")
-    .select(
-      "id, question_text, question_type, options, correct_answer, explanation, difficulty, topic_label, topic_id, scans(book_title, page_number)",
-    )
-    .eq("status", "approved")
-    .in("topic_id", params.kazanimIds)
-    .gte("difficulty", minDiff)
-    .lte("difficulty", maxDiff)
-    .limit(params.count);
+  const items: ExamItem[] = [];
 
-  const items: ExamItem[] = (poolRows ?? []).map((q) => {
-    const scan = Array.isArray(q.scans) ? q.scans[0] : q.scans;
-    return {
-      id: q.id,
-      questionText: q.question_text,
-      questionType: (q.question_type as "multiple_choice" | "open_ended") ?? "multiple_choice",
-      options: (q.options as string[]) ?? [],
-      correctAnswer: q.correct_answer ?? "",
-      explanation: q.explanation ?? "",
-      topicLabel: q.topic_label ?? "",
-      topicId: q.topic_id,
-      difficulty: q.difficulty ?? 3,
-      sourceLabel: scan?.book_title
-        ? `${scan.book_title}${scan.page_number ? `, s. ${scan.page_number}` : ""}`
-        : null,
-    };
-  });
+  for (const target of targets) {
+    const kazanimName = kazanimNameById.get(target.kazanimId) ?? "";
 
-  const missing = params.count - items.length;
-  if (missing > 0 && kazanimlar.length > 0) {
-    const kazanimAssignments = Array.from(
-      { length: missing },
-      (_, i) => kazanimlar[i % kazanimlar.length].name,
-    );
-    const mcCount = Math.round(missing * params.mcRatio);
-    const openCount = missing - mcCount;
+    const { data: poolRows } = await supabase
+      .from("questions")
+      .select(
+        "id, question_text, question_type, options, correct_answer, explanation, difficulty, topic_label, topic_id, scans(book_title, page_number)",
+      )
+      .eq("status", "approved")
+      .eq("topic_id", target.kazanimId)
+      .gte("difficulty", minDiff)
+      .lte("difficulty", maxDiff)
+      .limit(target.count);
 
-    const generated = await generateQuestionsForTopic({
-      subject: subjectName,
-      kazanimAssignments,
-      difficultyLabel: params.difficultyLabel,
-      mcCount,
-      openCount,
-    });
-
-    generated.forEach((q) => {
-      items.push({
-        id: null,
+    const poolItems: ExamItem[] = (poolRows ?? []).map((q) => {
+      const scan = Array.isArray(q.scans) ? q.scans[0] : q.scans;
+      return {
+        id: q.id,
         questionText: q.question_text,
-        questionType: q.question_type,
-        options: q.options,
-        correctAnswer: q.correct_answer,
-        explanation: q.explanation,
-        topicLabel: q.topic_label,
-        topicId: kazanimIdByName.get(q.topic_label) ?? null,
-        difficulty: q.difficulty,
-        sourceLabel: null,
-      });
+        questionType: (q.question_type as "multiple_choice" | "open_ended") ?? "multiple_choice",
+        options: (q.options as string[]) ?? [],
+        correctAnswer: q.correct_answer ?? "",
+        explanation: q.explanation ?? "",
+        topicLabel: q.topic_label ?? "",
+        topicId: q.topic_id,
+        difficulty: q.difficulty ?? 3,
+        sourceLabel: scan?.book_title
+          ? `${scan.book_title}${scan.page_number ? `, s. ${scan.page_number}` : ""}`
+          : null,
+      };
     });
+    items.push(...poolItems);
+
+    const missing = target.count - poolItems.length;
+    if (missing > 0 && kazanimName) {
+      const mcCount = Math.round(missing * params.mcRatio);
+      const openCount = missing - mcCount;
+
+      const generated = await generateQuestionsForTopic({
+        subject: subjectName,
+        kazanimAssignments: Array.from({ length: missing }, () => kazanimName),
+        difficultyLabel: params.difficultyLabel,
+        mcCount,
+        openCount,
+      });
+
+      generated.forEach((q) => {
+        items.push({
+          id: null,
+          questionText: q.question_text,
+          questionType: q.question_type,
+          options: q.options,
+          correctAnswer: q.correct_answer,
+          explanation: q.explanation,
+          topicLabel: q.topic_label,
+          topicId: target.kazanimId,
+          difficulty: q.difficulty,
+          sourceLabel: null,
+        });
+      });
+    }
   }
 
   return items;
