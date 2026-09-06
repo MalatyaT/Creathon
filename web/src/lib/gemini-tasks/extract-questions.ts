@@ -12,8 +12,12 @@ Sonra sayfadaki her soruyu ayrı bir kayıt olarak çıkar. Her soru için: tam 
 öneki olmadan), doğru cevabı kendin çözerek bul (tek harf ya da kısa cevap), kısa bir çözüm gerekçesi,
 1-5 arası zorluk tahmini ve sorunun ait olduğu konu/kazanım tahminini ver.
 Sayfada soru yoksa boş bir questions listesi döndür.
-Matematiksel ifadeleri (kök, kesir, üs vb.) LaTeX ile yaz ve $ ... $ / $$ ... $$ ile sınırla — ör.
-"$\\sqrt{120}$" — sınırlanmamış LaTeX sitede render edilmiyor, düz metin görünüyor.
+Matematiksel ifadeleri (kesir, kök, üs gibi GERÇEK matematiksel gösterim gerektiren ifadeler)
+LaTeX ile yaz ve $ ... $ / $$ ... $$ ile sınırla — ör. "$\\sqrt{120}$" — sınırlanmamış LaTeX
+sitede render edilmiyor, düz metin görünüyor.
+DİKKAT — DÜZ SAYILARI SARMALAMA: cümle içinde geçen basit sayılar/ölçüler ("8 işçi", "15 günde",
+"100 birim" gibi — kesir/kök/üs İÇERMEYEN tek başına bir sayı) için $ işareti KULLANMA, düz metin
+olarak yaz — "8 işçi" ASLA "$8$ işçi" olarak yazılmaz.
 ÖNEMLİ: LaTeX'te "%" bir yorum karakteridir ve ondan sonraki her şeyi yutar — yüzde
 sorularında MUTLAKA "\\%" (ters eğik çizgili) kullan, çıplak "%" KULLANMA (ör. "$\\%40$").`;
 
@@ -59,8 +63,12 @@ listesine ekleme, uydurma bir görsel tanımlayıp çözmeye çalışma. Sadece 
 şıkları (A/B/C öneki olmadan), doğru cevabı kendin çözerek bul (tek harf ya da kısa cevap),
 kısa bir çözüm gerekçesi, 1-5 arası zorluk tahmini ve sorunun ait olduğu konu/kazanım
 tahminini ver. Sayfada uygun soru yoksa boş bir questions listesi döndür.
-Matematiksel ifadeleri (kök, kesir, üs vb.) LaTeX ile yaz ve $ ... $ / $$ ... $$ ile sınırla — ör.
-"$\\sqrt{120}$" — sınırlanmamış LaTeX sitede render edilmiyor, düz metin görünüyor.
+Matematiksel ifadeleri (kesir, kök, üs gibi GERÇEK matematiksel gösterim gerektiren ifadeler)
+LaTeX ile yaz ve $ ... $ / $$ ... $$ ile sınırla — ör. "$\\sqrt{120}$" — sınırlanmamış LaTeX
+sitede render edilmiyor, düz metin görünüyor.
+DİKKAT — DÜZ SAYILARI SARMALAMA: cümle içinde geçen basit sayılar/ölçüler ("8 işçi", "15 günde",
+"100 birim" gibi — kesir/kök/üs İÇERMEYEN tek başına bir sayı) için $ işareti KULLANMA, düz metin
+olarak yaz — "8 işçi" ASLA "$8$ işçi" olarak yazılmaz.
 ÖNEMLİ: LaTeX'te "%" bir yorum karakteridir ve ondan sonraki her şeyi yutar — yüzde
 sorularında MUTLAKA "\\%" (ters eğik çizgili) kullan, çıplak "%" KULLANMA (ör. "$\\%40$").
 

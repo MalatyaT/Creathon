@@ -19,11 +19,23 @@ function escapeBarePercentInMath(text: string): string {
   });
 }
 
+/**
+ * Gemini bazen düz cümle içindeki sıradan sayıları da ("8 işçi", "15 günde" gibi — kesir/kök/üs
+ * içermeyen tek başına bir sayı) gereksiz yere $...$ ile sarmalıyor (bkz. kullanıcı geri bildirimi:
+ * "sayıların başında sonunda dolar işareti var"). Prompt'lara bunu yapmaması söylendi ama garanti
+ * değil — burada da kesin bir güvenlik ağı olarak, İÇİNDE SADECE tek bir sayı (ondalık/virgüllü
+ * olabilir) olan $...$ bloklarını sarmalamadan çıkarıyoruz. Bir LaTeX komutu/operatör içeren
+ * bloklara (\sqrt, \frac, ^, vb.) dokunmuyoruz.
+ */
+function unwrapPlainNumberMath(text: string): string {
+  return text.replace(/\$(\d+(?:[.,]\d+)?)\$/g, "$1");
+}
+
 export function Markdown({ children }: { children: string }) {
   return (
     <div className="prose-markdown">
       <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-        {escapeBarePercentInMath(children)}
+        {unwrapPlainNumberMath(escapeBarePercentInMath(children))}
       </ReactMarkdown>
     </div>
   );
