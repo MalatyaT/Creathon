@@ -17,12 +17,16 @@ function getClient() {
 // Kota/limit (429) veya geçici aşırı yüklenme (503) durumunda sırayla denenecek modeller.
 // "-latest" takma adları Google'ın güncel önerdiği modele otomatik işaret eder — modelin
 // kendisi eskiyip erişimden kaldırıldığında (bkz. `gemini-2.5-flash` artık yeni kullanıcılara
-// kapalı) kodu elle güncellemek gerekmesin diye birincil/ikincil olarak bunlar tercih edildi.
-// Üçüncüsü ayrı bir kota havuzuna düşsün diye Flash-Lite.
+// kapalı) kodu elle güncellemek gerekmesin diye birincil olarak bu tercih edildi.
+// Sıra ÖNEMLİ: canlı olarak test edildi (2026-09-06, sunumdan hemen önce) — gemini-pro-latest
+// bu anahtarda kotası dolu (429) döndürüyordu; flash-lite-latest'i onun önüne aldık ki flash
+// başarısız olduğunda ikinci deneme GERÇEKTEN çalışan bir modele gitsin, ölü pro-latest'e
+// boşuna gidip beklemesin. pro-latest yine de son çare olarak zincirde kalıyor (kota
+// sıfırlanabilir), sadece artık en sona alındı.
 const MODEL_FALLBACK_CHAIN = [
   "gemini-flash-latest",
-  "gemini-pro-latest",
   "gemini-flash-lite-latest",
+  "gemini-pro-latest",
 ] as const;
 
 function isRetryableStatus(status: number) {
