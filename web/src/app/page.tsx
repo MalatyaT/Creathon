@@ -37,12 +37,19 @@ export default function LandingPage() {
           <TwinMark variant={isAnaokulu ? "cocuk" : "egitim"} className="h-full" />
         </div>
         <nav className="flex items-center gap-1 bg-surface-muted p-1.5 rounded-full text-sm font-medium overflow-x-auto">
-          {isAnaokulu && (
-            <Link 
+          {isAnaokulu ? (
+            <Link
               href="/topluluk"
               className="px-4 py-2 rounded-full transition-all whitespace-nowrap bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm flex items-center gap-2 hover:scale-105"
             >
               <Library size={16} /> Etkinlik Kütüphanesi
+            </Link>
+          ) : (
+            <Link
+              href="/topluluk-egitim"
+              className="px-4 py-2 rounded-full transition-all whitespace-nowrap bg-gradient-to-r from-brand-green to-teal-600 text-white shadow-sm flex items-center gap-2 hover:scale-105"
+            >
+              <Library size={16} /> Eğitim Kütüphanesi
             </Link>
           )}
           <button 

@@ -1,36 +1,37 @@
 "use client";
 
-import { Heart, Eye, MessageCircle, FileText, Image as ImageIcon, Trash2 } from "lucide-react";
-import type { CommunityPost } from "../actions";
+import Link from "next/link";
+import { Heart, Eye, MessageCircle, FileText, Image as ImageIcon, Trash2, Images } from "lucide-react";
+import type { CommunityPost } from "@/lib/community/actions";
+import type { CommunityTheme } from "@/lib/community/theme";
 
 type PostCardProps = {
   post: CommunityPost;
+  theme: CommunityTheme;
   hasLiked: boolean;
-  onOpen: (post: CommunityPost) => void;
   onLike: (post: CommunityPost) => void;
   onDelete: (post: CommunityPost) => void;
 };
 
-export function PostCard({ post, hasLiked, onOpen, onLike, onDelete }: PostCardProps) {
+export function PostCard({ post, theme, hasLiked, onLike, onDelete }: PostCardProps) {
+  const coverImage = post.images[0];
+
   return (
-    <div
-      onClick={() => onOpen(post)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === "Enter") onOpen(post); }}
+    <Link
+      href={`${theme.basePath}/${post.id}`}
       className="bg-white rounded-3xl overflow-hidden border border-border shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col cursor-pointer text-left"
     >
       {/* Image Thumbnail */}
       <div className="w-full relative bg-surface-muted aspect-[4/3] overflow-hidden">
-        {post.image_base64 ? (
-          post.image_base64.startsWith('data:application/pdf') ? (
+        {coverImage ? (
+          coverImage.startsWith('data:application/pdf') ? (
             <div className="w-full h-full flex flex-col items-center justify-center text-red-500 bg-red-50 group-hover:bg-red-100 transition-colors">
               <FileText size={48} className="mb-2" />
               <span className="font-bold text-sm">PDF Eki</span>
             </div>
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={post.image_base64} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+            <img src={coverImage} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
           )
         ) : (
           <div className="w-full h-full flex items-center justify-center text-foreground/20">
@@ -39,14 +40,19 @@ export function PostCard({ post, hasLiked, onOpen, onLike, onDelete }: PostCardP
         )}
         <div className="absolute top-4 left-4 flex flex-wrap gap-2">
           {post.tags.map(tag => (
-            <span key={tag} className="bg-white/90 backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full text-purple-700 shadow-sm">
+            <span key={tag} className={`${theme.tagBg} backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full ${theme.tagText} shadow-sm`}>
               {tag}
             </span>
           ))}
         </div>
+        {post.images.length > 1 && (
+          <span className="absolute bottom-3 right-3 bg-black/60 text-white text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+            <Images size={12} /> {post.images.length}
+          </span>
+        )}
         <button
-          onClick={(e) => { e.stopPropagation(); onDelete(post); }}
-          title="Etkinliği sil"
+          onClick={(e) => { e.preventDefault(); onDelete(post); }}
+          title={`${theme.itemNoun} sil`}
           className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-foreground/50 p-2 rounded-full shadow-sm opacity-0 group-hover:opacity-100 hover:text-red-600 hover:bg-white transition-all"
         >
           <Trash2 size={16} />
@@ -60,8 +66,8 @@ export function PostCard({ post, hasLiked, onOpen, onLike, onDelete }: PostCardP
 
         <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 shrink-0 rounded-full bg-purple-100 flex items-center justify-center text-sm shadow-inner">
-              {post.role === 'Öğretmen' ? '👩‍🏫' : '👩‍👦'}
+            <div className={`w-8 h-8 shrink-0 rounded-full ${theme.accentBgSoft} flex items-center justify-center text-sm shadow-inner`}>
+              {post.role === 'Öğretmen' ? theme.teacherEmoji : theme.parentEmoji}
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-bold leading-none truncate">{post.author}</span>
@@ -79,7 +85,7 @@ export function PostCard({ post, hasLiked, onOpen, onLike, onDelete }: PostCardP
               <span className="text-xs font-medium">{post.comment_count}</span>
             </span>
             <button
-              onClick={(e) => { e.stopPropagation(); onLike(post); }}
+              onClick={(e) => { e.preventDefault(); onLike(post); }}
               disabled={hasLiked}
               className="flex items-center gap-1.5 text-foreground/50 hover:text-pink-500 transition-colors disabled:cursor-default"
             >
@@ -89,6 +95,6 @@ export function PostCard({ post, hasLiked, onOpen, onLike, onDelete }: PostCardP
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

@@ -8,6 +8,8 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+export type CommunityCategory = "anaokulu" | "egitim";
+
 export type CommunityPost = {
   id: string;
   title: string;
@@ -15,7 +17,9 @@ export type CommunityPost = {
   author: string;
   role: string;
   tags: string[];
+  category: CommunityCategory;
   image_base64?: string;
+  images: string[];
   likes: number;
   views: number;
   comment_count: number;
@@ -31,10 +35,16 @@ export type CommunityComment = {
   created_at: string;
 };
 
-export async function getCommunityPosts(tagFilter?: string): Promise<CommunityPost[]> {
+function postImages(post: { images?: string[] | null; image_base64?: string | null }): string[] {
+  if (post.images && post.images.length > 0) return post.images;
+  return post.image_base64 ? [post.image_base64] : [];
+}
+
+export async function getCommunityPosts(category: CommunityCategory, tagFilter?: string): Promise<CommunityPost[]> {
   let query = supabase
     .from("community_posts")
     .select("*, community_post_comments(count)")
+    .eq("category", category)
     .order("created_at", { ascending: false });
 
   if (tagFilter) {
@@ -53,15 +63,38 @@ export async function getCommunityPosts(tagFilter?: string): Promise<CommunityPo
     };
     return {
       ...post,
+      images: postImages(post),
       comment_count: community_post_comments?.[0]?.count ?? 0,
     };
   });
 }
 
-export async function createCommunityPost(formData: FormData) {
+export async function getPostById(postId: string): Promise<CommunityPost | null> {
+  const { data, error } = await supabase
+    .from("community_posts")
+    .select("*, community_post_comments(count)")
+    .eq("id", postId)
+    .single();
+
+  if (error || !data) {
+    console.error("Error fetching community post:", error);
+    return null;
+  }
+
+  const { community_post_comments, ...post } = data as CommunityPost & {
+    community_post_comments: { count: number }[];
+  };
+  return {
+    ...post,
+    images: postImages(post),
+    comment_count: community_post_comments?.[0]?.count ?? 0,
+  };
+}
+
+export async function createCommunityPost(formData: FormData, category: CommunityCategory, basePath: string) {
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
-  const image_base64 = formData.get("image_base64") as string; // Optional
+  const images = formData.getAll("images").filter(Boolean) as string[];
   const tagsString = formData.get("tags") as string; // Comma separated
   const author = formData.get("author") as string || "Ziyaretçi Veli";
   const role = formData.get("role") as string || "Veli";
@@ -80,7 +113,8 @@ export async function createCommunityPost(formData: FormData) {
       author,
       role,
       tags,
-      image_base64: image_base64 || null
+      images,
+      category,
     });
 
   if (error) {
@@ -88,10 +122,10 @@ export async function createCommunityPost(formData: FormData) {
     throw new Error("Failed to create post");
   }
 
-  revalidatePath("/topluluk");
+  revalidatePath(basePath);
 }
 
-export async function deleteCommunityPost(postId: string) {
+export async function deleteCommunityPost(postId: string, basePath: string) {
   const { error } = await supabase
     .from("community_posts")
     .delete()
@@ -102,10 +136,10 @@ export async function deleteCommunityPost(postId: string) {
     throw new Error("Failed to delete post");
   }
 
-  revalidatePath("/topluluk");
+  revalidatePath(basePath);
 }
 
-export async function likeCommunityPost(postId: string) {
+export async function likeCommunityPost(postId: string, basePath: string) {
   // Simple like increment, not strictly atomic/idempotent but fine for demo
   const { data: post } = await supabase
     .from("community_posts")
@@ -119,7 +153,8 @@ export async function likeCommunityPost(postId: string) {
       .update({ likes: post.likes + 1 })
       .eq("id", postId);
 
-    revalidatePath("/topluluk");
+    revalidatePath(basePath);
+    revalidatePath(`${basePath}/${postId}`);
   }
 }
 
@@ -153,7 +188,7 @@ export async function getComments(postId: string): Promise<CommunityComment[]> {
   return data as CommunityComment[];
 }
 
-export async function addComment(postId: string, formData: FormData) {
+export async function addComment(postId: string, formData: FormData, basePath: string) {
   const content = (formData.get("content") as string || "").trim();
   const author = (formData.get("author") as string) || "Ziyaretçi Veli";
   const role = (formData.get("role") as string) || "Veli";
@@ -171,10 +206,10 @@ export async function addComment(postId: string, formData: FormData) {
     throw new Error("Failed to add comment");
   }
 
-  revalidatePath("/topluluk");
+  revalidatePath(`${basePath}/${postId}`);
 }
 
-export async function deleteComment(commentId: string) {
+export async function deleteComment(commentId: string, postId: string, basePath: string) {
   const { error } = await supabase
     .from("community_post_comments")
     .delete()
@@ -185,5 +220,5 @@ export async function deleteComment(commentId: string) {
     throw new Error("Failed to delete comment");
   }
 
-  revalidatePath("/topluluk");
+  revalidatePath(`${basePath}/${postId}`);
 }
