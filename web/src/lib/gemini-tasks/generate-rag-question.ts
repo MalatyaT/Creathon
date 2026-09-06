@@ -85,8 +85,8 @@ ${params.references
 
   const typeInstruction =
     params.questionType === "multiple_choice"
-      ? "Çoktan seçmeli olsun: kendi ürettiğin 4 şık yaz (biri doğru, üçü gerçekten mantıklı çeldirici)."
-      : "Açık uçlu olsun, kısa bir sayısal/metinsel cevap istesin.";
+      ? "Çoktan seçmeli olsun: MUTLAKA options alanına kendi ürettiğin 4 şık yaz (biri doğru, üçü gerçekten mantıklı çeldirici) — options'ı ASLA boş bırakma, question_type alanına da 'multiple_choice' yaz."
+      : "Açık uçlu olsun: options alanını BOŞ DİZİ bırak (hiç şık yazma), correct_answer alanına kısa bir sayısal/metinsel cevap yaz, question_type alanına 'open_ended' yaz.";
 
   return `Sen YKS/LGS için soru yazan, çok dikkatli ve doğru çözen bir öğretmensin.
 "${params.subject}" dersinden, "${params.kazanim}" kazanımına ait, ${params.difficultyLabel}

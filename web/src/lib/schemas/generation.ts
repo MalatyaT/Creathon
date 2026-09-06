@@ -3,15 +3,26 @@ import { Type, type Schema } from "@google/genai";
 
 // OCR/tarama şemasından (extraction.ts) bilinçli olarak ayrı: üretimde soru tipi
 // (çoktan seçmeli/açık uçlu) ayrımı var, taramada yok.
-export const generatedQuestionSchema = z.object({
-  question_text: z.string().min(1),
-  question_type: z.enum(["multiple_choice", "open_ended"]).default("multiple_choice"),
-  options: z.array(z.string()).default([]),
-  correct_answer: z.string().default(""),
-  explanation: z.string().default(""),
-  difficulty: z.number().int().min(1).max(5).default(3),
-  topic_label: z.string().min(1),
-});
+export const generatedQuestionSchema = z
+  .object({
+    question_text: z.string().min(1),
+    question_type: z.enum(["multiple_choice", "open_ended"]).default("multiple_choice"),
+    options: z.array(z.string()).default([]),
+    correct_answer: z.string().default(""),
+    explanation: z.string().default(""),
+    difficulty: z.number().int().min(1).max(5).default(3),
+    topic_label: z.string().min(1),
+  })
+  // Gemini'nin kendi bildirdiği question_type alanına güvenilmiyor — istenen tipi (ör.
+  // "çoktan seçmeli" istendi) yoksayıp şık üretmeden "multiple_choice" yazabiliyor, ya da
+  // tam tersi (bkz. kullanıcı geri bildirimi: "tip düzeltmesi yapmıyor"). Tek doğru kaynak
+  // GERÇEKTE şık üretilip üretilmediğidir — tipi buna göre kendimiz düzeltiyoruz.
+  .transform((q) => ({
+    ...q,
+    question_type: (q.options.length > 0 ? "multiple_choice" : "open_ended") as
+      | "multiple_choice"
+      | "open_ended",
+  }));
 
 export const generationResultSchema = z.object({
   questions: z.array(generatedQuestionSchema),

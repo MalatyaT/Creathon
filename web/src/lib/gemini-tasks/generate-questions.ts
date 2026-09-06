@@ -30,9 +30,10 @@ Aşağıda her soruya bir kazanım atanmış — i'inci soru i'inci kazanımı h
 o kazanımın adını BİREBİR kopyala:
 ${kazanimList}
 
-Soru tipi dağılımı: ${params.mcCount} tanesi çoktan seçmeli (4 şık, A/B/C öneki olmadan, doğru cevabı
-kendin çözerek bul), ${params.openCount} tanesi açık uçlu (options boş dizi, correct_answer kısa cevap
-metni) — hangisinin hangi tip olacağına sen karar ver, toplam dağılıma uy.
+Soru tipi dağılımı: ${params.mcCount} tanesi çoktan seçmeli (options alanına MUTLAKA 4 şık yaz, A/B/C
+öneki olmadan, doğru cevabı kendin çözerek bul, question_type='multiple_choice'), ${params.openCount}
+tanesi açık uçlu (options'ı BOŞ DİZİ bırak, correct_answer'a kısa cevap metni yaz,
+question_type='open_ended') — hangisinin hangi tip olacağına sen karar ver, toplam dağılıma uy.
 
 Her soru için: tam metni, (varsa) şıkları, doğru cevabı kendin çözerek bul, kısa bir çözüm gerekçesi,
 1-5 arası zorluk puanı ver.
