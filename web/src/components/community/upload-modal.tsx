@@ -6,10 +6,6 @@ import { createCommunityPost } from "@/lib/community/actions";
 import type { CommunityTheme } from "@/lib/community/theme";
 
 const FULL_MAX_DIM = 1000;
-// Kept small on purpose: this is the only per-attachment data the grid list
-// query fetches, so it must stay tiny even with dozens of posts on screen.
-const THUMB_MAX_DIM = 200;
-const THUMB_QUALITY = 0.5;
 
 type Attachment = {
   full: string;
@@ -59,11 +55,10 @@ async function processFile(file: File): Promise<Attachment> {
   if (file.type === 'application/pdf') {
     return { full: dataUrl, thumbnail: null, isPdf: true };
   }
-  const [full, thumbnail] = await Promise.all([
-    resizeImageDataUrl(dataUrl, FULL_MAX_DIM, 0.8),
-    resizeImageDataUrl(dataUrl, THUMB_MAX_DIM, THUMB_QUALITY),
-  ]);
-  return { full, thumbnail, isPdf: false };
+  const full = await resizeImageDataUrl(dataUrl, FULL_MAX_DIM, 0.8);
+  // Cards use the same full-quality image as their cover — only PDFs (which never
+  // render as an image anyway) are excluded from the list query's payload.
+  return { full, thumbnail: full, isPdf: false };
 }
 
 type UploadModalProps = {
