@@ -12,10 +12,11 @@ function buildSystemInstruction(sources: RelatedSource[]) {
   const sourceLines = sources
     .map((s, i) => {
       const location = s.pageNumber ? `${s.bookTitle}, s. ${s.pageNumber}` : s.bookTitle;
+      const topic = s.topicName ? ` [kazanım: ${s.topicName}]` : "";
       const examples = s.sampleQuestions.length
         ? `\n  Örnek sorular: ${s.sampleQuestions.map((q) => `"${q}"`).join(" · ")}`
         : "";
-      return `${i + 1}. ${location} — ${s.summary}${examples}`;
+      return `${i + 1}. ${location}${topic} — ${s.summary}${examples}`;
     })
     .join("\n");
 

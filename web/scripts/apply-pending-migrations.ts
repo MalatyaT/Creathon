@@ -33,6 +33,10 @@ const CHECKS: Array<{ file: string; check: string }> = [
     file: "0012_match_questions.sql",
     check: `select 1 from pg_proc where proname='match_questions'`,
   },
+  {
+    file: "0013_match_questions_with_source.sql",
+    check: `select 1 from pg_proc where proname='match_questions_with_source'`,
+  },
 ];
 
 async function main() {

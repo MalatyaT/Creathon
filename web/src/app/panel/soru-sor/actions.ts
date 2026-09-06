@@ -15,7 +15,7 @@ export async function sendMessageAction(params: {
 }): Promise<ChatAnswer> {
   const { user, previewMode } = await requireRoleAction("student");
 
-  const sources = await findRelatedSources();
+  const sources = await findRelatedSources(params.question);
   const answer = await answerStudentQuestion({ ...params, sources });
 
   if (!previewMode && supabaseConfigured()) {

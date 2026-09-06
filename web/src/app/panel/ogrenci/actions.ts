@@ -95,7 +95,7 @@ export async function sendChatMessage(params: {
   const supabase = createAdminClient();
   const { sessionId, ...answerParams } = params;
 
-  const sources = await findRelatedSources();
+  const sources = await findRelatedSources(params.question);
   const answer = await answerStudentQuestion({ ...answerParams, sources });
 
   await supabase.from("chat_messages").insert([
