@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { TwinMark } from "@/components/brand/twin-mark";
+import { Markdown } from "@/components/ui/markdown";
 
 export type PrintableExamItem = {
   id: string | null;
@@ -87,7 +88,9 @@ export function ExamResultView({
               <div className="w-7 shrink-0 font-heading text-sm font-semibold text-brand-green">{i + 1}</div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="text-[15px] leading-relaxed">{q.questionText}</div>
+                  <div className="text-[15px] leading-relaxed">
+                    <Markdown>{q.questionText}</Markdown>
+                  </div>
                   <div className="shrink-0 flex items-center gap-1 print:hidden">
                     <input
                       type="number"
@@ -103,7 +106,10 @@ export function ExamResultView({
                 {q.options.length > 0 && (
                   <div className="mt-1.5 grid gap-1 text-sm text-foreground/75 sm:grid-cols-2">
                     {q.options.map((opt, oi) => (
-                      <div key={oi}>{String.fromCharCode(65 + oi)}) {opt}</div>
+                      <div key={oi} className="flex gap-1">
+                        <span className="shrink-0">{String.fromCharCode(65 + oi)})</span>
+                        <Markdown>{opt}</Markdown>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -129,7 +135,10 @@ export function ExamResultView({
             </div>
             <div className="grid grid-cols-5 gap-2 text-sm sm:grid-cols-8">
               {items.map((q, i) => (
-                <div key={q.id ?? i}>{i + 1}. {q.correctAnswer || "—"}</div>
+                <div key={q.id ?? i} className="flex gap-1">
+                  <span className="shrink-0">{i + 1}.</span>
+                  {q.correctAnswer ? <Markdown>{q.correctAnswer}</Markdown> : "—"}
+                </div>
               ))}
             </div>
           </div>

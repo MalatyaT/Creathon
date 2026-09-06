@@ -374,7 +374,7 @@ export function TestBuilder({ subjects }: { subjects: Subject[] }) {
         </span>
       </div>
       <p className="mt-1.5 max-w-2xl text-sm text-foreground/65">
-        Seçilen kazanıma en yakın havuz sorularını (retrieval) getirir, Gemini'ye referans olarak
+        Seçilen kazanıma en yakın havuz sorularını (retrieval) getirir, Gemini&apos;ye referans olarak
         verir, tek bir yeni soru ürettirir — üretilen sorunun referanslarla benzerliğini ve
         cevabın doğruluğunu burada gözle kontrol edebilirsin.
       </p>
@@ -432,7 +432,7 @@ export function TestBuilder({ subjects }: { subjects: Subject[] }) {
 
           <div>
             <h3 className="text-sm font-semibold text-brand-coffee-600">
-              Retrieval'in getirdiği referans sorular ({ragResult.references.length})
+              Retrieval&apos;in getirdiği referans sorular ({ragResult.references.length})
             </h3>
             {ragResult.references.length === 0 && (
               <p className="mt-2 text-sm text-foreground/50">
@@ -448,7 +448,9 @@ export function TestBuilder({ subjects }: { subjects: Subject[] }) {
                     </span>
                     <span className="text-xs text-foreground/50">{ref.topicLabel}</span>
                   </div>
-                  <p className="mt-1.5 text-foreground/80">{ref.questionText}</p>
+                  <div className="mt-1.5 text-foreground/80">
+                    <Markdown>{ref.questionText}</Markdown>
+                  </div>
                   {ref.options.length > 0 && (
                     <p className="mt-1 text-xs text-foreground/50">
                       Doğru cevap: {ref.correctAnswer}

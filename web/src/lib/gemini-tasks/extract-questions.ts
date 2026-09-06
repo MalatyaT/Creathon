@@ -11,7 +11,9 @@ const PROMPT = `Bu bir YKS/LGS kaynak kitabı sayfası. Önce sayfadaki konu anl
 Sonra sayfadaki her soruyu ayrı bir kayıt olarak çıkar. Her soru için: tam metni, şıkları (A/B/C
 öneki olmadan), doğru cevabı kendin çözerek bul (tek harf ya da kısa cevap), kısa bir çözüm gerekçesi,
 1-5 arası zorluk tahmini ve sorunun ait olduğu konu/kazanım tahminini ver.
-Sayfada soru yoksa boş bir questions listesi döndür.`;
+Sayfada soru yoksa boş bir questions listesi döndür.
+Matematiksel ifadeleri (kök, kesir, üs vb.) LaTeX ile yaz ve $ ... $ / $$ ... $$ ile sınırla — ör.
+"$\\sqrt{120}$" — sınırlanmamış LaTeX sitede render edilmiyor, düz metin görünüyor.`;
 
 export async function extractQuestionsFromImage(
   imageBase64: string,
@@ -55,6 +57,8 @@ listesine ekleme, uydurma bir görsel tanımlayıp çözmeye çalışma. Sadece 
 şıkları (A/B/C öneki olmadan), doğru cevabı kendin çözerek bul (tek harf ya da kısa cevap),
 kısa bir çözüm gerekçesi, 1-5 arası zorluk tahmini ve sorunun ait olduğu konu/kazanım
 tahminini ver. Sayfada uygun soru yoksa boş bir questions listesi döndür.
+Matematiksel ifadeleri (kök, kesir, üs vb.) LaTeX ile yaz ve $ ... $ / $$ ... $$ ile sınırla — ör.
+"$\\sqrt{120}$" — sınırlanmamış LaTeX sitede render edilmiyor, düz metin görünüyor.
 
 SAYFA METNİ:
 """

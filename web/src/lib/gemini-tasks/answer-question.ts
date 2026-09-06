@@ -4,7 +4,10 @@ import type { RelatedSource } from "@/lib/gemini-tasks/find-related-sources";
 
 const BASE_INSTRUCTION = `Sen İkiz platformunun ders koçusun. YKS/LGS'ye hazırlanan bir öğrenciye
 adım adım, öğrencinin okulda gördüğü klasik çözüm yöntemiyle anlat. Kısa ve net ol, gereksiz
-uzatma. Türkçe yaz. Cevabın sonunda bu sorunun ait olduğu YKS/LGS konu/kazanımını da tahmin et.`;
+uzatma. Türkçe yaz. Cevabın sonunda bu sorunun ait olduğu YKS/LGS konu/kazanımını da tahmin et.
+Matematiksel ifadeleri (kök, kesir, üs, denklem vb.) LaTeX ile yaz ve MUTLAKA $ ... $ (satır içi)
+ya da $$ ... $$ (blok) ile sınırla — ör. "$\\sqrt{120}$", "$\\frac{a}{b}$". Sınırlanmamış LaTeX
+(\\sqrt{...} gibi çıplak komutlar) sitede render edilmiyor, düz metin olarak görünüyor.`;
 
 function buildSystemInstruction(sources: RelatedSource[]) {
   if (sources.length === 0) return BASE_INSTRUCTION;

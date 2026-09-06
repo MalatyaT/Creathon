@@ -86,7 +86,11 @@ ${typeInstruction}
 ${params.twinHint ? `Öğrencinin bu kazanımda hata deseni: ${params.twinHint} — mümkünse bu tür hataya düşürecek bir çeldirici kur.` : ""}
 
 Soruyu SEN adım adım çöz (gerçekten hesapla, tahmin etme), sonra topic_label alanına
-"${params.kazanim}" yaz.`;
+"${params.kazanim}" yaz.
+
+Matematiksel ifadeleri (kök, kesir, üs, denklem vb.) LaTeX ile yaz ve MUTLAKA $ ... $ (satır içi)
+ya da $$ ... $$ (blok) ile sınırla — ör. "$\\sqrt{11 + \\sqrt{120}}$", "$\\frac{a}{b}$". Sınırlanmamış
+LaTeX (\\sqrt{...} gibi çıplak komutlar) sitede render edilmiyor, düz metin olarak görünüyor.`;
 }
 
 /**

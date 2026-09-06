@@ -36,7 +36,11 @@ metni) — hangisinin hangi tip olacağına sen karar ver, toplam dağılıma uy
 
 Her soru için: tam metni, (varsa) şıkları, doğru cevabı kendin çözerek bul, kısa bir çözüm gerekçesi,
 1-5 arası zorluk puanı ver.
-${params.twinHint ? `Öğrencinin bu derste hata deseni: ${params.twinHint} — mümkün olan sorularda özellikle bu tür hataya düşürecek şekilde kurgula.` : ""}`;
+${params.twinHint ? `Öğrencinin bu derste hata deseni: ${params.twinHint} — mümkün olan sorularda özellikle bu tür hataya düşürecek şekilde kurgula.` : ""}
+
+Matematiksel ifadeleri (kök, kesir, üs, denklem vb.) LaTeX ile yaz ve MUTLAKA $ ... $ (satır içi)
+ya da $$ ... $$ (blok) ile sınırla — ör. "$\\sqrt{11 + \\sqrt{120}}$", "$\\frac{a}{b}$". Sınırlanmamış
+LaTeX (\\sqrt{...} gibi çıplak komutlar) sitede render edilmiyor, düz metin olarak görünüyor.`;
 
   const response = await generateWithFallback({
     contents: [{ role: "user", parts: [{ text: prompt }] }],

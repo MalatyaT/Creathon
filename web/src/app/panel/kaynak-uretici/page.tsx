@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { TwinMark } from "@/components/brand/twin-mark";
+import { Markdown } from "@/components/ui/markdown";
 import {
   approveQuestion,
   getPoolStats,
@@ -272,7 +273,9 @@ export default function KaynakUreticiPanel() {
                 {queue.map((q) => (
                   <div key={q.id} className="bg-surface p-6 rounded-2xl border border-border shadow-sm">
                     <div className="flex justify-between items-start gap-4 mb-4">
-                      <div className="text-[15px] leading-relaxed font-medium">{q.questionText}</div>
+                      <div className="text-[15px] leading-relaxed font-medium">
+                        <Markdown>{q.questionText}</Markdown>
+                      </div>
                       <span className="shrink-0 text-xs text-foreground/50">
                         {q.bookTitle ? `${q.bookTitle}${q.pageNumber ? `, s. ${q.pageNumber}` : ""}` : "Kaynak yok"}
                       </span>
@@ -285,9 +288,10 @@ export default function KaynakUreticiPanel() {
                           return (
                             <div
                               key={i}
-                              className={`text-sm px-3 py-2 rounded-lg border ${isCorrect ? "border-brand-green bg-brand-green/5 font-semibold text-brand-green" : "border-border bg-background text-foreground/70"}`}
+                              className={`flex gap-1 text-sm px-3 py-2 rounded-lg border ${isCorrect ? "border-brand-green bg-brand-green/5 font-semibold text-brand-green" : "border-border bg-background text-foreground/70"}`}
                             >
-                              {letter}) {opt}
+                              <span className="shrink-0">{letter})</span>
+                              <Markdown>{opt}</Markdown>
                             </div>
                           );
                         })}
