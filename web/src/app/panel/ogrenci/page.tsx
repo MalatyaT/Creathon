@@ -18,6 +18,8 @@ import {
   type ReferenceQuestion,
   type SubjectOption,
 } from "@/app/panel/ogrenci/actions";
+import { generateExamAction, type ExamItem } from "@/app/panel/ogretmen/actions";
+import { ExamResultView } from "@/components/panel/exam-result";
 import type { GeneratedQuestion } from "@/lib/schemas/generation";
 import { useCurriculum, YKS_MATH_CURRICULUM } from "@/lib/curriculum-data";
 
@@ -440,6 +442,12 @@ export default function StudentPanel() {
   const [examSubjectId, setExamSubjectId] = useState("");
   const [examSubject, setExamSubject] = useState("");
   const [examKazanimlar, setExamKazanimlar] = useState<KazanimOption[]>([]);
+  const [examSelectedKazanimIds, setExamSelectedKazanimIds] = useState<string[]>([]);
+  const [examCount, setExamCount] = useState(10);
+  const [examDifficulty, setExamDifficulty] = useState("Orta");
+  const [examItems, setExamItems] = useState<ExamItem[] | null>(null);
+  const [examLoading, setExamLoading] = useState(false);
+  const [examError, setExamError] = useState<string | null>(null);
 
   useEffect(() => {
     listSubjectOptions().then(setExamSubjects);
@@ -447,8 +455,38 @@ export default function StudentPanel() {
 
   useEffect(() => {
     if (!examSubjectId) return;
-    listKazanimOptions(examSubjectId).then(setExamKazanimlar);
+    listKazanimOptions(examSubjectId).then((list) => {
+      setExamKazanimlar(list);
+      setExamSelectedKazanimIds([]);
+    });
   }, [examSubjectId]);
+
+  function toggleExamKazanim(id: string) {
+    setExamSelectedKazanimIds((prev) =>
+      prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id],
+    );
+  }
+
+  async function handleGenerateExam() {
+    if (!examSubjectId || examSelectedKazanimIds.length === 0) return;
+    setExamLoading(true);
+    setExamError(null);
+    try {
+      const items = await generateExamAction({
+        subjectId: examSubjectId,
+        kazanimIds: examSelectedKazanimIds,
+        count: examCount,
+        difficultyLabel: examDifficulty,
+        mcRatio: 0.7,
+      });
+      setExamItems(items);
+      setExamStep(3);
+    } catch (err) {
+      setExamError(err instanceof Error ? err.message : "Sınav oluşturulamadı");
+    } finally {
+      setExamLoading(false);
+    }
+  }
 
   // Soru Sor (chat) States — gerçek Gemini bağlantısı + oturum (session) geçmişi
   const [chatSessions, setChatSessions] = useState<ChatSessionSummary[]>([]);
@@ -1053,7 +1091,7 @@ export default function StudentPanel() {
                          <span className="text-brand-yellow mr-2">[2/4]</span> İkiz Asistan risk profili kontrol ediliyor ({qSubjects.find(s => s.id === qSubjectId)?.name} ağırlığı {useTwinWeight ? 'açık' : 'kapalı'})...
                        </div>
                        <div className={`transition-opacity duration-300 ${generationStep >= 3 ? 'opacity-100 text-foreground' : 'opacity-0'}`}>
-                         <span className="text-brand-yellow mr-2">[3/4]</span> Gemini'ye istek gönderiliyor ({qLevel} zorluk, {qType})...
+                         <span className="text-brand-yellow mr-2">[3/4]</span> Gemini&apos;ye istek gönderiliyor ({qLevel} zorluk, {qType})...
                        </div>
                        <div className={`transition-opacity duration-300 ${generationStep >= 4 ? 'opacity-100 text-brand-green font-bold' : 'opacity-0'}`}>
                          <span className="text-brand-yellow mr-2">[4/4]</span> Yanıt doğrulanıyor... Lütfen bekleyin.
@@ -1159,13 +1197,13 @@ export default function StudentPanel() {
       case 'exam':
         return (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <h1 className="text-3xl font-heading font-semibold mb-2 tracking-tight">Sınav ve Denemeler</h1>
-            <p className="text-foreground/60 mb-8 max-w-2xl">Geçmiş sınavlarınızı görüntüleyin ve Türkiye geneli yapay zeka denemelerine katılın veya öğretmen havuzundan kendi sınavınızı oluşturun.</p>
-            
-            <div className="bg-surface p-8 rounded-2xl border border-border shadow-sm mb-10 overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-yellow/5 rounded-bl-full pointer-events-none" />
-              
-              <h3 className="font-heading font-semibold text-xl mb-6 relative z-10 text-brand-green">Öğretmen Havuzundan Sınav Hazırla</h3>
+            <h1 className="text-3xl font-heading font-semibold mb-2 tracking-tight print:hidden">Sınav ve Denemeler</h1>
+            <p className="text-foreground/60 mb-8 max-w-2xl print:hidden">Geçmiş sınavlarınızı görüntüleyin ve Türkiye geneli yapay zeka denemelerine katılın veya öğretmen havuzundan kendi sınavınızı oluşturun.</p>
+
+            <div className="bg-surface p-8 rounded-2xl border border-border shadow-sm mb-10 overflow-hidden relative print:border-0 print:shadow-none print:p-0">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-yellow/5 rounded-bl-full pointer-events-none print:hidden" />
+
+              <h3 className="font-heading font-semibold text-xl mb-6 relative z-10 text-brand-green print:hidden">Öğretmen Havuzundan Sınav Hazırla</h3>
               
               <div className="relative z-10">
                 {examStep === 1 && (
@@ -1197,32 +1235,79 @@ export default function StudentPanel() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                       {examKazanimlar.map(kaz => (
                         <label key={kaz.id} className="flex items-center gap-3 p-3.5 rounded-xl border border-border bg-background hover:bg-surface-muted hover:border-brand-yellow/50 cursor-pointer transition-all">
-                          <input type="checkbox" className="w-4 h-4 text-brand-yellow accent-brand-yellow-600 rounded cursor-pointer" />
+                          <input
+                            type="checkbox"
+                            checked={examSelectedKazanimIds.includes(kaz.id)}
+                            onChange={() => toggleExamKazanim(kaz.id)}
+                            className="w-4 h-4 text-brand-yellow accent-brand-yellow-600 rounded cursor-pointer"
+                          />
                           <span className="text-sm font-medium">{kaz.name}</span>
                         </label>
                       ))}
                     </div>
-                    
-                    <div className="flex gap-4 pt-4 border-t border-border mt-4">
-                      <button onClick={() => setExamStep(3)} className="bg-brand-yellow hover:bg-brand-yellow-600 text-foreground font-bold px-8 py-3 rounded-xl text-sm shadow-sm transition-transform active:scale-95">Havuzdan Sınavı Oluştur</button>
+
+                    <div className="flex flex-wrap items-end gap-4 pt-4 border-t border-border mt-4">
+                      <div>
+                        <label className="block text-xs font-semibold mb-1.5 text-foreground/60">Soru Sayısı</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={40}
+                          value={examCount}
+                          onChange={(e) => setExamCount(Number(e.target.value) || 1)}
+                          className="w-24 bg-background border border-border rounded-lg px-3 py-1.5 text-sm outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold mb-1.5 text-foreground/60">Zorluk</label>
+                        <select
+                          value={examDifficulty}
+                          onChange={(e) => setExamDifficulty(e.target.value)}
+                          className="bg-background border border-border rounded-lg px-3 py-1.5 text-sm outline-none"
+                        >
+                          <option>Kolay</option>
+                          <option>Orta</option>
+                          <option>Zor</option>
+                          <option>Karışık</option>
+                        </select>
+                      </div>
+                      {examError && <p className="text-sm text-red-600">{examError}</p>}
+                      <button
+                        onClick={handleGenerateExam}
+                        disabled={examSelectedKazanimIds.length === 0 || examLoading}
+                        className="ml-auto bg-brand-yellow hover:bg-brand-yellow-600 text-foreground font-bold px-8 py-3 rounded-xl text-sm shadow-sm transition-transform active:scale-95 disabled:opacity-50"
+                      >
+                        {examLoading ? "Oluşturuluyor..." : "Havuzdan Sınavı Oluştur"}
+                      </button>
                     </div>
                   </div>
                 )}
 
-                {examStep === 3 && (
-                  <div className="animate-in zoom-in-95 flex flex-col items-center justify-center py-10 text-center">
-                    <div className="w-20 h-20 bg-brand-yellow/20 rounded-full flex items-center justify-center text-brand-yellow-700 mb-5 animate-pulse">
-                      {icons.exam}
+                {examStep === 3 && examItems && (
+                  <div className="animate-in zoom-in-95">
+                    <div className="flex items-center justify-between mb-6 print:hidden">
+                      <h4 className="font-bold text-xl text-brand-green">{examSubject} Sınavın Hazır</h4>
+                      <button onClick={() => { setExamStep(1); setExamItems(null); }} className="text-sm font-semibold text-foreground/50 underline hover:text-foreground">Yeni Sınav Oluştur</button>
                     </div>
-                    <h4 className="font-bold text-xl text-brand-yellow-700 mb-2">Sınavınız Hazırlanıyor...</h4>
-                    <p className="text-sm text-foreground/60 mb-8 max-w-md">Öğretmenlerinizin {examSubject} havuzuna eklediği sorular seçtiğiniz kazanımlara göre çekilip diziliyor.</p>
-                    <button onClick={() => setExamStep(1)} className="text-sm font-semibold text-foreground/50 underline hover:text-foreground">İptal veya Yeni Sınav Oluştur</button>
+                    <ExamResultView
+                      items={examItems.map((q) => ({
+                        id: q.id,
+                        questionText: q.questionText,
+                        questionType: q.questionType,
+                        options: q.options,
+                        correctAnswer: q.correctAnswer,
+                        topicLabel: q.topicLabel,
+                        difficulty: q.difficulty,
+                        sourceLabel: q.sourceLabel,
+                      }))}
+                      subjectName={examSubject}
+                    />
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 print:hidden">
               <div className="bg-gradient-to-br from-brand-green to-brand-green-600 p-8 rounded-3xl text-white shadow-lg relative overflow-hidden group hover:shadow-xl transition-shadow cursor-pointer">
                 <div className="relative z-10">
                   <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase mb-4 inline-block">Aktif</span>
@@ -1248,7 +1333,7 @@ export default function StudentPanel() {
               </div>
             </div>
 
-            <div className="bg-surface-muted border border-border rounded-xl p-4 mb-10 flex items-start gap-4">
+            <div className="bg-surface-muted border border-border rounded-xl p-4 mb-10 flex items-start gap-4 print:hidden">
               <div className="bg-brand-green/10 text-brand-green p-2 rounded-lg shrink-0 mt-0.5">
                 <TwinMark size={24} />
               </div>
@@ -1257,9 +1342,9 @@ export default function StudentPanel() {
                 <p className="text-sm text-foreground/70 mt-1">Çözeceğiniz her deneme ve test, arka planda dijital ikizinizin nöral bağlantılarını (risk ağırlıklarını) canlı olarak günceller. Performansınız haritadaki risk düğümlerine doğrudan yansır.</p>
               </div>
             </div>
-            
-            <h3 className="font-heading font-semibold text-xl mb-4 mt-10">Son Sınav Sonuçları</h3>
-            <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
+
+            <h3 className="font-heading font-semibold text-xl mb-4 mt-10 print:hidden">Son Sınav Sonuçları</h3>
+            <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm print:hidden">
               <table className="w-full text-left text-sm">
                 <thead className="bg-surface-muted/50 border-b border-border">
                   <tr>
@@ -1648,7 +1733,7 @@ export default function StudentPanel() {
   return (
     <div className="flex h-screen bg-background text-foreground font-sans overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-[280px] flex-none flex flex-col bg-surface border-r border-border shadow-sm relative z-20">
+      <aside className="w-[280px] flex-none flex flex-col bg-surface border-r border-border shadow-sm relative z-20 print:hidden">
         <div className="p-6">
           <Link href="/" className="flex items-center gap-2.5 mb-2 hover:opacity-80 transition-opacity h-12">
             <TwinMark className="h-full" />

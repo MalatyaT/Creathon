@@ -23,6 +23,7 @@ import {
   type LinkedStudent,
 } from "@/app/panel/ogretmen/actions";
 import { useCurriculum, YKS_MATH_CURRICULUM, type WeekStatus } from "@/lib/curriculum-data";
+import { ExamResultView } from "@/components/panel/exam-result";
 
 const icons = {
   panel: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>,
@@ -528,14 +529,14 @@ export default function OgretmenPanel() {
       case "exam":
         return (
           <div>
-            <h1 className="text-3xl font-heading font-semibold mb-2 tracking-tight">Sınav Oluştur</h1>
-            <p className="text-foreground/60 mb-8 max-w-2xl">
+            <h1 className="text-3xl font-heading font-semibold mb-2 tracking-tight print:hidden">Sınav Oluştur</h1>
+            <p className="text-foreground/60 mb-8 max-w-2xl print:hidden">
               Havuzdaki sorulardan sınıfına özel bir deneme hazırla, seçtiğin kazanımlara göre soruları diz.
             </p>
 
-            <div className="bg-surface p-8 rounded-2xl border border-border shadow-sm mb-10 overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-yellow/5 rounded-bl-full pointer-events-none" />
-              <h3 className="font-heading font-semibold text-xl mb-6 relative z-10 text-brand-green">Yeni Sınav</h3>
+            <div className="bg-surface p-8 rounded-2xl border border-border shadow-sm mb-10 overflow-hidden relative print:border-0 print:shadow-none print:p-0">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-yellow/5 rounded-bl-full pointer-events-none print:hidden" />
+              <h3 className="font-heading font-semibold text-xl mb-6 relative z-10 text-brand-green print:hidden">Yeni Sınav</h3>
 
               <div className="relative z-10">
                 {examStep === 1 && (
@@ -616,7 +617,7 @@ export default function OgretmenPanel() {
 
                 {examStep === 3 && examItems && (
                   <div>
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center justify-between mb-6 print:hidden">
                       <div>
                         <h4 className="font-bold text-xl text-brand-green mb-1">{examSubject} Sınavı Hazır</h4>
                         <p className="text-sm text-foreground/60">
@@ -626,65 +627,48 @@ export default function OgretmenPanel() {
                       <button onClick={() => { setExamStep(1); setExamItems(null); setExamAssigned(false); }} className="text-sm font-semibold text-foreground/50 underline hover:text-foreground shrink-0">Yeni Sınav</button>
                     </div>
 
-                    <div className="space-y-4 max-h-96 overflow-y-auto pr-2 mb-6">
-                      {examItems.map((q, i) => (
-                        <div key={q.id ?? `ai-${i}`} className="p-4 rounded-xl border border-border bg-background">
-                          <div className="flex items-start justify-between gap-3 mb-2">
-                            <span className="text-sm font-medium">{i + 1}. {q.questionText}</span>
-                            <span className="shrink-0 text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-surface-muted text-foreground/50">
-                              {q.id ? "Havuz" : "✨ AI"}
-                            </span>
-                          </div>
-                          {q.questionType === "multiple_choice" ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                              {q.options.map((opt, oi) => {
-                                const letter = String.fromCharCode(65 + oi);
-                                const isCorrect = letter === q.correctAnswer.trim().toUpperCase();
-                                return (
-                                  <div key={oi} className={`text-xs px-2 py-1.5 rounded-lg border ${isCorrect ? "border-brand-green bg-brand-green/5 font-semibold text-brand-green" : "border-border text-foreground/60"}`}>
-                                    {letter}) {opt}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            <p className="text-xs text-foreground/60">Doğru cevap: <span className="font-semibold">{q.correctAnswer}</span></p>
-                          )}
-                          <div className="text-xs text-foreground/40 mt-1.5">{q.topicLabel}{q.sourceLabel ? ` · ${q.sourceLabel}` : ""}</div>
+                    <ExamResultView
+                      items={examItems.map((q) => ({
+                        id: q.id,
+                        questionText: q.questionText,
+                        questionType: q.questionType,
+                        options: q.options,
+                        correctAnswer: q.correctAnswer,
+                        topicLabel: q.topicLabel,
+                        difficulty: q.difficulty,
+                        sourceLabel: q.sourceLabel,
+                      }))}
+                      subjectName={examSubject}
+                      actions={
+                        <div className="flex items-center gap-3">
+                          <select
+                            value={examStudentId}
+                            onChange={(e) => setExamStudentId(e.target.value)}
+                            className="bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none"
+                          >
+                            <option value="">Öğrenci seç...</option>
+                            {gradingStudents.map((s) => (
+                              <option key={s.id} value={s.id}>{s.name}</option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={handleAssignExam}
+                            disabled={!examStudentId || examLoading}
+                            className="bg-brand-yellow hover:bg-brand-yellow-600 text-foreground font-bold px-5 py-2 rounded-full text-sm shadow-sm disabled:opacity-50 whitespace-nowrap"
+                          >
+                            Ödev Olarak Ata
+                          </button>
+                          {examAssigned && <span className="text-sm text-brand-green font-medium whitespace-nowrap">Atandı ✓</span>}
                         </div>
-                      ))}
-                    </div>
-
-                    <div className="flex flex-wrap items-end gap-4 pt-4 border-t border-border">
-                      <div>
-                        <label className="block text-xs font-semibold mb-1.5 text-foreground/60">Öğrenciye Ödev Olarak Ata</label>
-                        <select
-                          value={examStudentId}
-                          onChange={(e) => setExamStudentId(e.target.value)}
-                          className="bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none min-w-[180px]"
-                        >
-                          <option value="">Öğrenci seç...</option>
-                          {gradingStudents.map((s) => (
-                            <option key={s.id} value={s.id}>{s.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <button
-                        onClick={handleAssignExam}
-                        disabled={!examStudentId || examLoading}
-                        className="bg-brand-green text-white font-bold px-6 py-2.5 rounded-xl text-sm shadow-sm hover:bg-brand-green-600 disabled:opacity-50"
-                      >
-                        Ödev Olarak Ata
-                      </button>
-                      {examAssigned && <span className="text-sm text-brand-green font-medium">Ödev olarak atandı.</span>}
-                    </div>
+                      }
+                    />
                   </div>
                 )}
               </div>
             </div>
 
-            <h3 className="font-heading font-semibold text-xl mb-4">Son Oluşturulan Sınavlar</h3>
-            <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
+            <h3 className="font-heading font-semibold text-xl mb-4 print:hidden">Son Oluşturulan Sınavlar</h3>
+            <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm print:hidden">
               <table className="w-full text-left text-sm">
                 <thead className="bg-surface-muted/50 border-b border-border">
                   <tr>
@@ -1209,7 +1193,7 @@ export default function OgretmenPanel() {
 
   return (
     <div className="flex h-screen bg-background text-foreground font-sans overflow-hidden">
-      <aside className="w-[280px] flex-none flex flex-col bg-surface border-r border-border shadow-sm relative z-20">
+      <aside className="w-[280px] flex-none flex flex-col bg-surface border-r border-border shadow-sm relative z-20 print:hidden">
         <div className="p-6">
           <Link href="/" className="flex items-center gap-2.5 mb-2 hover:opacity-80 transition-opacity">
             <TwinMark variant="egitim" />
