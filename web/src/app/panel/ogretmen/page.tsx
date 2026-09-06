@@ -1,8 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import { TwinMark } from "@/components/brand/twin-mark";
+import {
+  confirmOpenEndedAttempt,
+  gradePaperAction,
+  listLinkedStudents,
+  listStudentHomework,
+  type GradePaperResult,
+  type HomeworkOption,
+  type LinkedStudent,
+} from "@/app/panel/ogretmen/actions";
 
 const icons = {
   panel: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>,
@@ -98,9 +107,67 @@ export default function OgretmenPanel() {
   // Sınıf Yönetme
   const [selectedClass, setSelectedClass] = useState("12a");
 
-  // Kağıt Puanlama
-  const [gradingFile, setGradingFile] = useState<string | null>(null);
-  const [gradingResult, setGradingResult] = useState(false);
+  // Kağıt Puanlama — gerçek Gemini multimodal okuma + homework'ün gerçek cevap anahtarına
+  // karşı deterministik puanlama (bkz. panel/ogretmen/actions.ts)
+  const [gradingStudents, setGradingStudents] = useState<LinkedStudent[]>([]);
+  const [gradingStudentId, setGradingStudentId] = useState("");
+  const [gradingHomeworks, setGradingHomeworks] = useState<HomeworkOption[]>([]);
+  const [gradingHomeworkId, setGradingHomeworkId] = useState("");
+  const [gradingFile, setGradingFile] = useState<File | null>(null);
+  const [gradingResult, setGradingResult] = useState<GradePaperResult | null>(null);
+  const [gradingLoading, setGradingLoading] = useState(false);
+  const [gradingError, setGradingError] = useState<string | null>(null);
+
+  useEffect(() => {
+    listLinkedStudents().then((list) => {
+      setGradingStudents(list);
+      setGradingStudentId(list[0]?.id ?? "");
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!gradingStudentId) return;
+    listStudentHomework(gradingStudentId).then((list) => {
+      setGradingHomeworks(list);
+      setGradingHomeworkId(list[0]?.id ?? "");
+    });
+  }, [gradingStudentId]);
+
+  async function handleGradePaper() {
+    if (!gradingFile || !gradingStudentId || !gradingHomeworkId) return;
+    setGradingLoading(true);
+    setGradingError(null);
+    setGradingResult(null);
+    try {
+      const formData = new FormData();
+      formData.set("studentId", gradingStudentId);
+      formData.set("homeworkId", gradingHomeworkId);
+      formData.set("file", gradingFile);
+      const result = await gradePaperAction(formData);
+      setGradingResult(result);
+    } catch (err) {
+      setGradingError(err instanceof Error ? err.message : "Kağıt puanlanamadı");
+    } finally {
+      setGradingLoading(false);
+    }
+  }
+
+  async function handleConfirmOpenEnded(attemptId: string, isCorrect: boolean) {
+    await confirmOpenEndedAttempt({ attemptId, isCorrect });
+    setGradingResult((prev) =>
+      prev
+        ? {
+            ...prev,
+            questions: prev.questions.map((q) =>
+              q.attemptId === attemptId ? { ...q, isCorrect, needsReview: false } : q,
+            ),
+            scoreCorrect: prev.questions.filter((q) =>
+              q.attemptId === attemptId ? isCorrect : q.isCorrect === true,
+            ).length,
+          }
+        : prev,
+    );
+  }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -531,16 +598,29 @@ export default function OgretmenPanel() {
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-8">
               <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm space-y-5 h-fit">
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Sınav</label>
-                  <select className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:border-brand-green">
-                    <option>Karekök Deneme 12</option>
-                    <option>Bilfen TYT 7</option>
+                  <label className="block text-sm font-semibold mb-2">Öğrenci</label>
+                  <select
+                    className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:border-brand-green"
+                    value={gradingStudentId}
+                    onChange={(e) => setGradingStudentId(e.target.value)}
+                  >
+                    {gradingStudents.length === 0 && <option value="">Bağlı öğrenci yok</option>}
+                    {gradingStudents.map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Öğrenci</label>
-                  <select className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:border-brand-green">
-                    {ROSTERS["12a"].map((s) => <option key={s.name}>{s.name}</option>)}
+                  <label className="block text-sm font-semibold mb-2">Ödev</label>
+                  <select
+                    className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:border-brand-green"
+                    value={gradingHomeworkId}
+                    onChange={(e) => setGradingHomeworkId(e.target.value)}
+                  >
+                    {gradingHomeworks.length === 0 && <option value="">Bu öğrencinin ödevi yok</option>}
+                    {gradingHomeworks.map((h) => (
+                      <option key={h.id} value={h.id}>{h.title} ({h.questionCount} soru)</option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -550,20 +630,21 @@ export default function OgretmenPanel() {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => setGradingFile(e.target.files?.[0]?.name ?? null)}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setGradingFile(e.target.files?.[0] ?? null)}
                     />
                     <span className="text-foreground/40">{icons.grading}</span>
                     <span className="text-sm font-medium text-foreground/60">
-                      {gradingFile ?? "Fotoğraf yükle ya da sürükle"}
+                      {gradingFile?.name ?? "Fotoğraf yükle ya da sürükle"}
                     </span>
                   </label>
                 </div>
+                {gradingError && <p className="text-sm text-red-600">{gradingError}</p>}
                 <button
-                  onClick={() => setGradingResult(true)}
-                  disabled={!gradingFile}
+                  onClick={handleGradePaper}
+                  disabled={!gradingFile || !gradingStudentId || !gradingHomeworkId || gradingLoading}
                   className="w-full bg-brand-green text-white font-bold py-3 rounded-xl hover:bg-brand-green-600 transition-transform active:scale-95 shadow-sm disabled:opacity-50"
                 >
-                  Kağıdı Puanla
+                  {gradingLoading ? "Okunuyor..." : "Kağıdı Puanla"}
                 </button>
               </div>
 
@@ -579,37 +660,59 @@ export default function OgretmenPanel() {
                   <div>
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="font-heading font-semibold text-lg">Puanlama Sonucu</h3>
-                      <span className="text-3xl font-heading font-bold text-brand-green">78.5 <span className="text-sm text-foreground/40 font-sans">net</span></span>
+                      <span className="text-3xl font-heading font-bold text-brand-green">
+                        {gradingResult.scoreCorrect}/{gradingResult.scoreTotal}
+                        <span className="text-sm text-foreground/40 font-sans"> doğru</span>
+                      </span>
                     </div>
-                    <div className="grid grid-cols-3 gap-3 mb-6">
-                      <div className="bg-background border border-border rounded-xl p-4 text-center">
-                        <div className="text-2xl font-bold text-brand-green">32</div>
-                        <div className="text-xs text-foreground/60 mt-1">Doğru</div>
-                      </div>
-                      <div className="bg-background border border-border rounded-xl p-4 text-center">
-                        <div className="text-2xl font-bold text-red-500">6</div>
-                        <div className="text-xs text-foreground/60 mt-1">Yanlış</div>
-                      </div>
-                      <div className="bg-background border border-border rounded-xl p-4 text-center">
-                        <div className="text-2xl font-bold text-foreground/50">2</div>
-                        <div className="text-xs text-foreground/60 mt-1">Boş</div>
-                      </div>
-                    </div>
-                    <div className="text-sm font-semibold mb-3">Yanlış işaretlenen sorular</div>
+                    <div className="text-sm font-semibold mb-3">Soru bazlı sonuç</div>
                     <div className="space-y-2">
-                      {[
-                        { no: 7, given: "C", correct: "B", topic: "Limit ve Süreklilik" },
-                        { no: 14, given: "A", correct: "D", topic: "Türev" },
-                        { no: 23, given: "E", correct: "C", topic: "Polinomlar" },
-                      ].map((q) => (
-                        <div key={q.no} className="flex items-center justify-between p-3 rounded-lg bg-red-50 border border-red-100">
-                          <span className="text-sm font-medium">Soru {q.no} · {q.topic}</span>
-                          <span className="text-xs font-semibold text-red-700">İşaretlenen: {q.given} · Doğru: {q.correct}</span>
+                      {gradingResult.questions.map((q) => (
+                        <div
+                          key={q.attemptId || q.questionNumber}
+                          className={`p-3 rounded-lg border ${
+                            q.needsReview
+                              ? "bg-brand-yellow/10 border-brand-yellow/30"
+                              : q.isCorrect
+                                ? "bg-brand-green/5 border-brand-green/20"
+                                : "bg-red-50 border-red-100"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="text-sm font-medium">Soru {q.questionNumber}</span>
+                            {q.questionType === "multiple_choice" ? (
+                              <span className="text-xs font-semibold">
+                                İşaretlenen: {q.studentAnswer || "—"} · Doğru: {q.correctAnswer}
+                              </span>
+                            ) : (
+                              <span className="text-xs font-semibold text-foreground/60">Açık uçlu</span>
+                            )}
+                          </div>
+                          {q.questionType === "open_ended" && (
+                            <p className="text-xs text-foreground/60 mt-1">Öğrenci cevabı: {q.studentAnswer || "(okunamadı)"}</p>
+                          )}
+                          {q.needsReview && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="text-xs text-brand-yellow-700 font-medium">İnceleme gerekiyor</span>
+                              <button
+                                onClick={() => handleConfirmOpenEnded(q.attemptId, true)}
+                                className="text-xs font-semibold px-2 py-1 rounded bg-brand-green/10 text-brand-green hover:bg-brand-green/20"
+                              >
+                                Doğru işaretle
+                              </button>
+                              <button
+                                onClick={() => handleConfirmOpenEnded(q.attemptId, false)}
+                                className="text-xs font-semibold px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200"
+                              >
+                                Yanlış işaretle
+                              </button>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
                     <p className="mt-5 text-xs text-foreground/50">
-                      Bu sonuç öğrencinin dijital ikizine işlendi — yanlış yapılan kazanımların risk skoru otomatik güncellendi.
+                      Bu sonuç question_attempts tablosuna kaydedildi; yanlış/onaylanan sorular öğrencinin dijital ikizinin risk skorunu güncelledi.
                     </p>
                   </div>
                 )}
