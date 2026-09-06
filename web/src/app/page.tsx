@@ -75,7 +75,7 @@ export default function LandingPage() {
                 >
                   <div className="flex flex-col items-center flex-1">
                     <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-6 transition-colors ${isActive ? 'bg-brand-yellow/20' : 'bg-surface-muted group-hover:bg-brand-yellow/10'}`}>
-                      <div className={`w-6 h-6 rounded-full transition-colors ${isActive ? 'bg-brand-yellow' : 'bg-brand-green opacity-80'}`} />
+                      <TwinMark size={32} />
                     </div>
                     <h3 className="text-xl font-semibold font-heading mb-3">{portal.label}</h3>
                     <p className="text-center text-sm text-foreground/60 mb-6 flex-1 leading-relaxed">{portal.desc}</p>
