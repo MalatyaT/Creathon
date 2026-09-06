@@ -5,9 +5,12 @@ import Link from "next/link";
 import { TwinMark } from "@/components/brand/twin-mark";
 import {
   confirmOpenEndedAttempt,
+  gradeFreeformPaperAction,
   gradePaperAction,
   listLinkedStudents,
   listStudentHomework,
+  type FreeformResultItem,
+  type GradedQuestion,
   type GradePaperResult,
   type HomeworkOption,
   type LinkedStudent,
@@ -160,9 +163,29 @@ export default function OgretmenPanel() {
   const [gradingHomeworks, setGradingHomeworks] = useState<HomeworkOption[]>([]);
   const [gradingHomeworkId, setGradingHomeworkId] = useState("");
   const [gradingFile, setGradingFile] = useState<File | null>(null);
+  const [gradingFilePreviewUrl, setGradingFilePreviewUrl] = useState<string | null>(null);
   const [gradingResult, setGradingResult] = useState<GradePaperResult | null>(null);
   const [gradingLoading, setGradingLoading] = useState(false);
   const [gradingError, setGradingError] = useState<string | null>(null);
+
+  // "Ödev bazlı" (homework + gerçek cevap anahtarı) ya da "Serbest kağıt" (numarasız/ızgara
+  // düzenli, önceden bilinen bir cevap anahtarı olmayan kağıtlar — bkz. extract-answer-sheet.ts)
+  const [gradingMode, setGradingMode] = useState<"homework" | "freeform">("homework");
+  const [freeformResult, setFreeformResult] = useState<FreeformResultItem[] | null>(null);
+  const [freeformLoading, setFreeformLoading] = useState(false);
+  const [freeformError, setFreeformError] = useState<string | null>(null);
+
+  function handleGradingFileChange(file: File | null) {
+    setGradingFile(file);
+    setGradingFilePreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return file ? URL.createObjectURL(file) : null;
+    });
+    setGradingResult(null);
+    setFreeformResult(null);
+    setGradingError(null);
+    setFreeformError(null);
+  }
 
   useEffect(() => {
     listLinkedStudents().then((list) => {
@@ -198,16 +221,33 @@ export default function OgretmenPanel() {
     }
   }
 
+  async function handleGradeFreeform() {
+    if (!gradingFile) return;
+    setFreeformLoading(true);
+    setFreeformError(null);
+    setFreeformResult(null);
+    try {
+      const formData = new FormData();
+      formData.set("file", gradingFile);
+      const result = await gradeFreeformPaperAction(formData);
+      setFreeformResult(result);
+    } catch (err) {
+      setFreeformError(err instanceof Error ? err.message : "Kağıt okunamadı");
+    } finally {
+      setFreeformLoading(false);
+    }
+  }
+
   async function handleConfirmOpenEnded(attemptId: string, isCorrect: boolean) {
     await confirmOpenEndedAttempt({ attemptId, isCorrect });
     setGradingResult((prev: GradePaperResult | null) =>
       prev
         ? {
             ...prev,
-            questions: prev.questions.map((q: any) =>
+            questions: prev.questions.map((q: GradedQuestion) =>
               q.attemptId === attemptId ? { ...q, isCorrect, needsReview: false } : q,
             ),
-            scoreCorrect: prev.questions.filter((q: any) =>
+            scoreCorrect: prev.questions.filter((q: GradedQuestion) =>
               q.attemptId === attemptId ? isCorrect : q.isCorrect === true,
             ).length,
           }
@@ -637,38 +677,62 @@ export default function OgretmenPanel() {
         return (
           <div>
             <h1 className="text-3xl font-heading font-semibold mb-2 tracking-tight">Kağıt Puanlama</h1>
-            <p className="text-foreground/60 mb-8 max-w-2xl">
+            <p className="text-foreground/60 mb-6 max-w-2xl">
               Öğrencinin doldurduğu cevap kağıdının fotoğrafını yükle — yapay zeka cevapları okuyup anahtarla karşılaştırır, notu ve yanlışları çıkarır.
             </p>
 
+            <div className="inline-flex items-center gap-1 bg-surface-muted p-1 rounded-full text-sm font-medium mb-6">
+              <button
+                onClick={() => setGradingMode("homework")}
+                className={`px-4 py-2 rounded-full transition-all ${gradingMode === "homework" ? "bg-brand-green text-white shadow-sm" : "hover:bg-surface text-foreground/70"}`}
+              >
+                Ödev Bazlı
+              </button>
+              <button
+                onClick={() => setGradingMode("freeform")}
+                className={`px-4 py-2 rounded-full transition-all ${gradingMode === "freeform" ? "bg-brand-green text-white shadow-sm" : "hover:bg-surface text-foreground/70"}`}
+              >
+                Serbest Kağıt (soru+cevap)
+              </button>
+            </div>
+            {gradingMode === "freeform" && (
+              <p className="text-xs text-foreground/50 -mt-4 mb-6 max-w-2xl">
+                Numarasız, bilinen bir ödev/cevap anahtarına bağlı olmayan kağıtlar için (ör. ızgara düzenli çalışma kağıtları). AI her soruyu kendisi tespit edip soru+cevabı yazar; doğru/yanlış kararı vermez (karşılaştıracak bir cevap anahtarı yok), sadece okuma güveni verir — düşük güven kırmızı ile işaretlenip kontrol gerektiği belirtilir.
+              </p>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-8">
               <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm space-y-5 h-fit">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Öğrenci</label>
-                  <select
-                    className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:border-brand-green"
-                    value={gradingStudentId}
-                    onChange={(e) => setGradingStudentId(e.target.value)}
-                  >
-                    {gradingStudents.length === 0 && <option value="">Bağlı öğrenci yok</option>}
-                    {gradingStudents.map((s) => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Ödev</label>
-                  <select
-                    className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:border-brand-green"
-                    value={gradingHomeworkId}
-                    onChange={(e) => setGradingHomeworkId(e.target.value)}
-                  >
-                    {gradingHomeworks.length === 0 && <option value="">Bu öğrencinin ödevi yok</option>}
-                    {gradingHomeworks.map((h) => (
-                      <option key={h.id} value={h.id}>{h.title} ({h.questionCount} soru)</option>
-                    ))}
-                  </select>
-                </div>
+                {gradingMode === "homework" && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2">Öğrenci</label>
+                      <select
+                        className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:border-brand-green"
+                        value={gradingStudentId}
+                        onChange={(e) => setGradingStudentId(e.target.value)}
+                      >
+                        {gradingStudents.length === 0 && <option value="">Bağlı öğrenci yok</option>}
+                        {gradingStudents.map((s) => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2">Ödev</label>
+                      <select
+                        className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:border-brand-green"
+                        value={gradingHomeworkId}
+                        onChange={(e) => setGradingHomeworkId(e.target.value)}
+                      >
+                        {gradingHomeworks.length === 0 && <option value="">Bu öğrencinin ödevi yok</option>}
+                        {gradingHomeworks.map((h) => (
+                          <option key={h.id} value={h.id}>{h.title} ({h.questionCount} soru)</option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
                 <div>
                   <label className="block text-sm font-semibold mb-2">Cevap Kağıdı</label>
                   <label className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-background p-8 text-center cursor-pointer hover:border-brand-green transition-colors">
@@ -676,7 +740,7 @@ export default function OgretmenPanel() {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e: ChangeEvent<HTMLInputElement>) => setGradingFile(e.target.files?.[0] ?? null)}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => handleGradingFileChange(e.target.files?.[0] ?? null)}
                     />
                     <span className="text-foreground/40">{icons.grading}</span>
                     <span className="text-sm font-medium text-foreground/60">
@@ -684,110 +748,187 @@ export default function OgretmenPanel() {
                     </span>
                   </label>
                 </div>
-                {gradingError && <p className="text-sm text-red-600">{gradingError}</p>}
-                <button
-                  onClick={handleGradePaper}
-                  disabled={!gradingFile || !gradingStudentId || !gradingHomeworkId || gradingLoading}
-                  className="w-full bg-brand-green text-white font-bold py-3 rounded-xl hover:bg-brand-green-600 transition-transform active:scale-95 shadow-sm disabled:opacity-50"
-                >
-                  {gradingLoading ? "Okunuyor..." : "Kağıdı Puanla"}
-                </button>
+                {gradingFilePreviewUrl && (
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Yüklenen Görsel</label>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={gradingFilePreviewUrl}
+                      alt="Yüklenen cevap kağıdı"
+                      className="w-full max-h-80 object-contain rounded-xl border border-border bg-background"
+                    />
+                  </div>
+                )}
+                {gradingMode === "homework" ? (
+                  <>
+                    {gradingError && <p className="text-sm text-red-600">{gradingError}</p>}
+                    <button
+                      onClick={handleGradePaper}
+                      disabled={!gradingFile || !gradingStudentId || !gradingHomeworkId || gradingLoading}
+                      className="w-full bg-brand-green text-white font-bold py-3 rounded-xl hover:bg-brand-green-600 transition-transform active:scale-95 shadow-sm disabled:opacity-50"
+                    >
+                      {gradingLoading ? "Okunuyor..." : "Kağıdı Puanla"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {freeformError && <p className="text-sm text-red-600">{freeformError}</p>}
+                    <button
+                      onClick={handleGradeFreeform}
+                      disabled={!gradingFile || freeformLoading}
+                      className="w-full bg-brand-green text-white font-bold py-3 rounded-xl hover:bg-brand-green-600 transition-transform active:scale-95 shadow-sm disabled:opacity-50"
+                    >
+                      {freeformLoading ? "Okunuyor..." : "Soru + Cevapları Çıkar"}
+                    </button>
+                  </>
+                )}
               </div>
 
               <div className="bg-surface p-8 rounded-2xl border border-border shadow-sm">
-                {!gradingResult ? (
+                {gradingMode === "homework" ? (
+                  !gradingResult ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center min-h-[360px]">
+                      <div className="w-16 h-16 bg-surface-muted rounded-full flex items-center justify-center text-foreground/30 mb-4">
+                        {icons.grading}
+                      </div>
+                      <p className="text-sm text-foreground/50 max-w-xs">Bir cevap kağıdı yükleyip puanladığında sonuç burada görünecek.</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-heading font-semibold text-lg">Puanlama Sonucu</h3>
+                        <span className="text-3xl font-heading font-bold text-brand-green">
+                          {gradingResult.scoreCorrect}/{gradingResult.scoreTotal}
+                          <span className="text-sm text-foreground/40 font-sans"> doğru</span>
+                        </span>
+                      </div>
+
+                      {!gradingResult.persisted && (
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4 text-xs text-red-700">
+                          ⚠ Sonuçlar veritabanına kaydedilemedi{gradingResult.persistError ? ` (${gradingResult.persistError})` : ""} — aşağıdaki okuma/not doğru ama &quot;Doğru/Yanlış işaretle&quot; onayları ve dijital ikiz güncellemesi çalışmayacak. Muhtemelen bekleyen bir migration var, apply-pending-migrations.ts çalıştırılmalı.
+                        </div>
+                      )}
+                      <div className="bg-brand-yellow/5 border border-brand-yellow/20 rounded-xl p-4 mb-6">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-xs font-semibold uppercase tracking-wide text-brand-yellow-700">Ön Değerlendirme — Genel Not</span>
+                          <span className="text-xl font-heading font-bold text-brand-yellow-700">{gradingResult.overallGrade}/100</span>
+                        </div>
+                        <p className="text-sm text-foreground/70">{gradingResult.overallComment || "Genel değerlendirme üretilemedi."}</p>
+                        <p className="text-[11px] text-foreground/40 mt-1.5">Bu bir ön değerlendirmedir — nihai notu öğretmen kendisi verir.</p>
+                      </div>
+
+                      <div className="text-sm font-semibold mb-3">Soru bazlı sonuç</div>
+                      <div className="space-y-2">
+                        {gradingResult.questions.map((q) => (
+                          <div
+                            key={q.attemptId || q.questionNumber}
+                            className={`p-3 rounded-lg border ${
+                              q.needsReview
+                                ? "bg-brand-yellow/10 border-brand-yellow/30"
+                                : q.isCorrect
+                                  ? "bg-brand-green/5 border-brand-green/20"
+                                  : "bg-red-50 border-red-100"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-sm font-medium flex items-center gap-2">
+                                Soru {q.questionNumber}
+                                <span
+                                  title="Yapay zekanın okuma güveni"
+                                  className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${
+                                    q.confidence >= 0.8
+                                      ? "bg-brand-green/10 text-brand-green"
+                                      : q.confidence >= 0.5
+                                        ? "bg-brand-yellow/20 text-brand-yellow-700"
+                                        : "bg-red-100 text-red-700"
+                                  }`}
+                                >
+                                  Güven %{Math.round(q.confidence * 100)}
+                                </span>
+                              </span>
+                              {q.questionType === "multiple_choice" ? (
+                                <span className="text-xs font-semibold">
+                                  İşaretlenen: {q.studentAnswer || "—"} · Doğru: {q.correctAnswer}
+                                </span>
+                              ) : (
+                                <span className="text-xs font-semibold text-foreground/60">Açık uçlu</span>
+                              )}
+                            </div>
+                            {q.questionType === "open_ended" && (
+                              <p className="text-xs text-foreground/60 mt-1">Öğrenci cevabı: {q.studentAnswer || "(okunamadı)"}</p>
+                            )}
+                            {q.needsReview && (
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className="text-xs text-brand-yellow-700 font-medium">İnceleme gerekiyor</span>
+                                <button
+                                  onClick={() => handleConfirmOpenEnded(q.attemptId, true)}
+                                  className="text-xs font-semibold px-2 py-1 rounded bg-brand-green/10 text-brand-green hover:bg-brand-green/20"
+                                >
+                                  Doğru işaretle
+                                </button>
+                                <button
+                                  onClick={() => handleConfirmOpenEnded(q.attemptId, false)}
+                                  className="text-xs font-semibold px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200"
+                                >
+                                  Yanlış işaretle
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <p className="mt-5 text-xs text-foreground/50">
+                        Bu sonuç question_attempts tablosuna kaydedildi; yanlış/onaylanan sorular öğrencinin dijital ikizinin risk skorunu güncelledi.
+                      </p>
+                    </div>
+                  )
+                ) : !freeformResult ? (
                   <div className="h-full flex flex-col items-center justify-center text-center min-h-[360px]">
                     <div className="w-16 h-16 bg-surface-muted rounded-full flex items-center justify-center text-foreground/30 mb-4">
                       {icons.grading}
                     </div>
-                    <p className="text-sm text-foreground/50 max-w-xs">Bir cevap kağıdı yükleyip puanladığında sonuç burada görünecek.</p>
+                    <p className="text-sm text-foreground/50 max-w-xs">Bir kağıt yükleyip &quot;Soru + Cevapları Çıkar&quot;a bastığında sonuç burada görünecek.</p>
                   </div>
                 ) : (
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-heading font-semibold text-lg">Puanlama Sonucu</h3>
-                      <span className="text-3xl font-heading font-bold text-brand-green">
-                        {gradingResult.scoreCorrect}/{gradingResult.scoreTotal}
-                        <span className="text-sm text-foreground/40 font-sans"> doğru</span>
-                      </span>
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="font-heading font-semibold text-lg">Tespit Edilen Soru + Cevaplar</h3>
+                      <span className="text-sm text-foreground/50">{freeformResult.length} soru</span>
                     </div>
-
-                    {!gradingResult.persisted && (
-                      <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4 text-xs text-red-700">
-                        ⚠ Sonuçlar veritabanına kaydedilemedi{gradingResult.persistError ? ` (${gradingResult.persistError})` : ""} — aşağıdaki okuma/not doğru ama "Doğru/Yanlış işaretle" onayları ve dijital ikiz güncellemesi çalışmayacak. Muhtemelen bekleyen bir migration var, `apply-pending-migrations.ts` çalıştırılmalı.
-                      </div>
-                    )}
-                    <div className="bg-brand-yellow/5 border border-brand-yellow/20 rounded-xl p-4 mb-6">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-brand-yellow-700">Ön Değerlendirme — Genel Not</span>
-                        <span className="text-xl font-heading font-bold text-brand-yellow-700">{gradingResult.overallGrade}/100</span>
-                      </div>
-                      <p className="text-sm text-foreground/70">{gradingResult.overallComment || "Genel değerlendirme üretilemedi."}</p>
-                      <p className="text-[11px] text-foreground/40 mt-1.5">Bu bir ön değerlendirmedir — nihai notu öğretmen kendisi verir.</p>
-                    </div>
-
-                    <div className="text-sm font-semibold mb-3">Soru bazlı sonuç</div>
-                    <div className="space-y-2">
-                      {gradingResult.questions.map((q) => (
+                    <div className="space-y-3">
+                      {freeformResult.map((item) => (
                         <div
-                          key={q.attemptId || q.questionNumber}
-                          className={`p-3 rounded-lg border ${
-                            q.needsReview
-                              ? "bg-brand-yellow/10 border-brand-yellow/30"
-                              : q.isCorrect
-                                ? "bg-brand-green/5 border-brand-green/20"
-                                : "bg-red-50 border-red-100"
-                          }`}
+                          key={item.questionNumber}
+                          className={`p-3 rounded-lg border ${item.needsReview ? "bg-red-50 border-red-200" : "bg-background border-border"}`}
                         >
-                          <div className="flex items-center justify-between gap-4">
-                            <span className="text-sm font-medium flex items-center gap-2">
-                              Soru {q.questionNumber}
-                              <span
-                                title="Yapay zekanın okuma güveni"
-                                className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${
-                                  q.confidence >= 0.8
-                                    ? "bg-brand-green/10 text-brand-green"
-                                    : q.confidence >= 0.5
-                                      ? "bg-brand-yellow/20 text-brand-yellow-700"
-                                      : "bg-red-100 text-red-700"
-                                }`}
-                              >
-                                Güven %{Math.round(q.confidence * 100)}
-                              </span>
+                          <div className="flex items-center justify-between gap-4 mb-1.5">
+                            <span className="text-sm font-medium">Soru {item.questionNumber}</span>
+                            <span
+                              title="Yapay zekanın okuma güveni"
+                              className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${
+                                item.confidence >= 0.8
+                                  ? "bg-brand-green/10 text-brand-green"
+                                  : item.confidence >= 0.5
+                                    ? "bg-brand-yellow/20 text-brand-yellow-700"
+                                    : "bg-red-100 text-red-700"
+                              }`}
+                            >
+                              Güven %{Math.round(item.confidence * 100)}
                             </span>
-                            {q.questionType === "multiple_choice" ? (
-                              <span className="text-xs font-semibold">
-                                İşaretlenen: {q.studentAnswer || "—"} · Doğru: {q.correctAnswer}
-                              </span>
-                            ) : (
-                              <span className="text-xs font-semibold text-foreground/60">Açık uçlu</span>
-                            )}
                           </div>
-                          {q.questionType === "open_ended" && (
-                            <p className="text-xs text-foreground/60 mt-1">Öğrenci cevabı: {q.studentAnswer || "(okunamadı)"}</p>
-                          )}
-                          {q.needsReview && (
-                            <div className="flex items-center gap-2 mt-2">
-                              <span className="text-xs text-brand-yellow-700 font-medium">İnceleme gerekiyor</span>
-                              <button
-                                onClick={() => handleConfirmOpenEnded(q.attemptId, true)}
-                                className="text-xs font-semibold px-2 py-1 rounded bg-brand-green/10 text-brand-green hover:bg-brand-green/20"
-                              >
-                                Doğru işaretle
-                              </button>
-                              <button
-                                onClick={() => handleConfirmOpenEnded(q.attemptId, false)}
-                                className="text-xs font-semibold px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200"
-                              >
-                                Yanlış işaretle
-                              </button>
-                            </div>
+                          <p className="text-sm text-foreground/80">{item.questionText || "(soru okunamadı)"}</p>
+                          <p className="text-sm text-foreground/60 mt-1">
+                            <span className="font-semibold text-foreground/70">Cevap: </span>
+                            {item.answerText || "(cevap okunamadı)"}
+                          </p>
+                          {item.needsReview && (
+                            <p className="text-xs font-semibold text-red-700 mt-1.5">⚠ Kontrol gerekli — düşük okuma güveni</p>
                           )}
                         </div>
                       ))}
                     </div>
                     <p className="mt-5 text-xs text-foreground/50">
-                      Bu sonuç question_attempts tablosuna kaydedildi; yanlış/onaylanan sorular öğrencinin dijital ikizinin risk skorunu güncelledi.
+                      Bu mod doğru/yanlış kararı vermez (bilinen bir cevap anahtarı yok) ve hiçbir yere kaydedilmez — sadece okuma + güven skoru.
                     </p>
                   </div>
                 )}

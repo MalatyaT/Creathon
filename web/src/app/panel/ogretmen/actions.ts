@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { readAnswerSheet } from "@/lib/gemini-tasks/read-answer-sheet";
+import { extractAnswerSheet } from "@/lib/gemini-tasks/extract-answer-sheet";
 import { assessPaper } from "@/lib/gemini-tasks/assess-paper";
 import { bumpTwinRisk } from "@/lib/twin";
 
@@ -214,6 +215,41 @@ export async function gradePaperAction(formData: FormData): Promise<GradePaperRe
   }
 
   return { scoreCorrect, scoreTotal, questions: results, overallGrade, overallComment, persisted, persistError };
+}
+
+export type FreeformResultItem = {
+  questionNumber: number;
+  questionText: string;
+  answerText: string;
+  confidence: number;
+  needsReview: boolean;
+};
+
+/**
+ * "Serbest kağıt" modu: önceden var olan bir homework/cevap anahtarı OLMADAN, kağıttaki
+ * soru+cevap çiftlerini kendi başına tespit edip transkript eder (ör. numarasız, ızgara
+ * düzenli bir çalışma kağıdı). Bilinen bir cevap anahtarı olmadığı için doğru/yanlış kararı
+ * verilmez — sadece okuma + güven skoru; düşük güven her zaman "kontrol gerekli" demektir.
+ * Homework bazlı akıştan farklı olarak hiçbir şey question_attempts'e yazılmaz (bağlı bir
+ * öğrenci/ödev/soru kimliği yok).
+ */
+export async function gradeFreeformPaperAction(formData: FormData): Promise<FreeformResultItem[]> {
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) throw new Error("Bir kağıt görseli seçmelisin");
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const imageBase64 = buffer.toString("base64");
+  const imageMimeType = file.type || "image/jpeg";
+
+  const items = await extractAnswerSheet(imageBase64, imageMimeType);
+
+  return items.map((item) => ({
+    questionNumber: item.question_number,
+    questionText: item.question_text,
+    answerText: item.answer_text,
+    confidence: item.confidence,
+    needsReview: item.confidence < 0.5,
+  }));
 }
 
 export async function confirmOpenEndedAttempt(params: {

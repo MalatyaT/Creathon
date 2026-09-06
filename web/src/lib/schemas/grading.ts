@@ -45,6 +45,44 @@ export const READ_ANSWER_SHEET_RESPONSE_SCHEMA: Schema = {
   required: ["answers"],
 };
 
+export const freeformItemSchema = z.object({
+  question_number: z.number().int().min(1),
+  question_text: z.string().default(""),
+  answer_text: z.string().default(""),
+  confidence: z.number().min(0).max(1).default(0),
+});
+
+export const freeformSheetResultSchema = z.object({
+  items: z.array(freeformItemSchema),
+});
+
+export type FreeformItem = z.infer<typeof freeformItemSchema>;
+export type FreeformSheetResult = z.infer<typeof freeformSheetResultSchema>;
+
+// Gemini'ye verilen response şeması, yukarıdaki zod şemasıyla elle eşleştirilmiştir.
+export const FREEFORM_SHEET_RESPONSE_SCHEMA: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    items: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          question_number: { type: Type.INTEGER, description: "Kağıttaki soruyu bulduğun sıraya göre verdiğin numara (1'den başlar, kağıtta basılı numara olmasa bile sen sırayla numarala)" },
+          question_text: { type: Type.STRING, description: "Sorunun tam metni (kağıtta basılıysa aynen, el yazmasıysa transkript et)" },
+          answer_text: { type: Type.STRING, description: "Öğrencinin/kaynağın o soru için yazdığı çözüm/nihai cevap, olduğu gibi" },
+          confidence: {
+            type: Type.NUMBER,
+            description: "0-1 arası: hem soru hem cevabın ne kadar net okunabildiği (0=okunamadı, 1=tamamen net)",
+          },
+        },
+        required: ["question_number", "question_text", "answer_text", "confidence"],
+      },
+    },
+  },
+  required: ["items"],
+};
+
 export const paperAssessmentSchema = z.object({
   overall_grade: z.number().min(0).max(100),
   overall_comment: z.string().default(""),
