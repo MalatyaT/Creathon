@@ -13,7 +13,9 @@ Sonra sayfadaki her soruyu ayrı bir kayıt olarak çıkar. Her soru için: tam 
 1-5 arası zorluk tahmini ve sorunun ait olduğu konu/kazanım tahminini ver.
 Sayfada soru yoksa boş bir questions listesi döndür.
 Matematiksel ifadeleri (kök, kesir, üs vb.) LaTeX ile yaz ve $ ... $ / $$ ... $$ ile sınırla — ör.
-"$\\sqrt{120}$" — sınırlanmamış LaTeX sitede render edilmiyor, düz metin görünüyor.`;
+"$\\sqrt{120}$" — sınırlanmamış LaTeX sitede render edilmiyor, düz metin görünüyor.
+ÖNEMLİ: LaTeX'te "%" bir yorum karakteridir ve ondan sonraki her şeyi yutar — yüzde
+sorularında MUTLAKA "\\%" (ters eğik çizgili) kullan, çıplak "%" KULLANMA (ör. "$\\%40$").`;
 
 export async function extractQuestionsFromImage(
   imageBase64: string,
@@ -59,6 +61,8 @@ kısa bir çözüm gerekçesi, 1-5 arası zorluk tahmini ve sorunun ait olduğu 
 tahminini ver. Sayfada uygun soru yoksa boş bir questions listesi döndür.
 Matematiksel ifadeleri (kök, kesir, üs vb.) LaTeX ile yaz ve $ ... $ / $$ ... $$ ile sınırla — ör.
 "$\\sqrt{120}$" — sınırlanmamış LaTeX sitede render edilmiyor, düz metin görünüyor.
+ÖNEMLİ: LaTeX'te "%" bir yorum karakteridir ve ondan sonraki her şeyi yutar — yüzde
+sorularında MUTLAKA "\\%" (ters eğik çizgili) kullan, çıplak "%" KULLANMA (ör. "$\\%40$").
 
 SAYFA METNİ:
 """

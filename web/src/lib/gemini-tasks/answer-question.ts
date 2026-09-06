@@ -7,7 +7,9 @@ adım adım, öğrencinin okulda gördüğü klasik çözüm yöntemiyle anlat. 
 uzatma. Türkçe yaz. Cevabın sonunda bu sorunun ait olduğu YKS/LGS konu/kazanımını da tahmin et.
 Matematiksel ifadeleri (kök, kesir, üs, denklem vb.) LaTeX ile yaz ve MUTLAKA $ ... $ (satır içi)
 ya da $$ ... $$ (blok) ile sınırla — ör. "$\\sqrt{120}$", "$\\frac{a}{b}$". Sınırlanmamış LaTeX
-(\\sqrt{...} gibi çıplak komutlar) sitede render edilmiyor, düz metin olarak görünüyor.`;
+(\\sqrt{...} gibi çıplak komutlar) sitede render edilmiyor, düz metin olarak görünüyor.
+ÖNEMLİ: LaTeX'te "%" bir yorum karakteridir ve ondan sonraki her şeyi yutar — yüzde
+sorularında MUTLAKA "\\%" (ters eğik çizgili) kullan, çıplak "%" KULLANMA (ör. "$\\%40$").`;
 
 function buildSystemInstruction(sources: RelatedSource[]) {
   if (sources.length === 0) return BASE_INSTRUCTION;

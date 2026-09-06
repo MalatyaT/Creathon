@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { TwinMark } from "@/components/brand/twin-mark";
-import { GraduationCap, User, FileEdit, Settings, Users, Library } from "lucide-react";
+import { GraduationCap, User, FileEdit, Settings, Users, Library, Check, Zap, Building } from "lucide-react";
 
 export default function LandingPage() {
   const [selectedTier, setSelectedTier] = useState<"anaokulu" | "lgs" | "yks">("lgs");
@@ -173,6 +173,114 @@ export default function LandingPage() {
               </Link>
             </div>
           )}
+        </div>
+
+        {/* Fiyatlandırma Bölümü */}
+        <div className="w-full max-w-6xl mt-16 mb-8 relative z-10">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl sm:text-4xl font-heading font-bold mb-4">
+              {isAnaokulu ? "İkiz Çocuk Paketleri" : "İkiz Eğitim Paketleri"}
+            </h2>
+            <p className="text-foreground/60 text-lg">
+              Sana en uygun paketi seç ve hemen başla.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {isAnaokulu ? (
+              <>
+                {/* Free */}
+                <div className="bg-surface border border-border rounded-3xl p-8 flex flex-col hover:shadow-lg transition-shadow">
+                  <h3 className="text-2xl font-bold mb-2">Free</h3>
+                  <div className="text-3xl font-bold mb-6">Ücretsiz</div>
+                  <ul className="flex-1 space-y-4 mb-8">
+                    <li className="flex items-center gap-3"><Check size={20} className="text-purple-500" /> Günlük 1 Etkinlik</li>
+                    <li className="flex items-center gap-3"><Check size={20} className="text-purple-500" /> 1 Oyun hakkı</li>
+                  </ul>
+                  <button className="w-full py-3 rounded-xl border border-purple-500 text-purple-600 font-semibold hover:bg-purple-50 transition-colors">Hemen Başla</button>
+                </div>
+                {/* Pro */}
+                <div className="bg-gradient-to-b from-purple-50 to-pink-50 border-2 border-purple-400 rounded-3xl p-8 flex flex-col shadow-xl relative scale-105">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-purple-600 text-white px-4 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+                    <Zap size={16} /> En Popüler
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2 text-purple-800">Pro</h3>
+                  <div className="text-3xl font-bold mb-6 text-purple-900">2.000 ₺ <span className="text-lg font-normal text-purple-600/70">/yıl</span></div>
+                  <ul className="flex-1 space-y-4 mb-8">
+                    <li className="flex items-center gap-3"><Check size={20} className="text-purple-600" /> Günlük 5 Etkinlik</li>
+                    <li className="flex items-center gap-3"><Check size={20} className="text-purple-600" /> Günlük 3 Oyun hakkı</li>
+                  </ul>
+                  <button className="w-full py-3 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors shadow-md">Pro'ya Geç</button>
+                </div>
+                {/* Plus */}
+                <div className="bg-surface border border-border rounded-3xl p-8 flex flex-col hover:shadow-lg transition-shadow">
+                  <h3 className="text-2xl font-bold mb-2">Plus</h3>
+                  <div className="text-3xl font-bold mb-6">4.000 ₺ <span className="text-lg font-normal text-foreground/50">/yıl</span></div>
+                  <ul className="flex-1 space-y-4 mb-8">
+                    <li className="flex items-center gap-3"><Check size={20} className="text-purple-500" /> Sınırsız Etkinlik</li>
+                    <li className="flex items-center gap-3"><Check size={20} className="text-purple-500" /> Sınırsız Oyun</li>
+                  </ul>
+                  <button className="w-full py-3 rounded-xl border border-purple-500 text-purple-600 font-semibold hover:bg-purple-50 transition-colors">Plus'a Geç</button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Free */}
+                <div className="bg-surface border border-border rounded-3xl p-8 flex flex-col hover:shadow-lg transition-shadow">
+                  <h3 className="text-2xl font-bold mb-2">Free</h3>
+                  <div className="text-3xl font-bold mb-6">Ücretsiz</div>
+                  <ul className="flex-1 space-y-4 mb-8">
+                    <li className="flex items-center gap-3"><Check size={20} className="text-brand-green" /> Günlük 3 Soru hakkı</li>
+                    <li className="flex items-center gap-3"><Check size={20} className="text-brand-green" /> Günlük 3 Chatbot soru hakkı</li>
+                  </ul>
+                  <button className="w-full py-3 rounded-xl border border-brand-green text-brand-green font-semibold hover:bg-brand-green/10 transition-colors">Hemen Başla</button>
+                </div>
+                {/* Pro */}
+                <div className="bg-gradient-to-b from-green-50 to-emerald-50 border-2 border-brand-green rounded-3xl p-8 flex flex-col shadow-xl relative scale-105 z-10">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-brand-green text-white px-4 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+                    <Zap size={16} /> En Çok Tercih Edilen
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2 text-brand-green">Pro</h3>
+                  <div className="text-3xl font-bold mb-6 text-green-900">14.000 ₺ <span className="text-lg font-normal text-brand-green/70">/yıl</span></div>
+                  <ul className="flex-1 space-y-4 mb-8">
+                    <li className="flex items-center gap-3"><Check size={20} className="text-brand-green" /> Sınırsız Soru hakkı</li>
+                    <li className="flex items-center gap-3"><Check size={20} className="text-brand-green" /> Deneme analizleri</li>
+                    <li className="flex items-center gap-3"><Check size={20} className="text-brand-green" /> Dijital ikize erişim</li>
+                    <li className="flex items-center gap-3"><Check size={20} className="text-brand-green" /> İkizinle yarışma</li>
+                    <li className="flex items-center gap-3"><Check size={20} className="text-brand-green" /> İkiz ödevlendirmeleri</li>
+                  </ul>
+                  <button className="w-full py-3 rounded-xl bg-brand-green text-white font-semibold hover:bg-green-700 transition-colors shadow-md">Pro'ya Geç</button>
+                </div>
+                {/* Plus */}
+                <div className="bg-surface border border-border rounded-3xl p-8 flex flex-col hover:shadow-lg transition-shadow">
+                  <h3 className="text-2xl font-bold mb-2">Plus</h3>
+                  <div className="text-3xl font-bold mb-6">25.000 ₺ <span className="text-lg font-normal text-foreground/50">/yıl</span></div>
+                  <ul className="flex-1 space-y-4 mb-8">
+                    <li className="flex items-start gap-3 text-sm sm:text-base leading-tight"><Check size={20} className="text-brand-green flex-shrink-0 mt-0.5" /> Türkiye genelindeki İkizlerin ortalaması ile yarışma</li>
+                    <li className="flex items-start gap-3 text-sm sm:text-base leading-tight"><Check size={20} className="text-brand-green flex-shrink-0 mt-0.5" /> Soru havuzuna sınırsız erişim</li>
+                    <li className="flex items-start gap-3 text-sm sm:text-base leading-tight"><Check size={20} className="text-brand-green flex-shrink-0 mt-0.5" /> Yapay zeka ile soru yazdırma</li>
+                  </ul>
+                  <button className="w-full py-3 rounded-xl border border-brand-green text-brand-green font-semibold hover:bg-brand-green/10 transition-colors">Plus'a Geç</button>
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Kurumsal */}
+          <div className="mt-8 bg-surface-muted border border-border rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-4">
+              <div className="bg-foreground/5 p-3 rounded-xl text-foreground/70">
+                <Building size={28} />
+              </div>
+              <div>
+                <h4 className="text-lg font-bold">Kurumsal Paketler</h4>
+                <p className="text-sm text-foreground/60">Okullar ve eğitim kurumları için özel toplu lisanslama seçenekleri.</p>
+              </div>
+            </div>
+            <button className="px-6 py-3 bg-foreground text-background rounded-xl font-semibold hover:bg-foreground/80 transition-colors whitespace-nowrap">
+              İletişime Geçin
+            </button>
+          </div>
         </div>
       </main>
 

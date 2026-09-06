@@ -20,6 +20,7 @@ import {
 } from "@/app/panel/ogrenci/actions";
 import { generateExamAction, type ExamItem } from "@/app/panel/ogretmen/actions";
 import { ExamResultView } from "@/components/panel/exam-result";
+import { ReferenceQuestionGenerator } from "@/components/panel/reference-question-generator";
 import { splitEqually } from "@/lib/split-equally";
 import type { GeneratedQuestion } from "@/lib/schemas/generation";
 import { useCurriculum, YKS_MATH_CURRICULUM } from "@/lib/curriculum-data";
@@ -1209,6 +1210,10 @@ export default function StudentPanel() {
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="mt-10">
+              <ReferenceQuestionGenerator />
             </div>
           </div>
         );

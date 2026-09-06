@@ -5,7 +5,9 @@ import { readAnswerSheet } from "@/lib/gemini-tasks/read-answer-sheet";
 import { extractAnswerSheet } from "@/lib/gemini-tasks/extract-answer-sheet";
 import { assessPaper } from "@/lib/gemini-tasks/assess-paper";
 import { generateQuestionsForTopic } from "@/lib/gemini-tasks/generate-questions";
+import { generateSimilarQuestions } from "@/lib/gemini-tasks/generate-similar-questions";
 import { listFinishedSubjectIds, listFinishedTopicIds } from "@/lib/finished-kazanim";
+import type { GeneratedQuestion } from "@/lib/schemas/generation";
 import { bumpTwinRisk } from "@/lib/twin";
 
 const DIFFICULTY_RANGES: Record<string, [number, number]> = {
@@ -486,4 +488,23 @@ export async function confirmOpenEndedAttempt(params: {
       .single();
     await bumpTwinRisk(supabase, attempt.student_id, question?.topic_label || "Genel");
   }
+}
+
+/**
+ * "Referans Sorudan Üret": hem öğretmen (panel/ogretmen) hem öğrenci (panel/ogrenci, doğrudan
+ * buradan import edilir — bkz. generateExamAction ile aynı paylaşım deseni) tarafında kullanılır.
+ * Kullanıcı bir örnek/referans soru görseli yükler, Gemini onu anlayıp aynı konu/zorluk/tipte
+ * N yeni orijinal soru üretir. Havuza yazılmaz, sadece önizleme/PDF için — DB'ye ihtiyaç yok.
+ */
+export async function generateSimilarQuestionsAction(formData: FormData): Promise<GeneratedQuestion[]> {
+  const file = formData.get("file");
+  const countRaw = Number(formData.get("count"));
+  const count = Math.min(20, Math.max(1, countRaw || 5));
+  if (!(file instanceof File) || file.size === 0) throw new Error("Bir referans soru görseli seçmelisin");
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const imageBase64 = buffer.toString("base64");
+  const imageMimeType = file.type || "image/jpeg";
+
+  return generateSimilarQuestions({ imageBase64, mimeType: imageMimeType, count });
 }

@@ -24,6 +24,7 @@ import {
 } from "@/app/panel/ogretmen/actions";
 import { useCurriculum, YKS_MATH_CURRICULUM, type WeekStatus } from "@/lib/curriculum-data";
 import { ExamResultView } from "@/components/panel/exam-result";
+import { ReferenceQuestionGenerator } from "@/components/panel/reference-question-generator";
 import { splitEqually } from "@/lib/split-equally";
 
 const icons = {
@@ -544,6 +545,10 @@ export default function OgretmenPanel() {
                   ))}
                 </div>
               </div>
+            </div>
+
+            <div className="mt-10">
+              <ReferenceQuestionGenerator />
             </div>
           </div>
         );

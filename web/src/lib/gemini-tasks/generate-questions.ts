@@ -40,7 +40,9 @@ ${params.twinHint ? `Öğrencinin bu derste hata deseni: ${params.twinHint} — 
 
 Matematiksel ifadeleri (kök, kesir, üs, denklem vb.) LaTeX ile yaz ve MUTLAKA $ ... $ (satır içi)
 ya da $$ ... $$ (blok) ile sınırla — ör. "$\\sqrt{11 + \\sqrt{120}}$", "$\\frac{a}{b}$". Sınırlanmamış
-LaTeX (\\sqrt{...} gibi çıplak komutlar) sitede render edilmiyor, düz metin olarak görünüyor.`;
+LaTeX (\\sqrt{...} gibi çıplak komutlar) sitede render edilmiyor, düz metin olarak görünüyor.
+ÖNEMLİ: LaTeX'te "%" bir yorum karakteridir ve ondan sonraki her şeyi yutar — yüzde
+sorularında MUTLAKA "\\%" (ters eğik çizgili) kullan, çıplak "%" KULLANMA (ör. "$\\%40$").`;
 
   const response = await generateWithFallback({
     contents: [{ role: "user", parts: [{ text: prompt }] }],
