@@ -1,0 +1,38 @@
+[
+  {
+    "student_id": "e955ea74-e05e-4ee4-ad55-3cb43e10a863",
+    "topic_id": null,
+    "risk_score": 55,
+    "sample_count": 1,
+    "updated_at": "2026-09-05T09:43:02.952354+00:00",
+    "id": "9ad86c8e-ae4d-4a01-a429-927c1c50086d",
+    "topic_label": "Çokgenler"
+  },
+  {
+    "student_id": "e955ea74-e05e-4ee4-ad55-3cb43e10a863",
+    "topic_id": null,
+    "risk_score": 55,
+    "sample_count": 1,
+    "updated_at": "2026-09-05T10:59:01.68239+00:00",
+    "id": "8e686bd8-832e-4361-8cb5-c5959a53573f",
+    "topic_label": "İkinci Dereceden Denklemler"
+  },
+  {
+    "student_id": "e955ea74-e05e-4ee4-ad55-3cb43e10a863",
+    "topic_id": null,
+    "risk_score": 55,
+    "sample_count": 1,
+    "updated_at": "2026-09-05T13:40:16.29467+00:00",
+    "id": "7cb6ad64-4f44-42a2-8807-303dea2cfc73",
+    "topic_label": "Üslü Sayılar"
+  },
+  {
+    "student_id": "e955ea74-e05e-4ee4-ad55-3cb43e10a863",
+    "topic_id": null,
+    "risk_score": 55,
+    "sample_count": 1,
+    "updated_at": "2026-09-05T13:40:23.854603+00:00",
+    "id": "70bb48cc-0e87-4e70-a7bf-cfffdfa3b23f",
+    "topic_label": "Mayoz Bölünme"
+  }
+]

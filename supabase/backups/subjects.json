@@ -1,0 +1,22 @@
+[
+  {
+    "id": "addd8251-6966-44b9-b45d-6b9d8be8695a",
+    "name": "Biyoloji",
+    "program": "yks"
+  },
+  {
+    "id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Matematik",
+    "program": "yks"
+  },
+  {
+    "id": "1247f3b8-e090-467f-af94-3501ba2e137b",
+    "name": "Kimya",
+    "program": "yks"
+  },
+  {
+    "id": "cef8a0d6-6e4a-4c4c-964d-3264e5cbc615",
+    "name": "Coğrafya",
+    "program": "yks"
+  }
+]

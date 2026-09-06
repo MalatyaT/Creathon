@@ -1,0 +1,16 @@
+[
+  {
+    "id": "3dd96d04-3c79-424c-832d-c6d988048421",
+    "student_id": "e955ea74-e05e-4ee4-ad55-3cb43e10a863",
+    "linked_profile_id": "81342702-27a2-409c-9a4d-ba0b35020792",
+    "relation": "teacher",
+    "created_at": "2026-09-05T10:50:48.062474+00:00"
+  },
+  {
+    "id": "39d2d3fe-bae1-4c64-9f3a-6a5bff783048",
+    "student_id": "e955ea74-e05e-4ee4-ad55-3cb43e10a863",
+    "linked_profile_id": "f3ea2430-104d-453a-86fc-61c10120a671",
+    "relation": "parent",
+    "created_at": "2026-09-05T11:03:41.453307+00:00"
+  }
+]

@@ -1,12 +1,62 @@
 # İkiz — Yapay Zeka Destekli Sınav Koçu Platformu — Yapılacaklar Listesi
 
+## Sıradaki adımlar (bir sonraki devam noktası)
+
+- [ ] Deploy doğrulaması: son `vercel deploy --prod --yes` çıktısını kontrol et, canlıda `/panel/kaynak-uretici` ve `/panel/yonetici` çalıştığını doğrula.
+- [ ] `/panel/veli` mock-panel deseninde eksik (bkz. aşağıdaki madde) — yapılabilir.
+- [x] **Çözüldü:** `panel/ogrenci/page.tsx`'teki `createQ`/`handleGenerate` (Özel Soru Oluştur sekmesi) artık Ollama değil, RAG unification'da kurulan pgvector+Gemini yolunu (`generateRagQuestion`) kullanıyor — kullanıcının kendi isteğiyle yapıldı (Ollama, yerel modelin yüklenmesinde sık sık [4/4] adımında takılıp kalıyordu, ayrıca Türkçe matematik muhakemesinde daha önce tutarsız çıktılar verdiği zaten görülmüştü). `generateSingleQuestionAction` (`panel/ogrenci/actions.ts`) düzenlendi; kazanım listesi zaten aynı `topics` tablosundan geldiği için ingest edilen kitap konuları otomatik olarak burada da seçilebiliyor, ekstra bir bağlama gerekmedi. Artık hiçbir yerden çağrılmayan `web/src/lib/ollama.ts` ve `web/src/lib/ollama-tasks/` tamamen silindi.
+- [ ] Kullanıcıdan yeni bir istek gelirse buraya eklenecek.
+
+## UZUN VADELİ 3 ANA HEDEF (checklist — bunlar uzun sürecek, demo pivotundan bağımsız asıl ürün hedefleri)
+
+> Mevcut kod taraması: bu üç başlığın hepsi için **kısmi/paralel scaffolding zaten var ama hiçbiri birbirine bağlı değil** — aşağıdaki checklist'ler önce "hangi yolu kalıcı kılıyoruz" kararını, sonra entegrasyonu kapsıyor.
+
+### 1) RAG tabanlı semantik besleme ile (Kaynaklar/ PDF'leri) soru üretme
+
+- [x] **Karar verildi ve uygulandı:** Tek kalıcı yol = **pgvector + Gemini** (embedding: `gemini-embedding-001`, 768 boyuta kısıtlanmış — `web/src/lib/gemini.ts:embedText`). Gemini vs. Ollama (qwen2.5:7b) karşılaştırıldı: Ollama Türkçe matematik/mantık muhakemesinde tutarsız/hatalı sorular üretti (sayılar sorudaki senaryoyla uyuşmuyordu, şık biçimlendirmesi bozuktu), Gemini tutarlıydı — üretim backend'i olarak **Gemini** seçildi.
+- [x] **Eski/çakışan yollar kaldırıldı:** `backend/` (Python/FastAPI+Chroma+Ollama), `web/src/app/actions/ragAction.ts` (+ ondan kalan tek dangling import `panel/ogrenci/page.tsx`'te temizlendi), `web/scripts/ingest_pdfs.js`, `Kaynaklar/knowledge_base.json` (790 karakterlik sahte Matematik stub'ı içeriyordu). `web/src/lib/ollama-tasks/generate-question.ts` dokunulmadan bırakıldı — bu, RAG'dan bağımsız, hâlâ canlı olan ayrı bir özellik (`panel/ogrenci` "Soru Oluşturma" tekil önizleme akışı, `panel/ogrenci/actions.ts`).
+- [x] **Matematik pilotu uçtan uca doğrulandı ("Mantık" kazanımı):** Kaynak `Kaynaklar/YKS Kaynaklar/matematik/files/search/bookText.xml` (MEB "3 Adım TYT Matematik" kitabının flipbook arama-index'i — ham PDF/OCR'dan çok daha temiz, sayfa-indeksli düz metin; 34 konu × 3 zorluk kademesi olarak yapılanmış, İçindekiler kanonik kazanım kaynağı olarak kullanıldı). `web/scripts/ingest-matematik-kazanim.ts --topic "Mantık"` ile 12 sayfadan **61 soru** çıkarılıp (`extractQuestionsFromText`, `web/src/lib/gemini-tasks/extract-questions.ts`) gerçek `topics`/`questions` satırları olarak embedding'leriyle birlikte kaydedildi. `supabase/migrations/0012_match_questions.sql` (pgvector cosine-benzerlik RPC'si) ile retrieval doğrulandı (benzerlik ~0.64-0.68 arası, gerçekten alakalı sorular döndü). Ortak retrieval+üretim modülü: `web/src/lib/gemini-tasks/generate-rag-question.ts` (`retrieveSimilarQuestions` + `generateRagQuestion`).
+- [x] **UI'a bağlandı ve canlıda (dev) uçtan uca test edildi:** `/panel/soru-olustur` sayfasına, ana test akışından tamamen ayrı, "RAG pilotu — tek kazanım, tek soru (deneysel)" adında bir bölüm eklendi (`web/src/components/panel/test-builder.tsx`, server action `generateRagPreviewAction` — `web/src/app/panel/soru-olustur/actions.ts`). Kazanım seçip üretilen soruyu VE retrieval'in getirdiği referans soruları (benzerlik skoruyla) yan yana gösteriyor. Playwright ile (admin API'yle onaylı bir test öğrenci hesabı oluşturup gerçek `@supabase/ssr` `signInWithPassword` ile) gerçek bir tarayıcı oturumunda test edildi, ekran görüntüsüyle doğrulandı, konsol hatası yok.
+  - **Önemli bulgu (kullanıcının sorduğu "cevap doğru mu" sorusuna doğrudan cevap):** Kazanım = "Mantık" seçilip retrieval de "Mantık" referanslarını getirince (benzerlik 0.64-0.68) üretilen soru **doğruydu ve tutarlıydı** (üç önerme üzerinden doğru hesaplanmış bir bileşik önerme sorusu, açıklama cevapla birebir örtüşüyordu). Ama test sırasında yanlışlıkla farklı bir kazanım ("Asal Sayılar" — alfabetik varsayılan) seçildiğinde, retrieval yine de (havuzda başka embedding olmadığı için) Mantık sorularını referans getirdi ve **üretilen soru hatalıydı**: "hangisinin farkı asal değildir" sorusunun bütün şıklarının farkı aslında asal çıkıyordu (geçerli bir cevap yoktu), Gemini'nin kendi açıklaması da yarıda kendini düzeltmeye çalışıyordu. **Sonuç:** RAG mekaniği (retrieval + üretim) çalışıyor, ama kazanım ile retrieval'in beslendiği veri uyuşmadığında kalite ciddi düşüyor — kalan 33 kazanım ingest edilene kadar RAG pilotu sadece "Mantık" için güvenilir.
+- [ ] **Sırada:** Kalan 33 kazanım için `ingest-matematik-kazanim.ts --topic "<konu>"` tek tek çalıştırılmalı (script'teki `TOPIC_START_PAGE` tablosunda şu an ilk 17 konunun sayfa aralığı doğrulanmış durumda, geometri ağırlıklı son 17'sinin sayfa numaraları henüz teyit edilmedi — eklenmesi gerekiyor). Bu tamamlanana kadar RAG pilot UI'ı kullanıcıya (öğrenciye) açılmamalı, sadece iç test için.
+- [ ] Gemini'nin üretiminde ara sıra görülen öz-düzeltme/tutarsızlık riskine karşı (yukarıdaki "Asal Sayılar" örneği) üretilen sorunun cevabının gerçekten doğru olduğunu otomatik doğrulayan bir adım (ör. ikinci bir Gemini çağrısıyla çapraz kontrol) değerlendirilebilir — şu an yok, sadece insan gözüyle kontrol var.
+- [ ] Üretilen sorular şu an ingestion'da doğrudan `approved` — canlı kullanıcıya sunulacaksa (RAG referansı değil, havuz sorusu olarak) ayrı bir moderasyon adımı değerlendirilmeli.
+- [ ] Diğer derslere (Kimya/Biyoloji/Coğrafya/Fizik) aynı desen uygulanabilir ama her birinin kendi `bookText.xml`-benzeri temiz kaynağı bulunmalı/doğrulanmalı — Matematik dışındakiler için henüz bakılmadı.
+
+### 2) Atılan soruyu çözüp değerlendirme yapma (sınav kağıdı puanlama)
+
+Şu an öğretmen panelindeki "Kağıt Puanlama" sekmesi **tamamen mock** (TODO.md'de zaten böyle işaretli) — gerçek OCR/puanlama yok, `exams`/deneme sonucu girme ekranı da hiç yok.
+
+- [ ] Cevap kağıdı görsel/PDF yükleme UI (optik form ya da yazılı kağıt, öğretmen tarafı).
+- [ ] OCR: kaynak-üretici ekranındaki (`scan-upload.tsx`) Gemini multimodal desenini tekrar kullanarak kağıttaki işaretli/yazılı cevapları yapılandırılmış JSON'a çıkarma (optik formda şık tespiti; açık uçlu/el yazısında cevap metni okuma).
+- [ ] Hangi sınav/teste ait olduğunu belirleyip (mevcut `exams`/`homework`'e bağla) cevap anahtarına karşı otomatik puanlama: doğru/yanlış/boş sayımı + soru bazlı doğru-yanlış tablosu.
+- [ ] Düşük OCR güven skorunda öğretmen onayı/manuel düzeltme adımı (yanlış puanlama riskine karşı kalite kapısı — mevcut kaynak-üretici moderasyon ilkesiyle aynı).
+- [ ] Sonuçları yeni bir `question_attempts` tablosuna yazma (student_id, question_id, topic_id, difficulty, chosen_answer, is_correct, created_at) — **bu, Track 3'ün ihtiyaç duyduğu gerçek doğru/yanlış verisinin ilk kaynağı olacak** (şu an sadece chat frekans sinyali var, gerçek doğruluk verisi yok).
+- [ ] Analiz sekmesindeki şu an kasıtlı boş bırakılan "deneme net ortalaması" ve sınıf/il/ilçe karşılaştırmasını bu gerçek veriyle doldurma.
+
+### 3) Dijital ikiz için nöral ağ — öğrencinin yerine soru çözüp benzer hataları yapan model
+
+Şu an `lib/twin.ts` sadece **basit sıklık tabanlı risk skoru** (chat'te bir konu tekrar sorulunca +6 puan) — gerçek doğru/yanlış verisi yok, gerçek bir tahmin modeli yok. **Bu track, Track 2'nin ürettiği `question_attempts` verisi olmadan anlamlı şekilde eğitilemez — sırada Track 2'den sonra gelmeli.**
+
+- [ ] Veri biriktikçe soğuk-başlangıç: önce basit istatistiksel model (konu+zorluk bazlı doğru cevap oranı, IRT/Elo benzeri) — hackathon süresinde tek öğrenci başına "gerçek derin öğrenme modeli" için yeterli veri olması gerçekçi değil, bu riski şimdiden not düşüyorum.
+- [ ] Asıl model: öğrenciler-arası ortak bir temel model (soru embedding'i + konu + zorluk → genel zorluk/yanlış-yapma olasılığı) + öğrenciye özgü küçük bir kişiselleştirme terimi (o öğrencinin geçmiş doğru/yanlış paterni) — tek öğrenci için sıfırdan ayrı bir ağ yerine, overfit riskini azaltan bu paylaşımlı yaklaşım öneriliyor.
+- [ ] (Opsiyonel, veri yeterliyse) hangi çeldiriciye yöneldiğini de tahmin eden ikinci bir sınıflandırıcı — şu an prompt'lara elle yazılan `twinHint` ("sınır açısı hatası" gibi) metinlerinin yerini gerçek veriden türeyen bir sinyal alacak.
+- [ ] Servis: `backend/` (Python/FastAPI) zaten var, model eğitimi/inference için bu kullanılabilir (Track 1 kararına bağlı — Python yolu kalkarsa bu da Node tarafına, ör. basit bir lojistik regresyon/TensorFlow.js'e taşınmalı).
+- [ ] "İkiz soru çözüyor" deneyimi: üretilen/havuzdaki bir soru için modelin "bu öğrenci doğru mu yanlış mı yapardı, hangi şıkka yönelirdi" tahminini Dijital İkiz ekranında ve soru üretiminde çeldirici ağırlıklandırmada kullanma.
+- [ ] Basit bir holdout/değerlendirme: modelin tahminiyle gerçek sonucu karşılaştırıp doğruluk ölçme.
+
 ## CANLI: sunum pivotu + deploy
 
 - [x] **Sunum odaklı yeniden tasarım** (eşzamanlı bir oturumda yapıldı, ben doğrulayıp push ettim): landing page ve öğrenci paneli, tek dosyalık sekmeli, mock/örnek veriye dayalı bileşenlere dönüştürüldü (`/panel/ogrenci`) — yeşil/sarı marka paleti (`renkpaleti.png`: #FAFAFA/#15803D/#EAB308). Giriş sayfaları artık gerçek kimlik doğrulamayı atlayıp doğrudan `/panel/[rol]`'e yönlendiriyor. Eşzamanlı oturum, öğrenci panelindeki "Soru Sor" sekmesini gerçek Gemini + session kaydına bağlamak üzerinde çalışıyor (`lib/twin.ts`, `lib/supabase/admin.ts`, `panel/ogrenci/actions.ts`) — ben o dosyalara dokunmuyorum.
 - [x] **Öğretmen demo paneli** (`/panel/ogretmen`, benim işim): aynı görsel dilde, 8 istenen bölüm — Soru Oluşturma, Sınav Oluşturma, Analiz, Ödevlendirme, Kağıt Puanlama (cevap kağıdı yükle → yapay zeka puanlar, mock), Kaynak Yönetme, Sınıf Yönetme, Kazanım/Müfredat Yönetme — artı genel Panel özeti.
 - [x] **Vercel'e deploy edildi**: proje `3-d9/web` olarak bağlı, prod/preview/development ortamlarına `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY` eklendi. Canlı URL: **https://web-liard-seven-80.vercel.app** — landing + `/panel/ogrenci` + `/panel/ogretmen` doğrulandı, konsol hatası yok.
-- [ ] `/giris/kaynak-uretici` ve `/giris/veli` artık `/panel/kaynak-uretici` ve `/panel/veli`'ye yönlendiriyor ama bu sayfalar henüz yok (404) — landing page'in "Kaynak Üreticisi" kartı şu an kırık. Aynı mock-panel deseninde bu ikisi de yapılmalı.
+- [x] **Kaynak Üreticisi demo paneli** (`/panel/kaynak-uretici`, benim işim): Panel/Kaynak Ekle (kitap adı+kategori+sayfa yükle → mock tarama sonucu)/Soru Değerlendirme (onay bekleyen sorular kuyruğu, Onayla/Reddet ile listeden düşüyor — gerçekten interaktif, Playwright ile doğrulandı) sekmeleri.
+- [x] **Yönetici demo paneli** (`/panel/yonetici`, benim işim, kullanıcının istediği "üst yetkili" profil): Panel/Öğretmen Atama (öğretmen→sınıf atama formu, çalışıyor)/Sınıflar (sınıf bazlı özet)/Kazanım-Müfredat Yönetimi sekmeleri.
+- [x] Landing page'e 4. kart eklendi ("Yönetici"), grid `sm:grid-cols-2 lg:grid-cols-4` oldu. Commit: "feat: Kaynak Üreticisi + Yönetici demo paneller, landing page 4. kart", push'landı.
+- [x] `/giris/kaynak-uretici` artık çalışıyor (üstteki maddeyle 404 giderildi).
+- [ ] `/giris/veli` hâlâ `/panel/veli`'ye yönlendiriyor ama bu sayfa yeni mock-panel deseninde henüz yok (404) — sadece eski gerçek-veri `/veli` route'u var. Aynı desende bir `/panel/veli` yapılmalı.
 - [ ] Bu pivotla birlikte benim daha önce inşa ettiğim gerçek-veriye-bağlı sayfalar (`/panel/ikiz`, `/panel/analiz`, `/panel/odevler`, `/panel/soru-olustur`, `/panel/videolar`, `/ogretmen`, `/veli`, `/kaynak-uretici`) navigasyondan koptu ama silinmedi — hâlâ doğrudan URL ile erişilebilir ve çalışır durumda.
+- [x] `vercel deploy --prod --yes` ile yeni panellerin (kaynak-uretici, yonetici) canlıya çıkarılması yapıldı (repo kökünden çalıştırıldı — proje `rootDirectory=web` ayarına sahip olduğu için `web/` içinden değil kökten deploy edilmesi gerekiyor).
 
 ---
 

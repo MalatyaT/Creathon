@@ -1,0 +1,32 @@
+[
+  {
+    "id": "d3413a28-97c3-4c4d-94a3-12347ab74e70",
+    "role": "content_creator",
+    "full_name": "Test Kaynak",
+    "created_at": "2026-09-05T09:28:50.696358+00:00"
+  },
+  {
+    "id": "e955ea74-e05e-4ee4-ad55-3cb43e10a863",
+    "role": "student",
+    "full_name": "Test Öğrenci",
+    "created_at": "2026-09-05T09:28:51.644182+00:00"
+  },
+  {
+    "id": "81342702-27a2-409c-9a4d-ba0b35020792",
+    "role": "teacher",
+    "full_name": "Test Öğretmen",
+    "created_at": "2026-09-05T10:46:12.67444+00:00"
+  },
+  {
+    "id": "f3ea2430-104d-453a-86fc-61c10120a671",
+    "role": "parent",
+    "full_name": "Test Veli",
+    "created_at": "2026-09-05T11:03:20.360963+00:00"
+  },
+  {
+    "id": "650e567d-c203-41ad-8b59-7fd6b46fd398",
+    "role": "student",
+    "full_name": "Test Öğrenci",
+    "created_at": "2026-09-05T21:35:11.633095+00:00"
+  }
+]

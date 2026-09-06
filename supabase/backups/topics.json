@@ -1,0 +1,975 @@
+[
+  {
+    "id": "a9c2eee3-be40-49fe-a9b4-950433df6665",
+    "subject_id": "addd8251-6966-44b9-b45d-6b9d8be8695a",
+    "name": "Canlıların Ortak Özellikleri",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.131616+00:00",
+    "aliases": [
+      "Canlıların Ortak Özellikleri",
+      "Canlıların Ortak Özellikleri - Beslenme Şekilleri",
+      "Canlıların Ortak Özellikleri - Metabolizma",
+      "Canlıların Ortak Özellikleri / Bakteriler ve Virüsler",
+      "Canlıların Ortak Özellikleri / Homeostazi",
+      "Canlıların Ortak Özellikleri ve Beslenme Çeşitleri",
+      "Canlıların Ortak Özellikleri ve Virüsler",
+      "TYT Biyoloji - Metabolizma (Anabolizma-Katabolizma)"
+    ]
+  },
+  {
+    "id": "82d89c8a-06e5-4a9b-b901-789063125455",
+    "subject_id": "addd8251-6966-44b9-b45d-6b9d8be8695a",
+    "name": "Canlıların Temel Bileşenleri",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.131616+00:00",
+    "aliases": [
+      "Canlıların Temel Bileşenleri",
+      "Canlıların Temel Bileşenleri - ATP",
+      "Canlıların Temel Bileşenleri - Esansiyel Maddeler",
+      "Canlıların Temel Bileşenleri - Karbonhidrat, Yağ, Protein",
+      "Canlıların Temel Bileşenleri - Lipitler",
+      "Canlıların Temel Bileşenleri - Mineraller",
+      "Canlıların Temel Bileşenleri - Nükleik Asitler ve ATP",
+      "Canlıların Temel Bileşenleri - Polisakkaritler",
+      "Canlıların Temel Bileşenleri - Proteinler ve Amino Asitler",
+      "Canlıların Temel Bileşenleri - Su",
+      "Canlıların Temel Bileşenleri - Yağlar",
+      "Canlıların Temel Bileşenleri - İnorganik Bileşikler",
+      "Canlıların Temel Bileşenleri / Hücre / Canlılar Dünyası",
+      "Karbonhidratlar ve Enzimler",
+      "Karbonhidratlar ve Temel Bileşenler",
+      "Nükleik Asitler",
+      "Nükleik Asitler (DNA ve RNA)",
+      "Organik Bileşikler",
+      "Organik Bileşikler ve Hücre Metabolizması",
+      "TYT Biyoloji - Nükleik Asitler (DNA)",
+      "TYT Biyoloji - Organik Bileşikler (Lipitler/Steroit)",
+      "Temel Bileşenler - Vitaminler"
+    ]
+  },
+  {
+    "id": "c6c41424-4c0b-4451-bef0-1697f3cf2f0e",
+    "subject_id": "addd8251-6966-44b9-b45d-6b9d8be8695a",
+    "name": "Enzimler",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.131616+00:00",
+    "aliases": [
+      "Enzimler",
+      "Canlıların Temel Bileşenleri - Enzimler",
+      "Canlıların Temel Bileşenleri - Enzimler ve Sindirim",
+      "Enzimler - Enzim Çalışma Hızına Etki Eden Faktörler",
+      "Enzimler ve Sindirim",
+      "Enzimler ve Çalışma Hızına Etki Eden Faktörler",
+      "Enzimler ve Çalışma Mekanizmaları",
+      "Enzimlerin Yapısı ve Çalışma Hızı",
+      "Enzimlerin Çalışma Hızına Etki Eden Faktörler",
+      "Madde Geçişleri ve Enzimler"
+    ]
+  },
+  {
+    "id": "c7afec16-2480-43c6-b72c-9f78ba5806c6",
+    "subject_id": "addd8251-6966-44b9-b45d-6b9d8be8695a",
+    "name": "Hücre ve Organelleri",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.131616+00:00",
+    "aliases": [
+      "Hücre ve Organelleri",
+      "Canlılar Dünyası ve Hücre",
+      "Hücre - Organeller (Mitokondri)",
+      "Hücre - Organeller (Plastitler)",
+      "Hücre Organelleri",
+      "Hücre Organelleri - Mitokondri",
+      "Hücre Organelleri - Sitoplazma ve Organeller",
+      "Hücre Organelleri ve Görevleri",
+      "Hücre Organelleri ve Metabolizma",
+      "Hücre Organelleri ve Çekirdek",
+      "Hücre Solunumu ve Mitokondri",
+      "Hücre Zarı ve Yapısı",
+      "Hücre Zarının Yapısı ve Özellikleri",
+      "Hücre ve Organeller",
+      "Hücre ve Organelleri / Genetik Bilgi",
+      "Hücrenin Temel Kısımları",
+      "Hücrenin Temel Kısımları ve Canlıların Çeşitliliği",
+      "TYT Biyoloji - Hücre (Mitokondri)",
+      "TYT Biyoloji - Hücre (Sitoplazma)",
+      "TYT Biyoloji - Hücrenin Temel Kısımları ve Organeller"
+    ]
+  },
+  {
+    "id": "a529372c-2b53-4d8c-b7d2-9940e7f05802",
+    "subject_id": "addd8251-6966-44b9-b45d-6b9d8be8695a",
+    "name": "Hücre Zarından Madde Geçişleri",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.131616+00:00",
+    "aliases": [
+      "Hücre Zarından Madde Geçişleri",
+      "Hücre Zarı Madde Geçişleri - Difüzyon",
+      "Hücre Zarı Madde Geçişleri / Endositoz ve Ekzositoz",
+      "Hücre Zarı Maddelerin Geçişi",
+      "Hücre Zarı ve Madde Geçişleri",
+      "Hücre Zarından Madde Geçişleri (Ozmoz)",
+      "Hücre Zarından Madde Geçişleri - Ozmoz",
+      "Hücre Zarından Madde Geçişleri ve Canlıların Çeşitliliği",
+      "Madde Geçişleri",
+      "Madde Geçişleri ve Ozmoz"
+    ]
+  },
+  {
+    "id": "95c43c97-ad39-404e-a6c5-3cb7d66f51ba",
+    "subject_id": "addd8251-6966-44b9-b45d-6b9d8be8695a",
+    "name": "Canlıların Sınıflandırılması ve Çeşitliliği",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.131616+00:00",
+    "aliases": [
+      "Canlıların Sınıflandırılması ve Çeşitliliği",
+      "Bakteriler ve Canlılar Dünyası",
+      "Bakteriler ve Endospor Özellikleri",
+      "Bakterilerin Beslenmesi ve Metabolizması",
+      "Canların Çeşitliliği ve Sınıflandırılması - Omurgalılar",
+      "Canlılar Dünyası - Bakteriler Alemi",
+      "Canlılar Dünyası - Virüsler",
+      "Canlılar Dünyası / Hayvanlar Alemi",
+      "Canlıların Sınıflandırılması",
+      "Canlıların Sınıflandırılması - İkili Adlandırma",
+      "Canlıların Sınıflandırılması ve Sistematik",
+      "Canlıların Çeşitliliği ve Sınıflandırılması",
+      "Canlıların Çeşitliliği ve Sınıflandırılması (Omurgasızlar)",
+      "Canlıların Çeşitliliği ve Sınıflandırılması - Omurgalılar",
+      "Canlıların Çeşitliliği ve Sınıflandırılması / Homolog Organlar",
+      "Omurgalı Hayvanlar",
+      "TYT Biyoloji - Canlılar Alemi (Mantarlar)",
+      "TYT Biyoloji - Canlıların Sınıflandırılması (Sistematik)"
+    ]
+  },
+  {
+    "id": "80d85d2c-cb90-459b-b625-49bf3bf7da2b",
+    "subject_id": "addd8251-6966-44b9-b45d-6b9d8be8695a",
+    "name": "Hücre Bölünmeleri",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.131616+00:00",
+    "aliases": [
+      "Hücre Bölünmeleri",
+      "Hücre Bölünmeleri - Hücre Döçüsü ve Mitoz",
+      "Hücre Bölünmeleri ve Kanser",
+      "Mitoz Bölünme",
+      "TYT Biyoloji - Hücre Bölünmeleri (Mitoz-Mayoz Karşılaştırma)"
+    ]
+  },
+  {
+    "id": "58156589-31d8-46a6-a34a-7a1364993750",
+    "subject_id": "addd8251-6966-44b9-b45d-6b9d8be8695a",
+    "name": "Mayoz Bölünme ve Üreme",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.131616+00:00",
+    "aliases": [
+      "Mayoz Bölünme ve Üreme",
+      "Bitki Biyolojisi / Üreme",
+      "Bitkilerde Üreme ve Gelişme",
+      "Canlılarda Üreme - Vejetatif Üreme",
+      "Canlılarda Üreme Çeşitleri",
+      "Hücre Bölünmeleri (Mayoz)",
+      "Hücre Bölünmeleri (Mitoz ve Mayoz)",
+      "Hücre Bölünmeleri (Mitoz, Mayoz ve Döllenme)",
+      "Hücre Bölünmeleri - Mayoz",
+      "Hücre Bölünmeleri - Mitoz ve Mayoz",
+      "Hücre Bölünmeleri / Mayoz Bölünme",
+      "Kromozom Teorisi ve Mayoz Bölünme",
+      "Mayoz Bölünme",
+      "Mayoz Bölünme ve Eşeyli Üreme",
+      "TYT Biyoloji - Hücre Bölünmeleri (Mayoz)",
+      "Üreme Sistemi ve Embriyonik Gelişim",
+      "Üreme Sistemi ve Mayoz Bölünme",
+      "Üreme Çeşitleri (Eşeysiz Üreme)",
+      "Üreme Çeşitleri - Eşeysiz ve Eşeyli Üreme",
+      "Üreme Çeşitleri - Eşeysiz Üreme",
+      "Üreme Çeşitleri / Eşeysiz Üreme",
+      "Üreme Çeşitleri ve Bitkilerde Üreme",
+      "Üreme Çeşitleri ve Eşeyli Üreme",
+      "Üreme Çeşitleri ve Eşeysiz-Eşeyli Üreme",
+      "Üreme Çeşitleri ve Mayoz-Mitoz İlişkisi"
+    ]
+  },
+  {
+    "id": "7d2f2b24-582e-4829-8925-8b22d3839205",
+    "subject_id": "addd8251-6966-44b9-b45d-6b9d8be8695a",
+    "name": "Kalıtım",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.131616+00:00",
+    "aliases": [
+      "Kalıtım",
+      "Eşeye Bağlı Kalıtım",
+      "Eşeyli Üreme ve Kalıtım",
+      "Kalıtım - Eş Baskınlık",
+      "Kalıtım - Eşeye Bağlı Kalıtım",
+      "Kalıtım - Genetik",
+      "Kalıtım - Kan Grupları",
+      "Kalıtım - Kan Grupları ve Soy Ağaçları",
+      "Kalıtım - Kan Grupları ve Soyağaçları",
+      "Kalıtım - Soy Ağaçları ve Genetik Hastalıklar",
+      "Kalıtım - Soyağacı Analizi",
+      "Kalıtım - Soyağaçları ve Genetik",
+      "Kalıtım - Çok Alellilik",
+      "Kalıtım / Eşeye Bağlı Kalıtım",
+      "Kalıtım / Kan Grupları ve Soyağacı",
+      "Kalıtım ve Biyolojik Çeşitlilik",
+      "Kalıtım ve Evrim - Varyasyon, Mutasyon, Modifikasyon",
+      "Kalıtım ve Eşeyli Üreme",
+      "Kalıtım ve Genetik",
+      "Kalıtım ve Genetik / Kan Grupları",
+      "Kalıtım ve Mayoz Bölünme",
+      "Kalıtım ve Soy Ağaçları",
+      "Kalıtım ve Soyağaçları",
+      "Kalıtım ve Çevre İlişkisi",
+      "Kalıtım ve Çeşitlilik / Modifikasyon",
+      "TYT Biyoloji - Kalıtım (Rh Kan Grubu)",
+      "TYT Biyoloji - Kalıtım (Soyağacı/Olasılık)",
+      "İnsanda Kan Grupları ve Kalıtımı"
+    ]
+  },
+  {
+    "id": "a4390cf0-ee6f-4588-b0ef-7c06a83c17cc",
+    "subject_id": "addd8251-6966-44b9-b45d-6b9d8be8695a",
+    "name": "Genetik Şifre ve Protein Sentezi",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.131616+00:00",
+    "aliases": [
+      "Genetik Şifre ve Protein Sentezi",
+      "Genetik Şifre ve Protein Sentezi / Transkripsiyon"
+    ]
+  },
+  {
+    "id": "3c20e1e6-e124-41f7-8741-e4083f55415e",
+    "subject_id": "addd8251-6966-44b9-b45d-6b9d8be8695a",
+    "name": "Ekoloji ve Ekosistem",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.131616+00:00",
+    "aliases": [
+      "Ekoloji ve Ekosistem",
+      "Ekokoji ve Ekosistem Ekolojisi",
+      "Ekoloji",
+      "Ekoloji - Abiyotik Faktörler",
+      "Ekoloji - Azot Döngüsü",
+      "Ekoloji - Besin Ağı ve Beslenme İlişkileri",
+      "Ekoloji - Besin Ağı ve İlişkiler",
+      "Ekoloji - Besin Piramitleri",
+      "Ekoloji - Besin Zinciri ve Biyokütle",
+      "Ekoloji - Ekolojik Organizasyon",
+      "Ekoloji - Ekosistem Ekolojisi",
+      "Ekoloji - Çevre Sorunları",
+      "Ekoloji / Azot Döngüsü",
+      "Ekoloji / Besin Piramidi ve Enerji Akışı",
+      "Ekoloji ve Azot Döngüsü",
+      "Ekoloji ve Biyolojik Çeşitlilik",
+      "Ekoloji ve Madde Döngüleri",
+      "Ekoloji ve Sürdürülebilirlik",
+      "Ekoloji ve Çevre Sorunları",
+      "Ekonomi ve Ekoloji - Besin Zinciri ve Enerji Akışı",
+      "Ekosistem Ekolojisi - Besin Piramidi",
+      "Ekosistem Ekolojisi / Organik Tarım ve Bitki Beslenmesi",
+      "Ekosistem Ekolojisi ve Besin Piramidi",
+      "Ekosistem Ekolojisi ve Güncel Çevre Sorunları",
+      "Ekosistem Ekolojisi ve Madde Döngüleri",
+      "Ekotipi ve Ekosistem Ekolojisi",
+      "Madde Döngüleri ve Karbon Döngüsü",
+      "Popülasyon Ekolojisi",
+      "TYT Biyoloji - Ekosistem Ekolojisi (Besin Zinciri/Ağı)",
+      "TYT Biyoloji - Güncel Çevre Sorunları (Karbon Ayak İzi)"
+    ]
+  },
+  {
+    "id": "125c57e2-8097-42e3-ba26-d930e9a4d630",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Asal Sayılar",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Asal Sayılar",
+      "TYT Matematik - Asal Sayılar"
+    ]
+  },
+  {
+    "id": "b995f17f-4ba9-462a-9753-5c289c7fe056",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Bölünebilme",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Bölünebilme",
+      "TYT Matematik - Bölünebilme"
+    ]
+  },
+  {
+    "id": "fd17d384-8943-47b3-b3da-dca04243fd8e",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Cebirsel İfadeler",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Cebirsel İfadeler",
+      "TYT Matematik - Cebirsel İfadeler"
+    ]
+  },
+  {
+    "id": "cbbe636d-f550-4ab5-8c10-5e098191956f",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Fonksiyonlar",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Fonksiyonlar",
+      "TYT Matematik - Fonksiyonlar"
+    ]
+  },
+  {
+    "id": "c896017f-f4bb-4438-ac83-3a1e50ac6e81",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Kombinasyon",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Kombinasyon",
+      "TYT Matematik - Kombinasyon"
+    ]
+  },
+  {
+    "id": "ce793ea9-adaf-40f1-8092-73178ab420cd",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Köklü Sayılar",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Köklü Sayılar",
+      "TYT Matematik - Köklü Sayılar"
+    ]
+  },
+  {
+    "id": "18249e65-9d3c-40bc-90fc-0c3f0fce54a8",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Kümeler",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Kümeler",
+      "TYT Matematik - Kümeler"
+    ]
+  },
+  {
+    "id": "c7a52936-ffe2-496f-925d-fc8cdcce0496",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Mantık ve Sıralama",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Mantık ve Sıralama",
+      "TYT Matematik - Mantık Bulmacaları",
+      "TYT Matematik - Mantık ve Sıralama"
+    ]
+  },
+  {
+    "id": "c7be12a0-22c4-499b-af05-808e8a16a7b0",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Mutlak Değer",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Mutlak Değer",
+      "TYT Matematik - Mutlak Değer"
+    ]
+  },
+  {
+    "id": "9da40278-fe0d-4ff2-89d8-8332d026888b",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Oran Orantı",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Oran Orantı",
+      "TYT Matematik - Oran Orantı"
+    ]
+  },
+  {
+    "id": "01199828-5082-41c6-9305-dd5bd6d535b7",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Problemler",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Problemler",
+      "TYT Matematik - Problemler",
+      "TYT Matematik - Problemler (Doğrusal Denklemler)",
+      "TYT Matematik - Problemler (Oran-Orantı)",
+      "TYT Matematik - Yaş Problemleri",
+      "TYT Matematik - Yüzde ve Kâr Problemleri"
+    ]
+  },
+  {
+    "id": "03cddc82-9ea3-4e79-bf41-1adf220d2d54",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Sayı Doğrusu",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Sayı Doğrusu",
+      "TYT Matematik - Sayı Doğrusu ve Aralıklar",
+      "TYT Matematik - Sayı Doğrusu ve Kesirler",
+      "TYT Matematik - Sayı Doğrusu ve Üslü Sayılar"
+    ]
+  },
+  {
+    "id": "adb6bf1f-ff00-4f34-8dd5-63acdbcf08ce",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Tam Sayılar",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Tam Sayılar",
+      "TYT Matematik - Tam Sayılar"
+    ]
+  },
+  {
+    "id": "649a72c3-a1fa-497c-b893-0ec0eaa5a63a",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Örüntüler",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Örüntüler",
+      "TYT Matematik - Örüntüler"
+    ]
+  },
+  {
+    "id": "36774eaf-3dc7-4eb7-acf9-4bea7194ce2a",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Özel Tanımlı İşlemler",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Özel Tanımlı İşlemler",
+      "TYT Matematik - Özel Tanımlı İşlemler"
+    ]
+  },
+  {
+    "id": "900b109e-a29d-42ed-b9ec-87b63c6c9314",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Üslü Sayılar",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "Üslü Sayılar",
+      "TYT Matematik - Üslü Sayılar"
+    ]
+  },
+  {
+    "id": "ffe711ee-bf3a-44ee-b456-125fee566d82",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "İstatistik",
+    "code": null,
+    "created_at": "2026-09-05T14:10:40.777708+00:00",
+    "aliases": [
+      "İstatistik",
+      "TYT Matematik - İstatistik (Medyan)"
+    ]
+  },
+  {
+    "id": "df420c12-88f2-4b99-a099-e81706b1f987",
+    "subject_id": "1247f3b8-e090-467f-af94-3501ba2e137b",
+    "name": "Asit-Baz ve Metal Tepkimeleri",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.164443+00:00",
+    "aliases": [
+      "Asit-Baz ve Metal Tepkimeleri",
+      "TYT Kimya - Asit-Baz ve Metal Tepkimeleri"
+    ]
+  },
+  {
+    "id": "12292ed5-4dfc-49e4-96ca-7388823d32d2",
+    "subject_id": "1247f3b8-e090-467f-af94-3501ba2e137b",
+    "name": "Atom Teorisinin Tarihi",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.164443+00:00",
+    "aliases": [
+      "Atom Teorisinin Tarihi",
+      "TYT Kimya - Atom ve Periyodik Sistem (Atom Teorisinin Tarihi)"
+    ]
+  },
+  {
+    "id": "f71d2c49-a198-478d-9fe5-9898a99215a9",
+    "subject_id": "1247f3b8-e090-467f-af94-3501ba2e137b",
+    "name": "Element Kavramının Tarihi",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.164443+00:00",
+    "aliases": [
+      "Element Kavramının Tarihi",
+      "TYT Kimya - Atom ve Periyodik Sistem (Element Kavramının Tarihi)"
+    ]
+  },
+  {
+    "id": "3126352e-ae3a-440b-9afc-ae586db9e077",
+    "subject_id": "1247f3b8-e090-467f-af94-3501ba2e137b",
+    "name": "Kimya Disiplinleri",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.164443+00:00",
+    "aliases": [
+      "Kimya Disiplinleri",
+      "TYT Kimya - Kimya Bilimi (Kimya Disiplinleri)"
+    ]
+  },
+  {
+    "id": "4b1d8c67-10c0-4f51-b688-b2b32b3abae0",
+    "subject_id": "1247f3b8-e090-467f-af94-3501ba2e137b",
+    "name": "Simyadan Kimyaya",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.164443+00:00",
+    "aliases": [
+      "Simyadan Kimyaya",
+      "TYT Kimya - Kimya Bilimi (Simyadan Kimyaya)"
+    ]
+  },
+  {
+    "id": "92b166fb-2222-4e9f-9793-314f7ff35c96",
+    "subject_id": "1247f3b8-e090-467f-af94-3501ba2e137b",
+    "name": "Kimyasal Hesaplamalar",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.164443+00:00",
+    "aliases": [
+      "Kimyasal Hesaplamalar",
+      "TYT Kimya - Kimyasal Hesaplamalar (Stokiyometri)"
+    ]
+  },
+  {
+    "id": "084a978b-3d4b-4c78-9d93-a461a4cc1172",
+    "subject_id": "1247f3b8-e090-467f-af94-3501ba2e137b",
+    "name": "Metalik Bağ",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.164443+00:00",
+    "aliases": [
+      "Metalik Bağ",
+      "TYT Kimya - Kimyasal Türler Arası Etkileşimler (Metalik Bağ)"
+    ]
+  },
+  {
+    "id": "46536e05-53dd-429b-b2d1-764fea17c768",
+    "subject_id": "1247f3b8-e090-467f-af94-3501ba2e137b",
+    "name": "Periyodik Sistem",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.164443+00:00",
+    "aliases": [
+      "Periyodik Sistem",
+      "TYT Kimya - Periyodik Sistem"
+    ]
+  },
+  {
+    "id": "21c85c89-10aa-48bc-8e86-7d790378597e",
+    "subject_id": "cef8a0d6-6e4a-4c4c-964d-3264e5cbc615",
+    "name": "Konum (Mutlak ve Göreceli)",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.634197+00:00",
+    "aliases": [
+      "Konum (Mutlak ve Göreceli)",
+      "KPSS Coğrafya - Göreceli Konum",
+      "KPSS Coğrafya - Jeopolitik Konum",
+      "KPSS Coğrafya - Mutlak Konum",
+      "KPSS Coğrafya - Mutlak Konum (Gölge Boyu)",
+      "KPSS Coğrafya - Mutlak Konum (Gündüz-Gece Süreleri)",
+      "KPSS Coğrafya - Mutlak Konum (Yerel Saat)",
+      "KPSS Coğrafya - Mutlak ve Göreceli Konum",
+      "KPSS Coğrafya - Türkiye'nin Jeopolitik Konumu (Enerji Koridorları)",
+      "KPSS Coğrafya - Ulusal Saat Dilimi"
+    ]
+  },
+  {
+    "id": "bf7a9ee4-db78-467b-b89a-4c163d7b8d09",
+    "subject_id": "cef8a0d6-6e4a-4c4c-964d-3264e5cbc615",
+    "name": "Türkiye'nin Komşuları ve Sınırları",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.634197+00:00",
+    "aliases": [
+      "Türkiye'nin Komşuları ve Sınırları",
+      "KPSS Coğrafya - Sınır Kapıları",
+      "KPSS Coğrafya - Sınır Oluşturan Göller",
+      "KPSS Coğrafya - Türkiye'nin Komşuları ve Sınırları"
+    ]
+  },
+  {
+    "id": "0c67d61c-1ced-45be-a184-626abcf69eca",
+    "subject_id": "cef8a0d6-6e4a-4c4c-964d-3264e5cbc615",
+    "name": "Türkiye'nin Yer şekilleri ve Jeomorfoloji",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.634197+00:00",
+    "aliases": [
+      "Türkiye'nin Yer şekilleri ve Jeomorfoloji",
+      "KPSS Coğrafya - Bitki Coğrafyası ve Yükselti",
+      "KPSS Coğrafya - Delta Ovalarında Kıyı Set Gölleri",
+      "KPSS Coğrafya - Linyit Yatakları ve Jeolojik Dönemler",
+      "KPSS Coğrafya - Ovalarda Tarım Dışı Faaliyetler",
+      "KPSS Coğrafya - Türkiye'nin Dağları",
+      "KPSS Coğrafya - Türkiye'nin Platoları",
+      "KPSS Coğrafya - Türkiye'nin Yeryüzü Şekilleri (Harita Yorumlama)",
+      "KPSS Coğrafya - Ulaşım ve Yüzey Şekilleri",
+      "KPSS Coğrafya - Yalıyar (Deniz Aşındırma Dikliği)"
+    ]
+  },
+  {
+    "id": "67a74dcf-e3eb-4bdd-acc7-968eeaa46c2e",
+    "subject_id": "cef8a0d6-6e4a-4c4c-964d-3264e5cbc615",
+    "name": "Akarsular ve Barajlar",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.634197+00:00",
+    "aliases": [
+      "Akarsular ve Barajlar",
+      "KPSS Coğrafya - Akarsu Baraj Eşleştirmeleri",
+      "KPSS Coğrafya - Akdeniz Kıyısı Akarsuları",
+      "KPSS Coğrafya - Atatürk Barajı",
+      "KPSS Coğrafya - Açık ve Kapalı Havzalar",
+      "KPSS Coğrafya - Baraj Göllerinden Yararlanma",
+      "KPSS Coğrafya - Barajlar ve Akarsular",
+      "KPSS Coğrafya - Birecik Barajı ve Zeugma",
+      "KPSS Coğrafya - Yusufeli Barajı"
+    ]
+  },
+  {
+    "id": "c87ca638-b674-4428-9006-9b04abb52808",
+    "subject_id": "cef8a0d6-6e4a-4c4c-964d-3264e5cbc615",
+    "name": "Göller (Genel ve Özellikler)",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.634197+00:00",
+    "aliases": [
+      "Göller (Genel ve Özellikler)",
+      "KPSS Coğrafya - Açık ve Kapalı Havza Gölleri",
+      "KPSS Coğrafya - Ege Bölgesi'nde Göl Azlığı",
+      "KPSS Coğrafya - Göl Oluşum Tipi Eşleştirmeleri",
+      "KPSS Coğrafya - Göl Oluşum Tiplerinin Gruplandırılması",
+      "KPSS Coğrafya - Göl Suyu Özellikleri",
+      "KPSS Coğrafya - Göller Yöresi",
+      "KPSS Coğrafya - Göllerde Su Potansiyeli Değişimi",
+      "KPSS Coğrafya - Göllerin Bölgesel Yoğunluğu",
+      "KPSS Coğrafya - Türkiye Gölleri Genel Bilgi",
+      "KPSS Coğrafya - Türkiye'nin Gölleri (bölgesel dağılım)",
+      "KPSS Coğrafya - İznik Gölü Bazilikası"
+    ]
+  },
+  {
+    "id": "f6c73a7c-ac9d-4a70-a31b-2a56422a98a8",
+    "subject_id": "cef8a0d6-6e4a-4c4c-964d-3264e5cbc615",
+    "name": "Tektonik Göller",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.634197+00:00",
+    "aliases": [
+      "Tektonik Göller",
+      "KPSS Coğrafya - Beyşehir Eğirdir Kovada Gölleri",
+      "KPSS Coğrafya - Burdur Gölü",
+      "KPSS Coğrafya - Seyfe Gölü",
+      "KPSS Coğrafya - Tektonik Göllerin Dağılışı",
+      "KPSS Coğrafya - Van Gölü"
+    ]
+  },
+  {
+    "id": "e8a79c83-3d49-46c1-a911-bc87b480133d",
+    "subject_id": "cef8a0d6-6e4a-4c4c-964d-3264e5cbc615",
+    "name": "Karstik Göller",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.634197+00:00",
+    "aliases": [
+      "Karstik Göller",
+      "KPSS Coğrafya - Karstik Göl Tanımı",
+      "KPSS Coğrafya - Karstik Göller"
+    ]
+  },
+  {
+    "id": "16e176da-bd7c-4783-9665-123d214d97b8",
+    "subject_id": "cef8a0d6-6e4a-4c4c-964d-3264e5cbc615",
+    "name": "Volkanik Göller",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.634197+00:00",
+    "aliases": [
+      "Volkanik Göller",
+      "KPSS Coğrafya - Maar Gölleri",
+      "KPSS Coğrafya - Volkanik Göller (Kaldera)"
+    ]
+  },
+  {
+    "id": "258e8e46-30cb-4423-a46d-a6f1b43c61d9",
+    "subject_id": "cef8a0d6-6e4a-4c4c-964d-3264e5cbc615",
+    "name": "Buzul (Sirk) Gölleri",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.634197+00:00",
+    "aliases": [
+      "Buzul (Sirk) Gölleri",
+      "KPSS Coğrafya - Sirk (Buzul) Gölleri",
+      "KPSS Coğrafya - Sirk Gölleri"
+    ]
+  },
+  {
+    "id": "bfbdf337-b13f-42e5-8e3b-0dace6a6a7c1",
+    "subject_id": "cef8a0d6-6e4a-4c4c-964d-3264e5cbc615",
+    "name": "Set Gölleri (Heyelan, Alüvyal, Kıyı ve Volkanik Set)",
+    "code": null,
+    "created_at": "2026-09-05T14:10:41.634197+00:00",
+    "aliases": [
+      "Set Gölleri (Heyelan, Alüvyal, Kıyı ve Volkanik Set)",
+      "KPSS Coğrafya - Alüvyal Set Gölleri (Bafa Gölü)",
+      "KPSS Coğrafya - Ege Kıyısı Körfezleri",
+      "KPSS Coğrafya - Heyelan Set Gölleri",
+      "KPSS Coğrafya - Karma Oluşumlu Göller",
+      "KPSS Coğrafya - Kıyı Set Gölleri",
+      "KPSS Coğrafya - Set Gölleri",
+      "KPSS Coğrafya - Volkanik Set Gölleri"
+    ]
+  },
+  {
+    "id": "99a76a28-77f6-40f9-b4d6-9b3204c31771",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Mantık",
+    "code": null,
+    "created_at": "2026-09-05T20:28:47.752935+00:00",
+    "aliases": []
+  },
+  {
+    "id": "c29bec1f-b69e-4cef-8de7-29eb0b8480a2",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Temel Kavramlar, Sayı Basamakları, Sayı Kümeleri-1",
+    "code": null,
+    "created_at": "2026-09-05T21:05:26.449142+00:00",
+    "aliases": []
+  },
+  {
+    "id": "bb85b5be-5626-45b8-93b9-f0bdf0128218",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Temel Kavramlar, Sayı Basamakları, Sayı Kümeleri-2",
+    "code": null,
+    "created_at": "2026-09-05T21:05:57.495783+00:00",
+    "aliases": []
+  },
+  {
+    "id": "f767c1b5-fe10-46dc-92aa-e0617e00d46d",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Bölme - Bölünebilme Kuralları",
+    "code": null,
+    "created_at": "2026-09-05T21:07:43.169263+00:00",
+    "aliases": []
+  },
+  {
+    "id": "9ef141cc-4be4-4fa5-8fac-5be2a839a1ac",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "EBOB - EKOK, Periyodik Olarak Tekrar Eden Durumlar",
+    "code": null,
+    "created_at": "2026-09-05T21:09:30.671357+00:00",
+    "aliases": []
+  },
+  {
+    "id": "2bfd4c5b-5fba-4ac5-b3b9-9bb6ab46e2c2",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Birinci Dereceden Denklem ve Eşitsizlikler-1",
+    "code": null,
+    "created_at": "2026-09-05T21:11:22.523367+00:00",
+    "aliases": []
+  },
+  {
+    "id": "5df4a0ec-4336-4b0d-97e6-3fb5c0a5e8d8",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Birinci Dereceden Denklem ve Eşitsizlikler-2",
+    "code": null,
+    "created_at": "2026-09-05T21:13:00.957893+00:00",
+    "aliases": []
+  },
+  {
+    "id": "9be9e167-0da4-414f-863e-8420417d9fd0",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Üslü ve Köklü İfadeler - 1",
+    "code": null,
+    "created_at": "2026-09-05T21:14:50.773062+00:00",
+    "aliases": []
+  },
+  {
+    "id": "32c52fb2-1ba5-409c-8b20-e60b6f73e659",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Üslü ve Köklü İfadeler - 2",
+    "code": null,
+    "created_at": "2026-09-05T21:16:09.330701+00:00",
+    "aliases": []
+  },
+  {
+    "id": "96c3f6fe-6410-4db9-a7d4-7dc8755c9b2a",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Oran ve Orantı",
+    "code": null,
+    "created_at": "2026-09-05T21:17:49.940605+00:00",
+    "aliases": []
+  },
+  {
+    "id": "900f915f-6bc0-4ae2-8c42-064868205581",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Sayı, Kesir, Yaş, İşçi Problemleri - 1",
+    "code": null,
+    "created_at": "2026-09-05T21:19:27.980907+00:00",
+    "aliases": []
+  },
+  {
+    "id": "476a15b5-8f61-4f19-a4ae-2cdd61b7abe2",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Sayı, Kesir, Yaş, İşçi Problemleri - 2",
+    "code": null,
+    "created_at": "2026-09-05T21:21:04.248851+00:00",
+    "aliases": []
+  },
+  {
+    "id": "19a48256-c582-46fe-8090-a993ccf26071",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Kar-Zarar, Yüzde, Karışım, Hareket Problemleri-1",
+    "code": null,
+    "created_at": "2026-09-05T21:23:11.447627+00:00",
+    "aliases": []
+  },
+  {
+    "id": "33460b7b-2bef-4249-9de6-032b08007c3c",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Kar-Zarar, Yüzde, Karışım, Hareket Problemleri-2",
+    "code": null,
+    "created_at": "2026-09-05T21:24:57.437108+00:00",
+    "aliases": []
+  },
+  {
+    "id": "f9dc4b65-970e-4c7b-8c85-2d4c733bbf6f",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Veri - 1",
+    "code": null,
+    "created_at": "2026-09-05T21:26:40.851635+00:00",
+    "aliases": []
+  },
+  {
+    "id": "5b0550d2-8e50-4af5-86bc-dafbf6024a1f",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Veri - 2",
+    "code": null,
+    "created_at": "2026-09-05T21:28:03.881087+00:00",
+    "aliases": []
+  },
+  {
+    "id": "296a329e-e52f-4515-b140-0c29b94ee3b6",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Permütasyon, Kombinasyon, Binom",
+    "code": null,
+    "created_at": "2026-09-05T21:29:34.254391+00:00",
+    "aliases": []
+  },
+  {
+    "id": "ef4effdb-a3ba-42a5-9b7d-4b250ea1c592",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Olasılık",
+    "code": null,
+    "created_at": "2026-09-05T21:31:20.71137+00:00",
+    "aliases": []
+  },
+  {
+    "id": "46c94681-2d7a-47e3-894d-27ebc78f9e14",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Fonksiyon Kavramı ve Özellikleri",
+    "code": null,
+    "created_at": "2026-09-05T21:33:14.082234+00:00",
+    "aliases": []
+  },
+  {
+    "id": "6a2bd8fe-2e23-4c71-8161-c84b0a78f4bb",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Polinomlar ve Çarpanlara Ayırma",
+    "code": null,
+    "created_at": "2026-09-05T21:34:52.328398+00:00",
+    "aliases": []
+  },
+  {
+    "id": "367adb33-a595-4749-a4a6-7317bf6d18eb",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "İkinci Dereceden Denklemler, Karmaşık Sayılar",
+    "code": null,
+    "created_at": "2026-09-05T21:36:38.454169+00:00",
+    "aliases": []
+  },
+  {
+    "id": "f5e356be-8085-4074-9790-2af8931e62ab",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Üçgende Temel Kavramlar, Üçgen Eşitsizliği, Üçgenin Yardımcı Elemanları",
+    "code": null,
+    "created_at": "2026-09-05T21:38:35.73775+00:00",
+    "aliases": []
+  },
+  {
+    "id": "07c19350-0662-4f8e-98f8-83d90a44c8ba",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Üçgende Eşlik ve Benzerlik",
+    "code": null,
+    "created_at": "2026-09-05T21:39:59.146936+00:00",
+    "aliases": []
+  },
+  {
+    "id": "a8d6ae78-3bdd-41ec-b5c1-df8d24368f03",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Üçgenler",
+    "code": null,
+    "created_at": "2026-09-05T21:41:20.211393+00:00",
+    "aliases": []
+  },
+  {
+    "id": "e6262383-8a80-400d-91f9-1611c9fded05",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Dik Üçgen ve Trigonometri",
+    "code": null,
+    "created_at": "2026-09-05T21:42:46.10742+00:00",
+    "aliases": []
+  },
+  {
+    "id": "a2aa31a0-2eaa-45c4-932f-0252655c39b7",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Üçgenin Alanı",
+    "code": null,
+    "created_at": "2026-09-05T21:44:11.430746+00:00",
+    "aliases": []
+  },
+  {
+    "id": "3eec2044-775b-42e4-979b-3ba05f1ed2b0",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Çokgen ve Dörtgenlerin Özellikleri",
+    "code": null,
+    "created_at": "2026-09-05T21:45:28.534722+00:00",
+    "aliases": []
+  },
+  {
+    "id": "fdb823a2-fb66-4e8c-ad00-9f5ed0af0d10",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Yamuk, Paralelkenar",
+    "code": null,
+    "created_at": "2026-09-05T21:46:46.824036+00:00",
+    "aliases": []
+  },
+  {
+    "id": "ed318082-96d2-4070-a836-78485f7573bb",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Eşkenar Dörtgen, Dikdörtgen",
+    "code": null,
+    "created_at": "2026-09-05T21:48:12.841225+00:00",
+    "aliases": []
+  },
+  {
+    "id": "e2e5ff62-117a-468a-932c-dedcd79cd797",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Kare, Deltoid",
+    "code": null,
+    "created_at": "2026-09-05T21:48:45.915536+00:00",
+    "aliases": []
+  },
+  {
+    "id": "cd8dfcf0-951a-4491-82d5-5e2d8e934d56",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Dörtgenler",
+    "code": null,
+    "created_at": "2026-09-05T21:49:16.439114+00:00",
+    "aliases": []
+  },
+  {
+    "id": "551f478b-6c3e-4e46-b0a1-c8987e35aa86",
+    "subject_id": "8f2aa248-d6c4-4363-a4a3-1e03fad2de37",
+    "name": "Katı Cisimler - Prizmalar",
+    "code": null,
+    "created_at": "2026-09-05T21:49:47.254899+00:00",
+    "aliases": []
+  }
+]
