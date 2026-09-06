@@ -1200,7 +1200,7 @@ export default function StudentPanel() {
             <h1 className="text-3xl font-heading font-semibold mb-2 tracking-tight print:hidden">Sınav ve Denemeler</h1>
             <p className="text-foreground/60 mb-8 max-w-2xl print:hidden">Geçmiş sınavlarınızı görüntüleyin ve Türkiye geneli yapay zeka denemelerine katılın veya öğretmen havuzundan kendi sınavınızı oluşturun.</p>
 
-            <div className="bg-surface p-8 rounded-2xl border border-border shadow-sm mb-10 overflow-hidden relative print:border-0 print:shadow-none print:p-0">
+            <div className="bg-surface p-8 rounded-2xl border border-border shadow-sm mb-10 overflow-hidden relative print:border-0 print:shadow-none print:p-0 print:overflow-visible print:mb-0 print:bg-transparent print:rounded-none">
               <div className="absolute top-0 right-0 w-64 h-64 bg-brand-yellow/5 rounded-bl-full pointer-events-none print:hidden" />
 
               <h3 className="font-heading font-semibold text-xl mb-6 relative z-10 text-brand-green print:hidden">Öğretmen Havuzundan Sınav Hazırla</h3>
@@ -1731,7 +1731,7 @@ export default function StudentPanel() {
   };
 
   return (
-    <div className="flex h-screen bg-background text-foreground font-sans overflow-hidden">
+    <div className="flex h-screen bg-background text-foreground font-sans overflow-hidden print:h-auto print:overflow-visible print:block print:bg-white">
       {/* Sidebar */}
       <aside className="w-[280px] flex-none flex flex-col bg-surface border-r border-border shadow-sm relative z-20 print:hidden">
         <div className="p-6">
@@ -1777,8 +1777,8 @@ export default function StudentPanel() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 min-w-0 overflow-y-auto relative bg-background custom-scrollbar">
-        <div className="max-w-6xl mx-auto p-8 lg:p-12 pb-24">
+      <main className="flex-1 min-w-0 overflow-y-auto relative bg-background custom-scrollbar print:overflow-visible print:h-auto print:bg-white">
+        <div className="max-w-6xl mx-auto p-8 lg:p-12 pb-24 print:p-0 print:max-w-none">
           {renderContent()}
         </div>
       </main>

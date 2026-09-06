@@ -83,7 +83,7 @@ export function ExamResultView({
 
         <div className="flex flex-col gap-6">
           {items.map((q, i) => (
-            <div key={q.id ?? i} className="flex gap-4">
+            <div key={q.id ?? i} className="flex gap-4 print:break-inside-avoid">
               <div className="w-7 shrink-0 font-heading text-sm font-semibold text-brand-green">{i + 1}</div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-3">

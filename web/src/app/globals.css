@@ -46,6 +46,14 @@ body {
   font-family: var(--font-body), system-ui, sans-serif;
 }
 
+/* PDF export (window.print()): sayfanın kendi #f0f0f0 arka planı yazdırmada gri bir
+   zemin olarak çıkıyordu — basit, temiz bir belge için beyaz zemin zorlanıyor. */
+@media print {
+  body {
+    background: #fff !important;
+  }
+}
+
 h1, h2, h3, h4 {
   font-family: var(--font-heading), system-ui, sans-serif;
 }

@@ -534,7 +534,7 @@ export default function OgretmenPanel() {
               Havuzdaki sorulardan sınıfına özel bir deneme hazırla, seçtiğin kazanımlara göre soruları diz.
             </p>
 
-            <div className="bg-surface p-8 rounded-2xl border border-border shadow-sm mb-10 overflow-hidden relative print:border-0 print:shadow-none print:p-0">
+            <div className="bg-surface p-8 rounded-2xl border border-border shadow-sm mb-10 overflow-hidden relative print:border-0 print:shadow-none print:p-0 print:overflow-visible print:mb-0 print:bg-transparent print:rounded-none">
               <div className="absolute top-0 right-0 w-64 h-64 bg-brand-yellow/5 rounded-bl-full pointer-events-none print:hidden" />
               <h3 className="font-heading font-semibold text-xl mb-6 relative z-10 text-brand-green print:hidden">Yeni Sınav</h3>
 
@@ -1192,7 +1192,7 @@ export default function OgretmenPanel() {
   };
 
   return (
-    <div className="flex h-screen bg-background text-foreground font-sans overflow-hidden">
+    <div className="flex h-screen bg-background text-foreground font-sans overflow-hidden print:h-auto print:overflow-visible print:block print:bg-white">
       <aside className="w-[280px] flex-none flex flex-col bg-surface border-r border-border shadow-sm relative z-20 print:hidden">
         <div className="p-6">
           <Link href="/" className="flex items-center gap-2.5 mb-2 hover:opacity-80 transition-opacity">
@@ -1234,8 +1234,8 @@ export default function OgretmenPanel() {
         </div>
       </aside>
 
-      <main className="flex-1 min-w-0 overflow-y-auto relative bg-background">
-        <div className="max-w-6xl mx-auto p-8 lg:p-12 pb-24">{renderContent()}</div>
+      <main className="flex-1 min-w-0 overflow-y-auto relative bg-background print:overflow-visible print:h-auto print:bg-white">
+        <div className="max-w-6xl mx-auto p-8 lg:p-12 pb-24 print:p-0 print:max-w-none">{renderContent()}</div>
       </main>
     </div>
   );
