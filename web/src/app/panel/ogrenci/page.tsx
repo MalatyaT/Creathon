@@ -1547,11 +1547,8 @@ export default function StudentPanel() {
       {/* Sidebar */}
       <aside className="w-[280px] flex-none flex flex-col bg-surface border-r border-border shadow-sm relative z-20">
         <div className="p-6">
-          <Link href="/" className="flex items-center gap-2.5 mb-2 hover:opacity-80 transition-opacity">
-            <TwinMark />
-            <div>
-              <div className="font-heading text-2xl font-bold tracking-tight text-brand-green leading-none">İkiz</div>
-            </div>
+          <Link href="/" className="flex items-center gap-2.5 mb-2 hover:opacity-80 transition-opacity h-12">
+            <TwinMark className="h-full" />
           </Link>
           <div className="text-[10px] tracking-widest uppercase text-brand-yellow-600 font-bold ml-9">Öğrenci Paneli</div>
         </div>
